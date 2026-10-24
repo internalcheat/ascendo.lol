@@ -60,11 +60,21 @@ To add a curated profile, copy an existing profile directory and edit the identi
 
 - `/login/` accepts a profile's private numeric access code after a Cloudflare Turnstile check.
 - `/customize/` edits only the profile assigned to the authenticated account. Both pages are unlisted and marked `noindex, nofollow`.
-- The studio includes identity, optional linked bio and cosmetic badge, avatar crop/still fallback, accent, card opacity, glow, five name effects, social-row ordering and link/copy actions, black/image/video backgrounds, and soundtrack title/artist.
+- The studio includes identity, optional linked bio and cosmetic badge, avatar crop/still fallback, accent, card opacity, glow, nine name-effect choices, social-row ordering and link/copy actions, black/image/video backgrounds, and soundtrack title/artist.
 - Changes appear in a private live preview first. **Save changes** publishes one validated settings revision. Discard, original defaults, and the previous saved version are available. A stale revision returns a conflict rather than overwriting another tab. Same-tab unpublished drafts survive a reload in session storage and are cleared on save, discard, or logout.
 - Avatar and background settings accept direct public HTTPS URLs, or the upload controls. Only MP4's embedded audio is played: there is no separate audio-upload system.
 - Public profiles remain immediately readable from their static HTML if JavaScript, the backend, or media is unavailable. Last fetched public settings are cached locally; credentials and editing sessions are never placed in that public cache. Search metadata/static fallback stays hand-authored.
 - The homepage still lists only its original two founders. Unlisted profiles are not automatically added anywhere.
+
+### Display-name effects
+
+Style offers **None**, **Steady glow**, **Glitch**, **Shimmer**, **Typewriter**, **Neon pulse**, **Aurora**, **Letter wave**, and **Float**. Glitch uses aligned, clipped cyan/purple text layers rather than an almost imperceptible one-pixel nudge. Shimmer and Aurora clip their gradients to the text without the old heavy white shadow masking the colors. Unsupported gradient clipping falls back to readable white text.
+
+Animation speed ranges from **0.5× to 2.0×**; effect strength ranges from **0–100%**. These are independent of the existing name-glow setting. Static choices disable animation-only controls, and Typewriter disables strength because it has no motion amplitude. **Replay effect** restarts only the name, not the background video or the rest of the card. Typewriter reveals once; the other animated choices loop.
+
+The editor retains the heading node during unrelated edits so changing a bio or color does not keep restarting the animation. Letter wave uses grapheme-aware character spans where supported and a single accessible heading label. Animations pause in hidden tabs. Reduced-motion users receive a readable still name, with the reason shown in the editor; their preference is not silently overridden.
+
+Existing saved profiles, previous versions, and drafts receive default speed `100` and strength `65` during validation. The shared server/client validator restricts effect names and numeric ranges. No stored profile content or existing selected effect is rewritten by this release. Entry modules, their changed dependencies, and affected styles use cache version `20261025-3`.
 
 ### Backend and security
 
