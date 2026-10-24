@@ -149,7 +149,7 @@ async function uploadFile(file,kind,group) {
   progress.hidden=false;cancel.hidden=false;
   let rejectUpload;
   const upload=new Upload(file,{
-    endpoint:reserved.endpoint,headers:{apikey:PUBLISHABLE_KEY,'x-signature':reserved.token,Authorization:`Bearer ${session().access_token}`},
+    endpoint:reserved.endpoint,headers:{apikey:PUBLISHABLE_KEY,'x-signature':reserved.token},
     onBeforeRequest:async connection=>{const current=await freshSession();connection.setHeader('Authorization',`Bearer ${current.access_token}`);},
     retryDelays:[0,1000,3000,5000,10000],chunkSize:6*1024*1024,uploadDataDuringCreation:true,removeFingerprintOnSuccess:true,
     metadata:{bucketName:'profile-drafts',objectName:reserved.path,contentType:mime,cacheControl:'3600'},
