@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#050307">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src &#39;self&#39;; script-src &#39;self&#39; https://challenges.cloudflare.com; style-src &#39;self&#39; &#39;unsafe-inline&#39; https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src &#39;self&#39; https: blob: data:; media-src https: blob:; connect-src &#39;self&#39; https://fstdttaxflayhtwhnbih.supabase.co https://fstdttaxflayhtwhnbih.storage.supabase.co https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; object-src &#39;none&#39;; base-uri &#39;self&#39;; form-action &#39;self&#39;">
+<title>Your studio | Ascendo</title>
+<link rel="icon" href="/assets/ascendo-icon-32.png?v=20261023-2" sizes="32x32" type="image/png">
+<link rel="shortcut icon" href="/assets/ascendo-icon.ico?v=20261023-2">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/styles.css?v=20261025-1">
+<link rel="stylesheet" href="/profile-custom.css?v=20261025-1">
+<link rel="stylesheet" href="/editor.css?v=20261025-1">
+<script src="/app.js?v=20261025-1" defer></script>
+<script type="module" src="/editor.mjs?v=20261025-1"></script>
+</head>
+<body class="page page--editor">
+<div class="studio-shell">
+<header class="studio-header"><a class="studio-brand" href="/" aria-label="Ascendo home"><img src="/assets/ascendo-logo.png" alt="Ascendo" width="1300" height="414"></a><div class="studio-header__actions"><a class="studio-button" id="viewProfile" href="/" target="_blank" rel="noopener noreferrer" hidden>View profile ↗</a><button class="studio-button" type="button" id="logoutButton">Log out</button></div></header>
+<main>
+<h1 class="studio-title">Your profile, your way.</h1>
+<p class="studio-subtitle" id="studioIdentity">Opening your private studio…</p>
+<p class="studio-status" id="editorStatus" role="status" aria-live="polite"></p>
+<noscript><p class="studio-help">The private editor requires JavaScript. No changes can be saved from this page without it.</p></noscript>
+<div id="editorContent" hidden>
+<div class="studio-tabs" role="tablist" aria-label="Studio view"><button class="studio-button" id="editTab" type="button" role="tab" aria-selected="true" aria-controls="controlsPanel">Edit</button><button class="studio-button" id="previewTab" type="button" role="tab" aria-selected="false" aria-controls="previewPanel" tabindex="-1">Preview</button></div>
+<form id="profileForm">
+<div class="studio-grid" id="studioGrid" data-tab="edit">
+<div class="studio-controls" id="controlsPanel">
+<section class="studio-section studio-panel"><h2>Identity</h2><div class="studio-fields">
+<label class="studio-label">Display name<input class="studio-input" id="displayName" type="text" maxlength="40" required></label>
+<label class="studio-label">Cosmetic badge<input class="studio-input" id="badge" type="text" maxlength="32" placeholder="Optional"></label>
+<div class="full-width"><label class="studio-label full-width">Bio<textarea class="studio-input" id="bio" maxlength="1200" rows="4" placeholder="A few words about you…"></textarea></label><p class="studio-help">Optional. Links use [label](https://example.com). HTML is not supported.</p></div>
+</div></section>
+<section class="studio-section studio-panel"><h2>Style</h2><div class="studio-fields">
+<label class="studio-label">Accent color<input class="studio-input" id="accent" type="color" ></label>
+<label class="studio-label">Name effect<select class="studio-input" id="effect"><option value="none">None</option><option value="glow">Steady glow</option><option value="glitch">Glitch</option><option value="shimmer">Shimmer</option><option value="typewriter">Typewriter</option></select></label>
+<label class="studio-label">Name glow<input class="studio-input" id="glow" type="range" min="0" max="100" step="1"></label>
+<label class="studio-label">Card opacity<input class="studio-input" id="opacity" type="range" min="25" max="95" step="1"></label>
+</div></section>
+<section class="studio-section studio-panel"><h2>Avatar</h2><div class="studio-fields">
+<div class="full-width"><label class="studio-label">Avatar URL<input class="studio-input" id="avatarUrl" type="url" maxlength="2048" placeholder="https://…"></label><div class="studio-upload" data-upload="avatar"><input type="file" accept="image/jpeg,image/png,image/webp,image/gif" aria-label="Upload avatar url"><progress max="100" value="0" hidden aria-label="Avatar URL upload progress"></progress><button class="studio-button" type="button" data-cancel hidden>Cancel upload</button><span class="studio-help" data-upload-status></span></div></div>
+<div class="full-width"><label class="studio-label">Still avatar fallback URL<input class="studio-input" id="avatarPoster" type="url" maxlength="2048" placeholder="https://…"></label><div class="studio-upload" data-upload="poster"><input type="file" accept="image/jpeg,image/png,image/webp,image/gif" aria-label="Upload still avatar fallback url"><progress max="100" value="0" hidden aria-label="Still avatar fallback URL upload progress"></progress><button class="studio-button" type="button" data-cancel hidden>Cancel upload</button><span class="studio-help" data-upload-status></span></div></div>
+<label class="studio-label">Crop horizontally<input class="studio-input" id="avatarX" type="range" min="0" max="100" step="1"></label>
+<label class="studio-label">Crop vertically<input class="studio-input" id="avatarY" type="range" min="0" max="100" step="1"></label>
+</div><p class="studio-help">Up to 5 MB. Animated GIF/WebP stays animated; a still fallback is generated when you upload.</p></section>
+<section class="studio-section studio-panel"><h2>Background &amp; soundtrack</h2><div class="studio-fields">
+<label class="studio-label full-width">Background type<select class="studio-input" id="backgroundKind"><option value="video">Video with its own audio</option><option value="image">Image</option><option value="black">Solid black</option></select></label>
+<div class="full-width"><label class="studio-label">Video URL<input class="studio-input" id="videoUrl" type="url" maxlength="2048" placeholder="https://…"></label><div class="studio-upload" data-upload="video"><input type="file" accept="video/mp4" aria-label="Upload video url"><progress max="100" value="0" hidden aria-label="Video URL upload progress"></progress><button class="studio-button" type="button" data-cancel hidden>Cancel upload</button><span class="studio-help" data-upload-status></span></div></div>
+<div class="full-width"><label class="studio-label">Background image URL<input class="studio-input" id="imageUrl" type="url" maxlength="2048" placeholder="https://…"></label><div class="studio-upload" data-upload="backgroundImage"><input type="file" accept="image/jpeg,image/png,image/webp,image/gif" aria-label="Upload background image url"><progress max="100" value="0" hidden aria-label="Background image URL upload progress"></progress><button class="studio-button" type="button" data-cancel hidden>Cancel upload</button><span class="studio-help" data-upload-status></span></div></div>
+<div class="full-width"><label class="studio-label">Video poster URL<input class="studio-input" id="backgroundPoster" type="url" maxlength="2048" placeholder="https://…"></label><div class="studio-upload" data-upload="poster"><input type="file" accept="image/jpeg,image/png,image/webp,image/gif" aria-label="Upload video poster url"><progress max="100" value="0" hidden aria-label="Video poster URL upload progress"></progress><button class="studio-button" type="button" data-cancel hidden>Cancel upload</button><span class="studio-help" data-upload-status></span></div></div>
+<label class="studio-label">Song title<input class="studio-input" id="songTitle" type="text" maxlength="100" placeholder="Profile soundtrack"></label>
+<label class="studio-label">Artist<input class="studio-input" id="songArtist" type="text" maxlength="140" placeholder="Optional"></label>
+</div><p class="studio-help">MP4 up to 50 MB, images up to 5 MB. Use direct HTTPS media files—not YouTube/TikTok webpages. Hosted files can expire or track visitors; 720p compressed MP4 is recommended. The video supplies the audio.</p></section>
+<section class="studio-section studio-panel"><h2>Social rows</h2><div class="social-editor" id="socialRows"></div><button class="studio-button" id="addSocial" type="button">+ Add social</button><p class="studio-help">Up to 16 rows. Links open new tabs; copy rows copy only the value you provide.</p></section>
+<section class="studio-section studio-panel"><h2>Your media</h2><p class="studio-help" id="storageUsage"></p><div class="media-library" id="mediaLibrary"></div><p class="studio-help">Current and previous saved media are protected. Unused uploads are cleaned after 24 hours; you can remove unreferenced files here sooner.</p></section>
+</div>
+<aside class="studio-preview" id="previewPanel" aria-label="Private profile preview">
+<div class="preview-card"><div class="preview-stage" id="previewStage" aria-hidden="true"><img id="previewPoster" alt=""><video id="previewVideo" playsinline loop preload="none" muted></video></div><section class="profile__panel" id="previewCard"></section></div>
+<p class="preview-caption">Private preview · Nothing changes publicly until you save.</p>
+<button class="studio-button preview-sound" id="previewSound" type="button">Preview video with sound</button>
+<p class="studio-help" id="previewHint" role="status"></p>
+</aside>
+</div>
+<div class="studio-savebar"><span class="studio-help" id="saveState">All changes saved</span><button class="studio-button" id="reloadLatest" type="button" hidden>Load latest saved</button><button class="studio-button" id="discardChanges" type="button">Discard</button><button class="studio-button" id="restorePrevious" type="button">Previous version</button><button class="studio-button" id="resetProfile" type="button">Reset</button><button class="studio-button studio-button--primary" id="saveChanges" type="submit">Save changes ↗</button></div>
+</form>
+</div>
+</main>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>

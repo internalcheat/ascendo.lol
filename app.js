@@ -143,13 +143,13 @@
     return copied;
   }
 
-  for (const button of document.querySelectorAll('[data-copy]')) {
-    button.addEventListener('click', async () => {
-      const value = button.dataset.copy;
-      const copied = await copyValue(value);
-      showToast(copied ? `${button.dataset.platform}: ${value} copied` : `${button.dataset.platform}: ${value}`);
-    });
-  }
+  document.addEventListener('click', async event => {
+    const button = event.target.closest?.('[data-copy]');
+    if (!button) return;
+    const value = button.dataset.copy;
+    const copied = await copyValue(value);
+    showToast(copied ? `${button.dataset.platform}: ${value} copied` : `${button.dataset.platform}: ${value}`);
+  });
 
   const video = document.getElementById('musicBackground');
   const mediaControls = document.getElementById('mediaControls');
@@ -250,28 +250,69 @@
     showToast('Background media could not be loaded');
   });
 
-  if (mediaControls) mediaControls.hidden = false;
-  video.src = video.dataset.backgroundSrc || '../assets/music-background.mp4';
+  const saveData = navigator.connection?.saveData === true;
+  const smallMedia = matchMedia('(max-width: 820px), (pointer: coarse)');
+  let desiredSource;
+  let sourceGeneration = 0;
+  function backgroundSource() {
+    const kind = video.dataset.backgroundKind || 'video';
+    if (kind !== 'video') return '';
+    return smallMedia.matches && video.dataset.mobileSrc ? video.dataset.mobileSrc : video.dataset.backgroundSrc || '../assets/music-background.mp4';
+  }
+  function quietBackground() { return reduceMotion.matches || saveData; }
+  async function startBackground(userInitiated = false) {
+    const source = backgroundSource();
+    const quiet = quietBackground();
+    document.body.classList.toggle('media-poster-only', quiet);
+    if (mediaControls) mediaControls.hidden = !source;
+    const stage = video.closest?.('.video-stage');
+    const poster = video.getAttribute?.('poster') || '';
+    if (stage && poster) {
+      stage.style.backgroundImage = `url(${JSON.stringify(poster)})`;
+      stage.style.backgroundSize = 'cover';
+      stage.style.backgroundPosition = 'center';
+    }
+    if (!source) {
+      desiredSource = undefined;
+      sourceGeneration++;
+      video.pause(); video.removeAttribute('src'); video.load();
+      document.body.classList.remove('has-video');
+      return;
+    }
+    const absolute = new URL(source,location.href).href;
+    if (quiet && ((!userInitiated && (video.muted || !video.currentSrc)) || (video.muted && video.volume === 0))) {
+      video.pause(); video.muted = true; syncVolume();
+      return;
+    }
+    const changed = desiredSource !== absolute;
+    if (changed) {
+      desiredSource = absolute;
+      sourceGeneration++;
+      video.src = source;
+      document.body.classList.remove('has-video');
+    }
+    if (!changed && !video.paused) return;
+    const generation = sourceGeneration;
+    try { await video.play(); }
+    catch {
+      if (video.error || generation !== sourceGeneration) return;
+      video.muted = true; syncVolume();
+      try { await video.play(); } catch { if (generation === sourceGeneration) showToast('Background playback is unavailable'); }
+    }
+  }
   video.volume = 0.65;
-  video.muted = false;
+  video.muted = quietBackground();
   syncVolume();
-  video.play().catch(() => {
-    if (video.error) return;
-    video.muted = true;
-    syncVolume();
-    video.play().catch(() => showToast('Background playback is unavailable'));
-  });
+  startBackground();
+  video.addEventListener('ascendo:background', () => startBackground());
+  reduceMotion.addEventListener('change', () => startBackground());
+  smallMedia.addEventListener('change', () => startBackground());
 
   volumeControl?.addEventListener('input', () => {
     const volume = Number(volumeControl.value) / 100;
     video.volume = volume;
     video.muted = volume === 0;
     syncVolume();
-    if (video.paused && !video.error) {
-      video.play().catch(() => {
-        video.muted = true;
-        syncVolume();
-      });
-    }
+    if (!video.error) startBackground(true);
   });
 })();
