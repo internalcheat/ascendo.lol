@@ -1,14 +1,27 @@
 .custom-profile { --profile-accent: #c19aff; --accent-rgb: 193,154,255; --profile-opacity: .53; --name-glow: .65; border-color: rgba(var(--accent-rgb),.28); background: linear-gradient(135deg,rgba(255,255,255,.065),transparent 48%,rgba(var(--accent-rgb),.045)),rgba(15,12,23,var(--profile-opacity)); }
 .custom-profile .avatar { border-color: rgba(var(--accent-rgb),.65); box-shadow: 0 0 0 7px rgba(var(--accent-rgb),.055),0 15px 35px rgba(0,0,0,.3); }
 .custom-profile .profile__name { text-shadow: 0 0 9px rgba(255,255,255,calc(var(--name-glow)*.5)),0 0 28px rgba(var(--accent-rgb),calc(var(--name-glow)*.45)); }
+.custom-profile .name-text { position: relative; display: block; max-width: 100%; }
+.custom-profile .name-letter { display: inline-block; white-space: pre; }
 .custom-profile[data-effect='none'] .profile__name { text-shadow: none; }
 .custom-profile .social-link__symbol { color: #fff; background: rgba(var(--accent-rgb),.09); }
 .custom-profile .social-link:hover, .custom-profile .social-link:focus-visible { border-color: rgba(var(--accent-rgb),.5); background-color: rgba(var(--accent-rgb),.1); }
 .profile-badge { max-width: 100%; margin-top: 12px; padding: 5px 11px; border: 1px solid rgba(var(--accent-rgb),.25); border-radius: 99px; color: #eee5f8; background: rgba(var(--accent-rgb),.08); font-size: 10px; letter-spacing: .04em; overflow-wrap: anywhere; }
 .page--profile .back-link, .page--profile .media-controls { border-color: rgba(var(--accent-rgb,193,154,255),.25); }
-.custom-profile[data-effect='glitch'] .profile__name { animation: name-glitch 6s steps(1,end) infinite; }
-.custom-profile[data-effect='shimmer'] .profile__name { background: linear-gradient(105deg,#fff 35%,var(--profile-accent) 49%,#fff 63%); background-size: 250% 100%; color: transparent; background-clip: text; -webkit-background-clip: text; animation: name-shimmer 7s ease-in-out infinite; }
-.custom-profile[data-effect='typewriter'] .profile__name { animation: name-type 850ms steps(var(--name-length),end) both; }
+.custom-profile[data-effect='glitch'] .name-text { animation: name-glitch var(--effect-duration,2800ms) steps(1,end) infinite; }
+.custom-profile[data-effect='glitch'] .name-text::before, .custom-profile[data-effect='glitch'] .name-text::after, .custom-profile[data-effect='pulse'] .name-text::after { content: attr(data-text); position: absolute; inset: 0; pointer-events: none; }
+.custom-profile[data-effect='glitch'] .name-text::before { color: #94edff; text-shadow: none; clip-path: inset(12% 0 58%); animation: name-glitch-cyan var(--effect-duration,2800ms) steps(1,end) infinite; }
+.custom-profile[data-effect='glitch'] .name-text::after { color: var(--profile-accent); text-shadow: none; clip-path: inset(56% 0 12%); animation: name-glitch-purple var(--effect-duration,2800ms) steps(1,end) infinite; }
+.custom-profile[data-effect='pulse'] .name-text::after { color: #fff; text-shadow: 0 0 12px var(--profile-accent),0 0 28px var(--profile-accent); animation: name-pulse var(--effect-duration,2800ms) ease-in-out infinite; }
+.custom-profile[data-effect='typewriter'] .name-text { animation: name-type var(--effect-duration,1100ms) steps(var(--name-length),end) both; }
+.custom-profile[data-effect='wave'] .name-letter { animation: name-wave var(--effect-duration,2400ms) ease-in-out infinite; animation-delay: calc(var(--letter-index)*var(--effect-step,-50ms)); }
+.custom-profile[data-effect='float'] .name-text { animation: name-float var(--effect-duration,3600ms) ease-in-out infinite; }
+@supports ((background-clip: text) or (-webkit-background-clip: text)) {
+  .custom-profile[data-effect='shimmer'] .name-text, .custom-profile[data-effect='aurora'] .name-text { color: transparent; -webkit-text-fill-color: transparent; background-clip: text; -webkit-background-clip: text; text-shadow: 0 0 16px rgba(var(--accent-rgb),calc(var(--name-glow)*.16)); }
+  .custom-profile[data-effect='shimmer'] .name-text { background-image: linear-gradient(105deg,var(--effect-color) 25%,#fff 44%,#fff 48%,var(--effect-cyan) 54%,var(--effect-color) 70%); background-size: 300% 100%; animation: name-shimmer var(--effect-duration,3200ms) linear infinite; }
+  .custom-profile[data-effect='aurora'] .name-text { background-image: linear-gradient(110deg,#fff,var(--effect-color),var(--effect-cyan),#fff,var(--effect-color)); background-size: 250% 100%; animation: name-aurora var(--effect-duration,4600ms) ease-in-out infinite; }
+}
+.name-effects-paused .custom-profile .name-text, .name-effects-paused .custom-profile .name-letter, .name-effects-paused .custom-profile .name-text::before, .name-effects-paused .custom-profile .name-text::after { animation-play-state: paused; }
 .now-playing { width: 100%; display: grid; grid-template-columns: 32px minmax(0,1fr) auto; align-items: center; gap: 12px; margin-top: 20px; padding: 15px; text-align: left; border: 1px solid rgba(235,215,255,.12); border-radius: 16px; background: rgba(10,8,16,.25); }
 .now-playing__symbol { display: grid; place-items: center; width: 32px; height: 36px; color: var(--profile-accent,#c19aff); font-size: 25px; }
 .now-playing__info { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
@@ -29,8 +42,14 @@
 .logo-burst__ring { position: absolute; width: 60%; aspect-ratio: 1; border: 1px solid rgba(208,146,255,.8); border-radius: 50%; box-shadow: 0 0 28px rgba(155,59,246,.25); }
 .logo-burst__spark { position: absolute; width: 4px; height: 4px; border-radius: 50%; background: #e4c2ff; box-shadow: 0 0 9px #b06afb; }
 .media-poster-only .video-stage__video { visibility: hidden; }
-@keyframes name-glitch { 0%,93%,97%,100% { transform: none; } 94% { transform: translateX(-1px); text-shadow: 2px 0 #d6aeff,-2px 0 #b5e8f2; } 96% { transform: translateX(1px); } }
-@keyframes name-shimmer { 0%,25% { background-position: 100% 0; } 70%,100% { background-position: 0 0; } }
+@keyframes name-glitch { 0%,6%,24%,100% { transform: none; } 8%,16% { transform: translateX(calc(-2px*var(--effect-strength))); } 12%,20% { transform: translateX(calc(2px*var(--effect-strength))); } }
+@keyframes name-glitch-cyan { 0%,6%,24%,100% { opacity: 0; transform: none; } 8%,16% { opacity: var(--effect-strength); transform: translateX(calc(6px*var(--effect-strength))); } 12%,20% { opacity: var(--effect-strength); transform: translateX(calc(-4px*var(--effect-strength))); } }
+@keyframes name-glitch-purple { 0%,6%,24%,100% { opacity: 0; transform: none; } 8%,16% { opacity: var(--effect-strength); transform: translateX(calc(-6px*var(--effect-strength))); } 12%,20% { opacity: var(--effect-strength); transform: translateX(calc(4px*var(--effect-strength))); } }
+@keyframes name-shimmer { from { background-position: 150% 50%; } to { background-position: -50% 50%; } }
+@keyframes name-aurora { 0%,100% { background-position: 0 50%; } 50% { background-position: 100% 50%; } }
+@keyframes name-pulse { 0%,100% { opacity: calc(var(--effect-strength)*.08); } 50% { opacity: calc(var(--effect-strength)*.75); } }
+@keyframes name-wave { 0%,40%,100% { transform: none; } 20% { transform: translateY(calc(-6px*var(--effect-strength))); } }
+@keyframes name-float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(calc(-5px*var(--effect-strength))); } }
 @keyframes name-type { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0); } }
 @media (max-width: 620px) {
   .brand-trigger { width: min(100%,420px); }
@@ -41,7 +60,8 @@
   .profile__panel .profile__name { font-size: clamp(28px,8vw,46px); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .custom-profile .profile__name { animation: none !important; clip-path: none !important; transform: none !important; }
-  .custom-profile[data-effect='shimmer'] .profile__name { color: white; background: none; }
+  .custom-profile .profile__name, .custom-profile .name-text, .custom-profile .name-letter, .custom-profile .name-text::before, .custom-profile .name-text::after { animation: none !important; clip-path: none !important; transform: none !important; }
+  .custom-profile .name-text::before, .custom-profile .name-text::after { opacity: 0 !important; }
+  .custom-profile .name-text { color: white !important; -webkit-text-fill-color: white !important; background: none !important; }
   .now-playing__fill { transition: none; }
 }

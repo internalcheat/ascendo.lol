@@ -1,4 +1,4 @@
-import { normalizeProfile, safeUrl } from './profile-schema.mjs';
+import { normalizeProfile, safeUrl } from './profile-schema.mjs?v=20261025-3';
 
 export function element(tag, className = '', content) {
   const node = document.createElement(tag);
@@ -80,6 +80,43 @@ export function musicCard(soundtrack) {
   return card;
 }
 
+const effectDurations = { glitch:2800, shimmer:3200, typewriter:1100, pulse:2800, aurora:4600, wave:2400, float:3600 };
+
+function profileName(config) {
+  const heading = element('h1','profile__name');
+  heading.setAttribute('aria-label',config.name);
+  heading.dataset.displayName = config.name;
+  heading.dataset.effect = config.effect;
+  heading.style.setProperty('--name-length',String(Array.from(config.name).length));
+  const text = element('span','name-text');
+  text.setAttribute('aria-hidden','true');
+  text.dataset.text = config.name;
+  if(config.effect === 'wave') {
+    const letters = typeof Intl.Segmenter === 'function' ? [...new Intl.Segmenter(undefined,{granularity:'grapheme'}).segment(config.name)].map(part=>part.segment) : Array.from(config.name);
+    letters.forEach((letter,index)=>{
+      const span = element('span','name-letter',letter);
+      span.style.setProperty('--letter-index',String(index));
+      text.append(span);
+    });
+  } else text.textContent = config.name;
+  heading.append(text);
+  return heading;
+}
+
+export function replayNameEffect(panel) {
+  const heading = panel.querySelector('.profile__name');
+  for(const animation of heading?.getAnimations?.({subtree:true}) || []) {
+    animation.currentTime = 0;
+    animation.play();
+  }
+}
+
+export function bindNameEffectVisibility() {
+  const update = () => document.documentElement.classList.toggle('name-effects-paused',document.hidden);
+  document.addEventListener('visibilitychange',update);
+  update();
+}
+
 export function renderProfile(panel, input, options = {}) {
   const config = normalizeProfile(input);
   const resolved = value => options.previewUrls?.get(value) || value;
@@ -90,6 +127,12 @@ export function renderProfile(panel, input, options = {}) {
   panel.style.setProperty('--accent-rgb',rgb);
   panel.style.setProperty('--profile-opacity',String(config.opacity / 100));
   panel.style.setProperty('--name-glow',String(config.glow / 100));
+  panel.style.setProperty('--effect-strength',String(config.effectStrength / 100));
+  const tint = (channels) => `rgb(${channels.map(channel=>Math.round(255+(channel-255)*config.effectStrength/100)).join(',')})`;
+  panel.style.setProperty('--effect-color',tint(rgb.split(',').map(Number)));
+  panel.style.setProperty('--effect-cyan',tint([126,232,255]));
+  panel.style.setProperty('--effect-duration',`${(effectDurations[config.effect] || 2800) * 100 / config.effectSpeed}ms`);
+  panel.style.setProperty('--effect-step',`${-50 * 100 / config.effectSpeed}ms`);
   const avatar = element('span','avatar avatar--large');
   const image = element('img');
   image.src = resolved(config.avatar.url);
@@ -105,8 +148,8 @@ export function renderProfile(panel, input, options = {}) {
     image.addEventListener('error',()=>{source.remove(); if(image.src !== resolved(config.avatar.poster)) image.src=resolved(config.avatar.poster);},{once:true});
     avatar.append(picture);
   } else avatar.append(image);
-  const name = element('h1','profile__name',config.name);
-  name.style.setProperty('--name-length',String(config.name.length));
+  const existingName = panel.querySelector('.profile__name');
+  const name = existingName?.dataset.displayName === config.name && existingName.dataset.effect === config.effect ? existingName : profileName(config);
   const nodes = [avatar,name];
   if (config.badge) nodes.push(element('span','profile-badge',config.badge));
   if (config.bio) { const bio = element('div','profile__bio'); appendBio(bio,config.bio); nodes.push(bio); }
@@ -129,7 +172,13 @@ export function renderProfile(panel, input, options = {}) {
   }
   nodes.push(socials);
   if (config.background.kind === 'video') nodes.push(musicCard(config.soundtrack));
-  panel.replaceChildren(...nodes);
+  nodes.forEach((node,index)=>{
+    const current = panel.children[index];
+    if(current === node) return;
+    if(current) current.replaceWith(node);
+    else panel.append(node);
+  });
+  while(panel.children.length > nodes.length) panel.lastElementChild.remove();
   panel.setAttribute('aria-label',`${config.name} profile`);
   return config;
 }

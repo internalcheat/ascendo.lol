@@ -35,6 +35,9 @@ input[type='range'].studio-input { padding-inline: 4px; accent-color: #c19aff; }
 .studio-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .studio-fields .full-width { grid-column: 1/-1; }
 .studio-help { color: #9f8fae; font-size: 11px; line-height: 1.7; }
+.studio-effect-tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.studio-effect-tools .studio-help { flex: 1 1 210px; margin: 0; }
+.studio-label output { color: #eee3f7; font-variant-numeric: tabular-nums; }
 .studio-upload { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 9px; }
 .studio-upload input[type=file] { min-width: 0; width: 100%; font-size: 11px; color: #aa98b9; }
 .studio-upload input::file-selector-button { min-height: 36px; border: 1px solid rgba(205,164,241,.2); border-radius: 8px; margin-right: 10px; padding: 6px 10px; background: #21152b; color: #ddc8ec; }

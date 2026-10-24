@@ -14,10 +14,10 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/styles.css?v=20261025-1">
-<link rel="stylesheet" href="/profile-custom.css?v=20261025-1">
-<link rel="stylesheet" href="/editor.css?v=20261025-1">
+<link rel="stylesheet" href="/profile-custom.css?v=20261025-3">
+<link rel="stylesheet" href="/editor.css?v=20261025-3">
 <script src="/app.js?v=20261025-1" defer></script>
-<script type="module" src="/editor.mjs?v=20261025-2"></script>
+<script type="module" src="/editor.mjs?v=20261025-3"></script>
 </head>
 <body class="page page--editor">
 <div class="studio-shell">
@@ -39,9 +39,12 @@
 </div></section>
 <section class="studio-section studio-panel"><h2>Style</h2><div class="studio-fields">
 <label class="studio-label">Accent color<input class="studio-input" id="accent" type="color" ></label>
-<label class="studio-label">Name effect<select class="studio-input" id="effect"><option value="none">None</option><option value="glow">Steady glow</option><option value="glitch">Glitch</option><option value="shimmer">Shimmer</option><option value="typewriter">Typewriter</option></select></label>
+<label class="studio-label">Name effect<select class="studio-input" id="effect" aria-describedby="effectHelp"><option value="none">None</option><option value="glow">Steady glow</option><option value="glitch">Glitch</option><option value="shimmer">Shimmer</option><option value="typewriter">Typewriter</option><option value="pulse">Neon pulse</option><option value="aurora">Aurora</option><option value="wave">Letter wave</option><option value="float">Float</option></select></label>
 <label class="studio-label">Name glow<input class="studio-input" id="glow" type="range" min="0" max="100" step="1"></label>
 <label class="studio-label">Card opacity<input class="studio-input" id="opacity" type="range" min="25" max="95" step="1"></label>
+<label class="studio-label">Animation speed <output id="effectSpeedValue" for="effectSpeed">1.0×</output><input class="studio-input" id="effectSpeed" type="range" min="50" max="200" step="10" value="100" aria-label="Animation speed" aria-describedby="effectHelp"></label>
+<label class="studio-label">Effect strength <output id="effectStrengthValue" for="effectStrength">65%</output><input class="studio-input" id="effectStrength" type="range" min="0" max="100" step="1" value="65" aria-label="Effect strength" aria-describedby="effectHelp"></label>
+<div class="full-width studio-effect-tools"><p class="studio-help" id="effectHelp"></p><button class="studio-button" id="replayEffect" type="button">Replay effect ↻</button></div>
 </div></section>
 <section class="studio-section studio-panel"><h2>Avatar</h2><div class="studio-fields">
 <div class="full-width"><label class="studio-label">Avatar URL<input class="studio-input" id="avatarUrl" type="url" maxlength="2048" placeholder="https://…"></label><div class="studio-upload" data-upload="avatar"><input type="file" accept="image/jpeg,image/png,image/webp,image/gif" aria-label="Upload avatar url"><progress max="100" value="0" hidden aria-label="Avatar URL upload progress"></progress><button class="studio-button" type="button" data-cancel hidden>Cancel upload</button><span class="studio-help" data-upload-status></span></div></div>

@@ -1,6 +1,8 @@
 import { API_URL, PUBLISHABLE_KEY } from './customizer-config.mjs';
-import { normalizeProfile } from './profile-schema.mjs';
-import { renderProfile, bindMusic } from './profile-view.mjs';
+import { normalizeProfile } from './profile-schema.mjs?v=20261025-3';
+import { renderProfile, bindMusic, bindNameEffectVisibility } from './profile-view.mjs?v=20261025-3';
+
+bindNameEffectVisibility();
 
 async function profile(slug, apply) {
   const cacheKey=`ascendo-profile-v1:${slug}`;

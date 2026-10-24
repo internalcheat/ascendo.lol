@@ -1,6 +1,6 @@
 import { request, session, storeSession, freshSession } from './editor-api.mjs';
-import { normalizeProfile, ICONS, MAX_IMAGE, MAX_VIDEO } from './profile-schema.mjs';
-import { renderProfile, bindMusic, element } from './profile-view.mjs';
+import { normalizeProfile, ICONS, MAX_IMAGE, MAX_VIDEO } from './profile-schema.mjs?v=20261025-3';
+import { renderProfile, bindMusic, element, replayNameEffect, bindNameEffectVisibility } from './profile-view.mjs?v=20261025-3';
 import { PUBLISHABLE_KEY } from './customizer-config.mjs';
 
 const byId = id => document.getElementById(id);
@@ -11,6 +11,19 @@ const panel = byId('previewCard');
 const model = { saved:null, draft:null, previous:null, defaults:null, revision:0, baselineRevision:0, slug:'', uploads:new Map(), busy:false, activeUploads:0, dirty:false, previewFrame:0 };
 const previewUrls = new Map();
 const updateMusic = bindMusic(video,panel);
+bindNameEffectVisibility();
+const reducedNames = matchMedia('(prefers-reduced-motion: reduce)');
+const effectHints = {
+  none:'Plain, crisp text with no animation or glow.',
+  glow:'A steady glow, not an animation. Adjust it with Name glow.',
+  glitch:'Layered cyan and purple slices with short, readable glitch bursts.',
+  shimmer:'A bright reflection sweeps across your name.',
+  typewriter:'Reveals your name once. Use Replay effect to watch it again.',
+  pulse:'A smooth neon glow that breathes in and out.',
+  aurora:'Flowing lavender, cyan and accent-color light.',
+  wave:'A gentle wave travels through the individual letters.',
+  float:'Your name slowly rises and settles.'
+};
 let uploadModule;
 const mediaGenerations = new Map();
 const draftKey='ascendo-editor-draft';
@@ -34,6 +47,7 @@ function collect() {
   return {
     name:byId('displayName').value,bio:byId('bio').value,badge:byId('badge').value,
     accent:byId('accent').value,effect:byId('effect').value,glow:Number(byId('glow').value),opacity:Number(byId('opacity').value),
+    effectSpeed:Number(byId('effectSpeed').value),effectStrength:Number(byId('effectStrength').value),
     avatar:{url:byId('avatarUrl').value,poster:byId('avatarPoster').value,x:Number(byId('avatarX').value),y:Number(byId('avatarY').value)},
     background:{kind,url:backgroundUrl,mobile:backgroundUrl===current.background.url?current.background.mobile:'',poster:byId('backgroundPoster').value},
     soundtrack:{title:byId('songTitle').value,artist:byId('songArtist').value},socials:current.socials
@@ -43,6 +57,8 @@ function fill(config) {
   model.draft=structuredClone(config);
   const values={displayName:config.name,bio:config.bio,badge:config.badge,accent:config.accent,effect:config.effect,glow:config.glow,opacity:config.opacity,avatarUrl:config.avatar.url,avatarPoster:config.avatar.poster,avatarX:config.avatar.x,avatarY:config.avatar.y,backgroundKind:config.background.kind,videoUrl:config.background.kind==='video'?config.background.url:'',imageUrl:config.background.kind==='image'?config.background.url:'',backgroundPoster:config.background.poster,songTitle:config.soundtrack.title,songArtist:config.soundtrack.artist};
   for(const [id,value]of Object.entries(values)) byId(id).value=value;
+  byId('effectSpeed').value=config.effectSpeed;
+  byId('effectStrength').value=config.effectStrength;
   renderSocials();
   preview();
 }
@@ -59,6 +75,7 @@ function preview() {
   catch(error) { byId('previewHint').textContent=error.message; return; }
   byId('previewHint').textContent='';
   renderProfile(panel,config,{previewUrls});
+  updateEffectControls();
   const source=previewUrls.get(config.background.url)||config.background.url;
   const poster=previewUrls.get(config.background.poster)||config.background.poster;
   const posterImage=byId('previewPoster');
@@ -81,6 +98,21 @@ function preview() {
   }
   updateMusic();
 }
+
+function updateEffectControls() {
+  const effect=byId('effect').value;
+  const animated=!['none','glow'].includes(effect);
+  byId('effectSpeed').disabled=!animated;
+  byId('effectStrength').disabled=!animated || effect==='typewriter';
+  byId('replayEffect').disabled=!animated || reducedNames.matches;
+  byId('effectSpeedValue').textContent=`${(Number(byId('effectSpeed').value)/100).toFixed(1)}×`;
+  byId('effectStrengthValue').textContent=`${byId('effectStrength').value}%`;
+  byId('effectSpeed').setAttribute('aria-valuetext',`${(Number(byId('effectSpeed').value)/100).toFixed(1)} times normal speed`);
+  byId('effectStrength').setAttribute('aria-valuetext',`${byId('effectStrength').value} percent`);
+  byId('effectHelp').textContent=(effectHints[effect] || '')+(reducedNames.matches?' Your device requests reduced motion, so animations are intentionally still.':'');
+}
+byId('replayEffect').addEventListener('click',()=>replayNameEffect(panel));
+reducedNames.addEventListener('change',updateEffectControls);
 
 function inputField(label,value,onChange,options = {}) {
   const wrapper=element('label','studio-label',label);
