@@ -1,0 +1,8 @@
+{
+  "name": "ascendo-profile-studio",
+  "private": true,
+  "type": "module",
+  "scripts": { "build:upload": "esbuild upload-source.mjs --bundle --minify --format=esm --target=es2022 --outfile=vendor/upload.mjs" },
+  "dependencies": { "tus-js-client": "4.3.1" },
+  "devDependencies": { "esbuild": "0.28.2" }
+}

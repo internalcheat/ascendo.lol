@@ -1,0 +1,153 @@
+{
+  "internalcheats": {
+    "name": "InternalCheats",
+    "bio": "founder @ [ascendo.lol](https://ascendo.lol/)\nfounder @ [javitointezet](https://discord.gg/9cQHqKqZfp)\ngenuine retard",
+    "badge": "",
+    "accent": "#c19aff",
+    "glow": 65,
+    "opacity": 53,
+    "effect": "glow",
+    "avatar": {
+      "url": "https://ascendo.lol/assets/mypfp-animated.webp",
+      "poster": "https://ascendo.lol/assets/mypfp-poster.jpg",
+      "x": 50,
+      "y": 50
+    },
+    "background": {
+      "kind": "video",
+      "url": "https://ascendo.lol/assets/music-background.mp4",
+      "mobile": "https://ascendo.lol/assets/music-background-mobile.mp4",
+      "poster": "https://ascendo.lol/assets/music-background-poster.jpg"
+    },
+    "soundtrack": {
+      "title": "Profile soundtrack",
+      "artist": ""
+    },
+    "socials": [
+      {
+        "icon": "discord",
+        "label": "Discord",
+        "handle": "internalcheats",
+        "action": "copy",
+        "value": "internalcheats"
+      },
+      {
+        "icon": "minecraft",
+        "label": "Minecraft IGN",
+        "handle": "InternalCheat",
+        "action": "copy",
+        "value": "InternalCheat"
+      },
+      {
+        "icon": "github",
+        "label": "GitHub",
+        "handle": "internalcheat",
+        "action": "link",
+        "value": "https://github.com/internalcheat"
+      }
+    ]
+  },
+  "k3rlsen": {
+    "name": "k3rlsen",
+    "bio": "Fortnite Coach\n[Coupe de France Fortnite 2026 Winner](https://liquipedia.net/fortnite/Coupe_de_France/2026)",
+    "badge": "",
+    "accent": "#c19aff",
+    "glow": 65,
+    "opacity": 53,
+    "effect": "glow",
+    "avatar": {
+      "url": "https://ascendo.lol/assets/k3rlsen-mbappe.webp",
+      "poster": "",
+      "x": 50,
+      "y": 50
+    },
+    "background": {
+      "kind": "video",
+      "url": "https://ascendo.lol/assets/music-background.mp4",
+      "mobile": "https://ascendo.lol/assets/music-background-mobile.mp4",
+      "poster": "https://ascendo.lol/assets/music-background-poster.jpg"
+    },
+    "soundtrack": {
+      "title": "Profile soundtrack",
+      "artist": ""
+    },
+    "socials": [
+      {
+        "icon": "tiktok",
+        "label": "TikTok",
+        "handle": "@ferenckop",
+        "action": "link",
+        "value": "https://www.tiktok.com/@ferenckop"
+      },
+      {
+        "icon": "instagram",
+        "label": "Instagram",
+        "handle": "@_shewantss.csxngi",
+        "action": "link",
+        "value": "https://www.instagram.com/_shewantss.csxngi/"
+      },
+      {
+        "icon": "discord",
+        "label": "Discord",
+        "handle": "27ia",
+        "action": "copy",
+        "value": "27ia"
+      }
+    ]
+  },
+  "bal4zs": {
+    "name": "bal4zs",
+    "bio": "",
+    "badge": "",
+    "accent": "#c19aff",
+    "glow": 65,
+    "opacity": 53,
+    "effect": "glow",
+    "avatar": {
+      "url": "https://ascendo.lol/assets/bal4zs-avatar.webp?v=20261024-3",
+      "poster": "",
+      "x": 50,
+      "y": 50
+    },
+    "background": {
+      "kind": "video",
+      "url": "https://ascendo.lol/assets/bal4zs-background.mp4",
+      "mobile": "https://ascendo.lol/assets/bal4zs-mobile.mp4",
+      "poster": "https://ascendo.lol/assets/bal4zs-background-poster.jpg"
+    },
+    "soundtrack": {
+      "title": "Love Me",
+      "artist": "Lil Wayne ft. Drake & Future"
+    },
+    "socials": [
+      {
+        "icon": "instagram",
+        "label": "Instagram",
+        "handle": "bal4zs.xyz",
+        "action": "link",
+        "value": "https://www.instagram.com/bal4zs.xyz/"
+      },
+      {
+        "icon": "discord",
+        "label": "Discord",
+        "handle": "bal4zs.xyz",
+        "action": "copy",
+        "value": "bal4zs.xyz"
+      },
+      {
+        "icon": "youtube",
+        "label": "YouTube",
+        "handle": "bal4zs",
+        "action": "link",
+        "value": "https://www.youtube.com/@bal4zs/"
+      },
+      {
+        "icon": "tiktok",
+        "label": "TikTok",
+        "handle": "_bal4zs.exe_",
+        "action": "link",
+        "value": "https://www.tiktok.com/@_bal4zs.exe_"
+      }
+    ]
+  }
+}

@@ -1,6 +1,6 @@
 # ASCENDO.LOL · Founder Profiles
 
-A curated static GitHub Pages site. There are no public accounts or profile-creation forms.
+A curated GitHub Pages site with a private, invite-only profile studio. There is no public signup, directory, or profile-creation form.
 
 ## Pages
 
@@ -54,4 +54,57 @@ The owner-supplied JARs are hosted unchanged under `/downloads/`. Their metadata
 | `AscendOSit-26.3-v0.4.2-RIGHTCLICK-HOTFIX.jar` | 35,871 | `b9899302d5533089fb168886b11c895304d833e1c7a159e0154fe1fc843a26fd` |
 | `AscendOEnchants-v1.0.0-EXPERIMENTAL.jar` | 40,472 | `8cf1f5f06a4aa056db826080f7fd399247cc8b53a77254b9b2a1c7f2daa5348f` |
 
-To add a curated profile, copy an existing profile directory and edit the identity, optional bio, links, and canonical URL. Add a founder card only for profiles intended to be listed publicly. No framework or package installation is needed.
+To add a curated profile, copy an existing profile directory and edit the identity, optional bio, links, and canonical URL. Add a founder card only for profiles intended to be listed publicly. Provision its owner privately; never embed access codes in HTML, scripts, seed files, or Git history. The current studio deliberately supports only the three provisioned profiles.
+
+## Private profile studio
+
+- `/login/` accepts a profile's private numeric access code after a Cloudflare Turnstile check.
+- `/customize/` edits only the profile assigned to the authenticated account. Both pages are unlisted and marked `noindex, nofollow`.
+- The studio includes identity, optional linked bio and cosmetic badge, avatar crop/still fallback, accent, card opacity, glow, five name effects, social-row ordering and link/copy actions, black/image/video backgrounds, and soundtrack title/artist.
+- Changes appear in a private live preview first. **Save changes** publishes one validated settings revision. Discard, original defaults, and the previous saved version are available. A stale revision returns a conflict rather than overwriting another tab. Same-tab unpublished drafts survive a reload in session storage and are cleared on save, discard, or logout.
+- Avatar and background settings accept direct public HTTPS URLs, or the upload controls. Only MP4's embedded audio is played: there is no separate audio-upload system.
+- Public profiles remain immediately readable from their static HTML if JavaScript, the backend, or media is unavailable. Last fetched public settings are cached locally; credentials and editing sessions are never placed in that public cache. Search metadata/static fallback stays hand-authored.
+- The homepage still lists only its original two founders. Unlisted profiles are not automatically added anywhere.
+
+### Backend and security
+
+The free Supabase project is `fstdttaxflayhtwhnbih` in Frankfurt. `customizer-config.mjs` contains only its public URL, publishable key, and the public Turnstile site key. Keep `TURNSTILE_SECRET_KEY` in Supabase function secrets, not this repository. Codes are transformed with a server-only Vault pepper into a private lookup digest and a separate native Auth password; plaintext codes are not persisted here. Signup and anonymous sign-in are disabled.
+
+`supabase/functions/profile-api/index.ts` verifies Turnstile server-side, including hostname `ascendo.lol` and action `profile-login`. Login attempts are limited to five per IP and thirty globally in fifteen minutes. Native Auth sessions are verified against both Auth and the live session table on protected requests, with an eight-hour maximum. Tokens and drafts use same-tab session storage, not persistent local storage. Logging out revokes the server session.
+
+The function's gateway JWT switch is intentionally off because it serves public reads and login; protected routes perform their own native token and session validation. Ownership is resolved server-side, never accepted from client profile IDs. Private tables have RLS, no client table grants, and no permissive policies. Only the service role may execute the command RPC. Storage inserts/selects require an authenticated owner and an exact, unexpired reserved path. There is no client write policy on the public bucket.
+
+The security advisor's five `rls_enabled_no_policy` informational findings are intentional deny-all private tables ([explanation](https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy)). Its leaked-password-protection warning remains on the free project; native passwords here are HMAC-derived values rather than the human access codes. This is not a claim that short numeric codes are equivalent to strong passwords. Keep codes private and rotate them through a controlled server-side provisioning process if exposed. The unused upload timestamp index is retained for cleanup growth, not removed based on a new project's sample.
+
+Schema and access-control migrations are recorded in `supabase/migrations/`; `supabase/seed-profiles.json` contains public default settings only. One-time provisioning is sealed. Do not reopen the bootstrap endpoint to recover an account.
+
+### Upload storage and limits
+
+Images are capped at **5,000,000 bytes**, MP4s at **50,000,000 bytes**, and each profile at **250,000,000 bytes** including reserved/draft/current/previous media. Three quotas total 750 MB, leaving room under the project's 1 GB free storage allowance. Existing GitHub-hosted assets do not consume these quotas. Free service limits, bandwidth, and project availability still apply; do not enable paid overages without the owner's approval.
+
+The pinned, lazy-loaded `tus-js-client` bundle supports resumable uploads. Originals are uploaded unchanged to a private bucket; browser-generated still posters are separate files. Publishing validates ownership, size, MIME and file signature, copies selected media to the public bucket, then commits the settings revision. Private duplicates are removed. Current and previous saved media remain protected from deletion; unreferenced files expire after 24 hours. An authenticated cleanup job runs hourly at minute 27, and cleanup also runs during editor access. This job is maintenance, not a keepalive for a paused free project.
+
+Saved profile settings and published media are public by design. Private draft previews use expiring signed URLs. Do not upload secrets or sensitive personal documents. A removed public file may remain in a browser or CDN cache temporarily.
+
+To rebuild the upload dependency bundle, use `npm ci` then `npm run build:upload`. Versions and lockfile are pinned; no animation framework or public-page dependency is added. GitHub Pages serves the committed bundle directly and needs no Node build step.
+
+## Soundtrack, Easter egg, and mobile
+
+Every video profile includes a compact soundtrack card below its socials. Playing, muted, loading, unavailable, and elapsed/duration values reflect the actual local background video, not Spotify or a live music service. The expanding volume control remains the only public playback control; there is no entrance screen or pause button.
+
+Five logo activations within three seconds reveal a short purple ripple/spark Easter egg. It is an actual keyboard-accessible button, does not overlap repeated bursts, cleans up after itself, and substitutes a stationary brief halo for reduced motion.
+
+At widths up to 820px or on coarse-pointer devices, original Ascendo backgrounds use 480p derivatives; narrow screens also receive lighter blur. Full durations and the original AAC packets are retained. Reduced-motion and data-saving users initially see the poster without downloading video; adjusting the volume explicitly enables playback. Other direct media URLs are not silently transcoded or shortened.
+
+| New asset | Bytes | SHA-256 |
+| --- | ---: | --- |
+| `assets/music-background-mobile.mp4` | 10,009,799 | `4d49e521b298107e9408b8c0927ee7f409b91f6d5e45651cb5b608617dc4f0bc` |
+| `assets/bal4zs-mobile.mp4` | 19,211,490 | `b884a7d3708beaa2a4b599a1695cd5fc64c2bf134b0b7b7251f550f73db974ce` |
+
+Both are fast-start H.264, 854 × 480, with the unchanged 136.97-second and 265.00-second durations respectively. AAC packet SHA-256 values match their sources: `592a3ea907b6c018b2dfee32dc20ccd6e75f52c1870b901c4706dfd330583973` and `24b8edc25a9f1d038a5552ef6dc38fb4d5874445d75d37652ef6cbd0008c30a0`. The founder poster is a separate 34,654-byte JPEG. All original media, JARs, and `CNAME` remain byte-identical.
+
+### Release verification
+
+Local schema/DOM simulation checks cover safe rendering, exact default content, original asset preservation, dynamic clipboard rows, soundtrack states, poster/video selection, Easter egg cleanup, private preview, revision conflicts, drafts and restore/discard behavior. These are not a substitute for browser testing.
+
+Backend checks cover all three owner assignments, anonymous/cross-owner denial, signed/resumable MP4 upload (including interrupted resume), media publishing/restoration, quota and file-signature rejection, sealed provisioning, session refresh and logout revocation, and scheduled cleanup. Check real Turnstile login, desktop/mobile editor layout, save/discard, public playback/volume, reduced motion, navigation, minimal HTTP 404, and live JAR hashes after deployment. Never mark a release published based only on a successful Git commit.

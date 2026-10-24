@@ -1,0 +1,65 @@
+export const EFFECTS = ['none', 'glow', 'glitch', 'shimmer', 'typewriter'];
+export const ICONS = ['instagram', 'discord', 'youtube', 'tiktok', 'github', 'minecraft', 'twitch', 'x', 'spotify', 'website'];
+export const MAX_VIDEO = 50_000_000;
+export const MAX_IMAGE = 5_000_000;
+export const OWNER_QUOTA = 250_000_000;
+
+function text(value, limit, label, optional = false) {
+  if (typeof value !== 'string' || value.length > limit || (!optional && !value.trim())) throw new Error(`Check ${label} (${limit} characters maximum).`);
+  return value.trim();
+}
+
+export function safeUrl(value, optional = true) {
+  const input = text(value ?? '', 2048, 'URL', optional);
+  if (!input && optional) return '';
+  let parsed;
+  try { parsed = new URL(input); } catch { throw new Error('Use a complete HTTPS URL.'); }
+  const host = parsed.hostname.toLowerCase().replace(/^\[|\]$/g, '');
+  if (parsed.protocol !== 'https:' || parsed.username || parsed.password || parsed.port || !host.includes('.') || /^(localhost|127\.|0\.|10\.|192\.168\.|169\.254\.|172\.(1[6-9]|2\d|3[01])\.)/.test(host) || host.includes(':') || /\.(local|internal|localhost)$/.test(host)) throw new Error('Use a public HTTPS address without embedded credentials.');
+  return parsed.href;
+}
+
+export function mediaUrl(value, kind) {
+  const url = safeUrl(value);
+  if (!url) return '';
+  const host = new URL(url).hostname;
+  if (kind === 'video' && /(^|\.)(youtube\.com|youtu\.be|tiktok\.com|instagram\.com)$/.test(host)) throw new Error('Use a direct MP4 file URL, not a social-media webpage.');
+  return url;
+}
+
+function number(value, minimum, maximum, label) {
+  if (typeof value !== 'number' || !Number.isFinite(value) || value < minimum || value > maximum) throw new Error(`Check ${label}.`);
+  return value;
+}
+
+export function normalizeProfile(input) {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) throw new Error('Invalid profile.');
+  if (!EFFECTS.includes(input.effect)) throw new Error('Choose a supported name effect.');
+  if (!/^#[0-9a-f]{6}$/i.test(input.accent)) throw new Error('Choose a valid accent color.');
+  if (!['black', 'image', 'video'].includes(input.background?.kind)) throw new Error('Choose a background type.');
+  const socials = input.socials;
+  if (!Array.isArray(socials) || socials.length > 16) throw new Error('Use no more than 16 social rows.');
+  const result = {
+    name: text(input.name, 40, 'display name'),
+    bio: text(input.bio ?? '', 1200, 'bio', true),
+    badge: text(input.badge ?? '', 32, 'badge', true),
+    accent: input.accent.toLowerCase(),
+    glow: number(input.glow, 0, 100, 'glow'),
+    opacity: number(input.opacity, 25, 95, 'card opacity'),
+    effect: input.effect,
+    avatar: { url: mediaUrl(input.avatar?.url, 'image'), poster: mediaUrl(input.avatar?.poster ?? '', 'image'), x: number(input.avatar?.x, 0, 100, 'avatar crop'), y: number(input.avatar?.y, 0, 100, 'avatar crop') },
+    background: { kind: input.background.kind, url: mediaUrl(input.background.url, input.background.kind), mobile: mediaUrl(input.background.mobile ?? '', 'video'), poster: mediaUrl(input.background.poster ?? '', 'image') },
+    soundtrack: { title: text(input.soundtrack?.title ?? '', 100, 'song title', true), artist: text(input.soundtrack?.artist ?? '', 140, 'artist', true) },
+    socials: socials.map(row => {
+      if (!row || !ICONS.includes(row.icon) || !['link', 'copy'].includes(row.action)) throw new Error('Choose a supported social action and icon.');
+      return { icon: row.icon, label: text(row.label, 40, 'social label'), handle: text(row.handle, 100, 'social handle'), action: row.action, value: row.action === 'link' ? safeUrl(row.value, false) : text(row.value, 200, 'copy value') };
+    })
+  };
+  if (result.background.kind !== 'black' && !result.background.url) throw new Error('Choose a background file or direct URL.');
+  if (!result.avatar.url) throw new Error('Choose an avatar.');
+  return result;
+}
+
+export function profileMedia(profile) {
+  return [...new Set([profile.avatar.url, profile.avatar.poster, profile.background.url, profile.background.mobile, profile.background.poster].filter(Boolean))];
+}
