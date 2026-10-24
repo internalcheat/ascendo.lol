@@ -251,7 +251,7 @@
   });
 
   if (mediaControls) mediaControls.hidden = false;
-  video.src = '../assets/music-background.mp4';
+  video.src = video.dataset.backgroundSrc || '../assets/music-background.mp4';
   video.volume = 0.65;
   video.muted = false;
   syncVolume();

@@ -9,7 +9,7 @@ A curated static GitHub Pages site. There are no public accounts or profile-crea
 - `/internalcheats/`: InternalCheats; Discord `internalcheats`; Minecraft IGN `InternalCheat`.
 - `/k3rlsen/`: k3rlsen; TikTok `@ferenckop`; Instagram `@_shewantss.csxngi`; Discord `27ia`.
 - `/nagyorru/`: compatibility redirect to `/internalcheats/`, with a visible fallback link.
-- `/404.html`: custom recovery-page preview. GitHub Pages serves this same page for unknown routes while retaining HTTP 404.
+- `/404.html`: minimal custom 404 preview. GitHub Pages serves the same hero for unknown routes while retaining HTTP 404.
 
 Profiles open immediately. The existing video attempts playback with audio, falls back to muted playback when required by the browser, and has an accessible sound control. Hover or focus the sound button to expand the slider; tap/click to pin it open or close it. Escape or an outside tap closes it. Adjusting the slider is a user interaction that can enable audio. Content remains visible if JavaScript or media is unavailable.
 
@@ -31,7 +31,19 @@ All original media remains in `assets/`. InternalCheats uses `assets/mypfp-anima
 
 Keep `CNAME` set to `ascendo.lol`. GitHub Pages deploys from `main`; verify the Pages workflow and live domain after merging. Version stylesheet/script references together when changing shared assets.
 
-The custom 404 uses root-absolute resources and recovery links so nested missing routes work too. It includes branded vector artwork, home/plugin/founder/community destinations, native troubleshooting details, and an optional same-origin previous-page button. The requested pathname is displayed as bounded plain text, with control/bidirectional formatting characters removed; copying retains only the original pathname, never its query or fragment. Clipboard failure is handled without blocking navigation. All essential links and help remain usable without JavaScript. Artwork pauses offscreen/in hidden tabs and respects reduced motion. No automatic redirect, fake service-status display, analytics, video, or download is added. Verify an actual missing URL, not just the preview, when checking the HTTP status.
+The custom 404 uses root-absolute resources, the Ascendo logo, decorative 404 artwork, three short text blocks, and Home/Plugins links. No lower recovery panels, path-copy UI, previous-page action, or footer remain. Artwork pauses offscreen/in hidden tabs and respects reduced motion. Links and all essential content work without JavaScript. There is no automatic redirect; verify an actual missing URL, including a nested route, when checking HTTP status.
+
+## Unlisted profile maintenance
+
+The manually authored `bal4zs/index.html` profile is intentionally absent from all site navigation and founder listings. It has `noindex, nofollow` metadata, a canonical trailing-slash URL, and no bio element. Unlisted does not mean private: the page and its assets remain publicly accessible.
+
+The supplied 705 × 710 photograph is preserved as `assets/bal4zs-original.png`; `assets/bal4zs-avatar.webp` is a centered 512 × 512 crop (21,822 bytes). The local YouTube SVG joins the existing platform icons. External social links open new tabs with `noopener noreferrer`; Discord copies the displayed username with the shared accessible confirmation.
+
+The shared video player accepts a hand-authored `data-background-src` value. Only this unlisted profile overrides it; existing founder profiles continue using `assets/music-background.mp4`. Its `poster` remains visible if playback fails or JavaScript is disabled. The usual instant entry, expanding volume disclosure, and muted-autoplay fallback are unchanged.
+
+`assets/bal4zs-background.mp4` retains the full 265.00-second (4:25) source duration, 23.98 fps timing, and original AAC-LC stereo audio without re-encoding. Video is 1280 × 720 H.264/yuv420p (CRF 28, 900 kb/s VBV cap), with fast-start metadata. The derivative is **31,984,760 bytes (30.5 MiB)**; SHA-256: `141c5bc7b62d14199a5c6490bd6c53f5135a33ea331f134d60785be8b39a30b3`. The source and derivative AAC packet hashes match: `24b8edc25a9f1d038a5552ef6dc38fb4d5874445d75d37652ef6cbd0008c30a0`.
+
+The original 106,339,817-byte download is preserved untouched outside this repository (SHA-256: `59032664573c25f6a3c110f88c0135cf369c0eff95862a7aeb64f835eb61a0f4`); it exceeds GitHub's regular-file limit and is not committed. `assets/bal4zs-background-poster.jpg` is a clean frame at 15 seconds (24,928 bytes). No other profile's media or plugin download is replaced.
 
 ## Plugin downloads
 
@@ -42,4 +54,4 @@ The owner-supplied JARs are hosted unchanged under `/downloads/`. Their metadata
 | `AscendOSit-26.3-v0.4.2-RIGHTCLICK-HOTFIX.jar` | 35,871 | `b9899302d5533089fb168886b11c895304d833e1c7a159e0154fe1fc843a26fd` |
 | `AscendOEnchants-v1.0.0-EXPERIMENTAL.jar` | 40,472 | `8cf1f5f06a4aa056db826080f7fd399247cc8b53a77254b9b2a1c7f2daa5348f` |
 
-To add a curated profile, copy an existing profile directory, edit the identity, bio, links and canonical URL, then add its founder card to the homepage. No framework or package installation is needed.
+To add a curated profile, copy an existing profile directory and edit the identity, optional bio, links, and canonical URL. Add a founder card only for profiles intended to be listed publicly. No framework or package installation is needed.
