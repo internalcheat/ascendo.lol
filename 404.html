@@ -14,32 +14,29 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/styles.css?v=20261024-2">
-  <link rel="stylesheet" href="/404.css?v=20261024-1">
-  <script src="/app.js?v=20261024-2" defer></script>
-  <script src="/404.js?v=20261024-1" defer></script>
-  <script src="/motion.js?v=20261024-2" defer></script>
+  <link rel="stylesheet" href="/styles.css?v=20261024-3">
+  <link rel="stylesheet" href="/404.css?v=20261024-3">
+  <script src="/app.js?v=20261024-3" defer></script>
+  <script src="/404.js?v=20261024-3" defer></script>
+  <script src="/motion.js?v=20261024-3" defer></script>
 </head>
 <body class="page page--notfound">
-  <a class="nf-skip" href="#recovery">Skip to recovery links</a>
+  <a class="nf-skip" href="#recovery">Skip to page content</a>
   <div class="nf-atmosphere" aria-hidden="true"><div class="nf-grid"></div><div class="nf-halo"></div></div>
   <div class="nf-shell">
     <header class="nf-header">
       <a class="nf-brand" href="/" data-transition aria-label="Ascendo home"><img class="brand-logo" src="/assets/ascendo-logo.png" alt="Ascendo" width="1300" height="414" fetchpriority="high"></a>
-      <span class="nf-header-note"><span aria-hidden="true">✦</span> A little off course.</span>
     </header>
     <main id="recovery" tabindex="-1">
       <section class="nf-hero" aria-labelledby="notFoundTitle">
         <div class="nf-intro" data-reveal>
-          <p class="nf-eyebrow"><span class="nf-status-mark" aria-hidden="true"></span> ERROR 404 <span class="nf-eyebrow-divider" aria-hidden="true"></span> PAGE NOT FOUND</p>
           <h1 id="notFoundTitle">You’re off<br>the <span>map.</span></h1>
-          <p class="nf-lead">A wrong turn, not the end of the road.</p>
+          <p class="nf-lead"><strong>A wrong turn, not the end of the road.</strong></p>
           <p class="nf-explanation">We couldn’t find that page. The link might be outdated, the page may have moved, or there’s a typo in the address.</p>
           <div class="nf-actions">
             <a class="nf-action nf-action--primary" href="/" data-transition><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5m6 6-6-6 6-6"/></svg><span>Back to home</span></a>
             <a class="nf-action nf-action--secondary" href="/plugins/" data-transition><span>Browse plugins</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
           </div>
-          <button class="nf-previous" id="previousPage" type="button" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10h11a6 6 0 0 1 0 12M3 10l5-5M3 10l5 5" transform="translate(0 -3)"/></svg>Or return to your previous page</button>
         </div>
         <div class="nf-visual" aria-hidden="true" data-reveal>
           <div class="nf-visual-glow"></div>
@@ -65,32 +62,10 @@
               <g class="nf-orbit-turn"><circle cx="145" r="5" fill="#ecdbff"/><circle cx="-145" r="3" fill="#a472cd"/></g>
             </g>
             <circle cx="124" cy="292" r="3" fill="#ae7cd5"/><circle cx="438" cy="50" r="3" fill="#d1aff1"/>
-            <text x="17" y="33" class="nf-art-label">UNCHARTED ROUTE</text><text x="390" y="335" class="nf-art-label">ASCENDO / 404</text>
           </svg>
-          <span class="nf-coordinate">NO DESTINATION FOUND <span aria-hidden="true">↗</span></span>
         </div>
       </section>
-      <div class="nf-recovery-grid">
-        <section class="nf-panel nf-request" aria-labelledby="requestTitle" data-reveal>
-          <div class="nf-panel-heading"><span class="nf-panel-index" aria-hidden="true">01</span><h2 id="requestTitle">The missing piece</h2><span class="nf-small-badge">404</span></div>
-          <p class="nf-panel-copy">This is the address we couldn’t find.</p>
-          <div class="nf-path-row"><code id="requestedPath">Requested address unavailable</code><button class="nf-copy" id="copyPath" type="button" aria-label="Copy requested path" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg><span>Copy path</span></button></div>
-          <p class="nf-path-status" id="pathStatus" role="status" aria-live="polite">Query parameters and fragments are never shown or copied.</p>
-          <details class="nf-help"><summary>What can I try?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><ul><li>Check the spelling and capitalization in the address.</li><li>An older bookmark may point somewhere that has moved.</li><li>Use a destination here to get back to Ascendo.</li></ul></details>
-          <noscript><p class="nf-noscript">JavaScript is off, but every destination on this page still works.</p></noscript>
-        </section>
-        <nav class="nf-panel nf-destinations" aria-labelledby="destinationsTitle" data-reveal>
-          <div class="nf-panel-heading"><span class="nf-panel-index" aria-hidden="true">02</span><h2 id="destinationsTitle">Somewhere familiar</h2></div>
-          <p class="nf-panel-copy">A few places that are right where you left them.</p>
-          <div class="nf-route-list">
-            <a class="nf-route social-link" href="/internalcheats/" data-transition><span class="nf-route-avatar"><img src="/assets/mypfp-poster.jpg" alt="" width="44" height="44" loading="lazy"></span><span class="nf-route-text"><strong>InternalCheats</strong><span>Founder profile</span></span><svg class="nf-route-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
-            <a class="nf-route social-link" href="/k3rlsen/" data-transition><span class="nf-route-avatar"><img src="/assets/k3rlsen-mbappe.webp" alt="" width="44" height="44" loading="lazy"></span><span class="nf-route-text"><strong>k3rlsen</strong><span>Founder profile</span></span><svg class="nf-route-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
-            <a class="nf-route social-link" href="https://discord.gg/7k88ggycdr" target="_blank" rel="noopener noreferrer"><span class="nf-discord"><img src="/assets/discord.svg" alt="" width="64" height="48" loading="lazy"></span><span class="nf-route-text"><strong>The Ascendo community</strong><span>Meet us on Discord <span class="nf-sr-only">(opens in a new tab)</span></span></span><svg class="nf-route-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 5h6v6M19 5l-9 9M19 13v5a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5"/></svg></a>
-          </div>
-        </nav>
-      </div>
     </main>
-    <footer class="nf-footer"><span>Lost page. Same Ascendo.</span><a href="/" data-transition>ascendo.lol <span aria-hidden="true">↗</span></a></footer>
   </div>
 </body>
 </html>
