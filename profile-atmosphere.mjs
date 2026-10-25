@@ -107,6 +107,7 @@ export function createProfileAtmosphere(panel,scope,{clock,preview=false}) {
       const radius=Math.min(Math.min(targetWidth,targetHeight)/2,radiusText.includes('%')?parseFloat(radiusText)/100*Math.min(targetWidth,targetHeight):parseFloat(radiusText)||0);
       record.svg.setAttribute('viewBox',`0 0 ${targetWidth+10} ${targetHeight+10}`);record.points=contour(targetWidth,targetHeight,radius);
     }
+    if(config){drawBorders(win.performance.now());sourceDirty=true;schedule();}
   }
   function drawBorders(time){
     if(!config?.electricBorder.enabled)return;

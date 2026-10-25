@@ -125,6 +125,7 @@ export function renderProfile(panel, input, options = {}) {
   panel.classList.add('custom-profile');
   panel.dataset.effect = config.effect;
   panel.dataset.layout = config.cardLayout;
+  panel.dataset.hasWidgets = String(config.socials.length > 0 || config.background.kind === 'video');
   panel.style.setProperty('--display-font',`"${FONTS[config.typography.display]}",system-ui,sans-serif`);
   panel.style.setProperty('--body-font',`"${FONTS[config.typography.body]}",system-ui,sans-serif`);
   for (const id of Object.keys(TEXT_SIZES)) {
