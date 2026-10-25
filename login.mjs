@@ -36,7 +36,7 @@ form.addEventListener('submit',async event=>{
   try {
     const result=await request('/session',{method:'POST',body:{code:entered,challenge}},false);
     storeSession(result);
-    location.replace('/customize/');
+    location.replace(result.onboarding?'/welcome/':'/customize/');
   } catch(error) {
     message(error.message);
     challenge='';

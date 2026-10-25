@@ -4,11 +4,11 @@
   const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
   const narrowScreen = matchMedia('(max-width: 620px)');
   const nativeTransitions = 'CSSViewTransitionRule' in window;
-  const toast = document.getElementById('toast');
   let toastTimer;
   let navigationTimer;
 
   function showToast(message) {
+    const toast = document.getElementById('toast');
     if (!toast) return;
     clearTimeout(toastTimer);
     toast.textContent = message;
@@ -151,6 +151,7 @@
     showToast(copied ? `${button.dataset.platform}: ${value} copied` : `${button.dataset.platform}: ${value}`);
   });
 
+  function initializeProfileMedia() {
   const video = document.getElementById('musicBackground');
   const mediaControls = document.getElementById('mediaControls');
   const volumeButton = document.getElementById('volumeButton');
@@ -158,6 +159,8 @@
   const volumeControl = document.getElementById('volumeControl');
   const volumeValue = document.getElementById('volumeValue');
   if (!video) return;
+  if(video.dataset.playerReady==='true')return;
+  video.dataset.playerReady='true';
 
   if (mediaControls && volumeButton && volumePanel) {
     let pinned = false;
@@ -317,4 +320,7 @@
     syncVolume();
     if (!video.error) startBackground(true);
   });
+  }
+  initializeProfileMedia();
+  document.addEventListener('ascendo:profile-ready',initializeProfileMedia);
 })();
