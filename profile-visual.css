@@ -1,4 +1,10 @@
 .custom-profile { font-family: var(--body-font,'DM Sans',system-ui,sans-serif); }
+.profile-background-preset { position: absolute; inset: 0; pointer-events: none; background: #000 url('/assets/flux-lines-poster.webp') center/cover no-repeat; }
+.profile-background-preset__canvas { width: 100%; height: 100%; opacity: 0; }
+.profile-background-preset.is-ready { background-image: none; }
+.profile-background-preset.is-ready .profile-background-preset__canvas { opacity: 1; }
+.video-stage[data-preset='flux-lines'] .video-stage__shade { display: none; }
+.custom-profile[data-has-widgets='false'] .profile-widgets { display: none; }
 .page--profile[data-profile-theme='monochrome'] :is(.profile-atmosphere,.profile-cursor-decorations,.back-link,.media-controls,.toast),
 .preview-card[data-profile-theme='monochrome'] > :is(.profile-atmosphere,.profile-cursor-decorations),
 .custom-profile[data-profile-theme='monochrome'] :is(.profile-summary,.profile-widgets,.profile-electric) { filter: grayscale(1); }

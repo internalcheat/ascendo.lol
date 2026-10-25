@@ -1,0 +1,42 @@
+{
+  "repository": "https://github.com/DavidHDev/react-bits",
+  "revision": "e12c22192ac7b4b452c5e2feb9b586d74765d696",
+  "license": "MIT + Commons Clause License Condition v1.0",
+  "files": [
+    {
+      "source": "src/content/Backgrounds/FluxLines/FluxLines.jsx",
+      "destination": "vendor/react-bits/FluxLines.jsx",
+      "url": "https://raw.githubusercontent.com/DavidHDev/react-bits/e12c22192ac7b4b452c5e2feb9b586d74765d696/src/content/Backgrounds/FluxLines/FluxLines.jsx",
+      "bytes": 16117,
+      "sha256": "f29fdc61ea2a0684432a2d6ccccd2ef4cf7f10857046daab5e523568e5d9ce07"
+    },
+    {
+      "source": "src/content/Backgrounds/FluxLines/FluxLines.css",
+      "destination": "vendor/react-bits/FluxLines.css",
+      "url": "https://raw.githubusercontent.com/DavidHDev/react-bits/e12c22192ac7b4b452c5e2feb9b586d74765d696/src/content/Backgrounds/FluxLines/FluxLines.css",
+      "bytes": 206,
+      "sha256": "fd0d908ca6c047e6bd0f8bba2e13fe037ecca0b6e894b3f0612777c75f68950d"
+    },
+    {
+      "source": "LICENSE.md",
+      "destination": "vendor/react-bits/LICENSE.md",
+      "url": "https://raw.githubusercontent.com/DavidHDev/react-bits/e12c22192ac7b4b452c5e2feb9b586d74765d696/LICENSE.md",
+      "bytes": 2060,
+      "sha256": "4bdd1fa59a6b7d5954bc3b213dbc34e455c635a94bbcecf9293553797d0fad02"
+    },
+    {
+      "source": "src/demo/Backgrounds/presets/FluxLines.js",
+      "destination": "vendor/react-bits/demo-presets.js",
+      "url": "https://raw.githubusercontent.com/DavidHDev/react-bits/e12c22192ac7b4b452c5e2feb9b586d74765d696/src/demo/Backgrounds/presets/FluxLines.js",
+      "bytes": 1442,
+      "sha256": "c7b36f224e11a337a738ac3a9edc5f565c19b94705d1ec47787591ee09b4b0a8"
+    },
+    {
+      "source": "public/assets/studio/flux-lines-dark.webp",
+      "destination": "assets/flux-lines-poster.webp",
+      "url": "https://raw.githubusercontent.com/DavidHDev/react-bits/e12c22192ac7b4b452c5e2feb9b586d74765d696/public/assets/studio/flux-lines-dark.webp",
+      "bytes": 4574,
+      "sha256": "c5b2aee6329929f571199129aa601aa06c456370ebad9b4de55c52351e2776e3"
+    }
+  ]
+}

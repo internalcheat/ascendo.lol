@@ -1,16 +1,18 @@
 import { request, session, storeSession, freshSession } from './editor-api.mjs';
-import { normalizeProfile, ICONS, MAX_IMAGE, MAX_VIDEO } from './profile-schema.mjs?v=20261025-7';
-import { renderProfile, bindMusic, element, replayNameEffect, bindNameEffectVisibility } from './profile-view.mjs?v=20261025-7';
+import { normalizeProfile, ICONS, MAX_IMAGE, MAX_VIDEO } from './profile-schema.mjs?v=20261025-9';
+import { renderProfile, bindMusic, element, replayNameEffect, bindNameEffectVisibility } from './profile-view.mjs?v=20261025-9';
 import { PUBLISHABLE_KEY } from './customizer-config.mjs';
 import { createProfileEffects } from './profile-effects.mjs?v=20261025-7';
 import { badgeError } from './badge-policy.mjs?v=20261025-4';
-import { createVisualEditor } from './editor-visual.mjs?v=20261025-7';
+import { createVisualEditor } from './editor-visual.mjs?v=20261025-9';
+import { createProfileBackground } from './profile-background.mjs?v=20261025-9';
 
 const byId = id => document.getElementById(id);
 const form = byId('profileForm');
 const status = byId('editorStatus');
 const video = byId('previewVideo');
 const panel = byId('previewCard');
+const profileBackground=createProfileBackground(byId('previewStage'),{onStatus:message=>{byId('backgroundPresetStatus').textContent=message;}});
 const model = { saved:null, draft:null, previous:null, defaults:null, revision:0, baselineRevision:0, slug:'', uploads:new Map(), busy:false, activeUploads:0, dirty:false, previewFrame:0, canUseReservedBadges:false };
 const previewUrls = new Map();
 const visualEditor = createVisualEditor({onChange:schedulePreview,isBusy:()=>model.busy||model.activeUploads>0});
@@ -65,7 +67,7 @@ function collect() {
       return [key,control.type==='checkbox'?control.checked:control.type==='range'?Number(control.value):control.value];
     }))])),
     avatar:{url:byId('avatarUrl').value,poster:byId('avatarPoster').value,x:Number(byId('avatarX').value),y:Number(byId('avatarY').value)},
-    background:{kind,url:backgroundUrl,mobile:backgroundUrl===current.background.url?current.background.mobile:'',poster:byId('backgroundPoster').value},
+    background:{kind,...(kind==='preset'?{preset:'flux-lines'}:{}),url:backgroundUrl,mobile:backgroundUrl===current.background.url?current.background.mobile:'',poster:byId('backgroundPoster').value},
     soundtrack:{title:byId('songTitle').value,artist:byId('songArtist').value},socials:current.socials
   };
 }
@@ -100,6 +102,7 @@ function preview() {
   const contentKey=JSON.stringify({...config,cursorEffects:undefined,cardEffects:undefined,entranceEffects:undefined,electricBorder:undefined,overlays:undefined,previewUrls:[...previewUrls]});
   if(contentKey!==renderedPreview){renderProfile(panel,config,{previewUrls});renderedPreview=contentKey;}
   profileEffects.update(config,{previewUrls});
+  profileBackground.update(config);
   updateEffectControls();
   updateProfileEffectControls();
   visualEditor.updateControls();
@@ -108,7 +111,7 @@ function preview() {
   const poster=previewUrls.get(config.background.poster)||config.background.poster;
   const posterImage=byId('previewPoster');
   const isVideo=config.background.kind==='video';
-  posterImage.hidden=config.background.kind==='black'||(!poster && isVideo);
+  posterImage.hidden=['black','preset'].includes(config.background.kind)||(!poster && isVideo);
   if(config.background.kind==='image') posterImage.src=source;
   else if(poster) posterImage.src=poster;
   else posterImage.removeAttribute('src');
@@ -360,8 +363,9 @@ async function initialize(){
     const current=await request('/me');
     model.canUseReservedBadges=current.capabilities?.canUseReservedBadges===true;
     model.slug=current.slug;model.saved=normalizeProfile(current.config);model.defaults=normalizeProfile(current.defaults);model.previous=current.previous?normalizeProfile(current.previous):null;model.revision=current.revision;model.baselineRevision=current.revision;
-    byId('studioIdentity').textContent=`Editing ${model.saved.name} · Your profile URL stays ascendo.lol/${model.slug}/`;
-    byId('viewProfile').href=`/${model.slug}/`;byId('viewProfile').hidden=false;
+    const publicSlug=model.slug==='szikraaaa'?'Szikraaaa':model.slug;
+    byId('studioIdentity').textContent=`Editing ${model.saved.name} · Your profile URL stays ascendo.lol/${publicSlug}/`;
+    byId('viewProfile').href=`/${publicSlug}/`;byId('viewProfile').hidden=false;
     await library();fill(model.saved);markDirty(false);byId('restorePrevious').disabled=!model.previous;
     byId('editorContent').hidden=false;message('');
     try{const draft=JSON.parse(sessionStorage.getItem(draftKey)||'null');if(draft?.slug===model.slug){fill(normalizeProfile(draft.config));model.revision=draft.revision;markDirty();message('Restored your unpublished draft. Save changes when ready.');if(draft.revision!==current.revision){byId('reloadLatest').hidden=false;message('Your draft is safe, but the saved profile changed. Load the latest version before publishing.',true);}}}catch{}
