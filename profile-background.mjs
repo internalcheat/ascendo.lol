@@ -1,8 +1,11 @@
+import {BACKGROUNDS,backgroundPoster,backgroundStyle,loadBackground} from './background-catalog.mjs?v=20261025-15';
 export const FLUX_POSTER='/assets/flux-lines-poster.webp';
 const styles=new WeakMap();
-function loadStyles(doc){
-  if(!styles.has(doc))styles.set(doc,new Promise((resolve,reject)=>{const link=doc.createElement('link');link.rel='stylesheet';link.href='/vendor/flux-lines.css?v=20261025-9';link.addEventListener('load',resolve,{once:true});link.addEventListener('error',()=>{styles.delete(doc);link.remove();reject(Error('Flux Lines styles unavailable'));},{once:true});doc.head.append(link);}));
-  return styles.get(doc);
+function loadStyles(doc,id){
+  const href=backgroundStyle(id);if(!href)return Promise.resolve();
+  if(!styles.has(doc))styles.set(doc,new Map());const cache=styles.get(doc);
+  if(!cache.has(href))cache.set(href,new Promise((resolve,reject)=>{const link=doc.createElement('link');link.rel='stylesheet';link.href=href;link.onload=resolve;link.onerror=()=>{cache.delete(href);link.remove();reject(Error('Styles unavailable'));};doc.head.append(link);}));
+  return cache.get(href);
 }
 
 export function createProfileBackground(stage,{onStatus=()=>{}}={}){
@@ -11,23 +14,26 @@ export function createProfileBackground(stage,{onStatus=()=>{}}={}){
   const host=doc.createElement('div');host.className='profile-background-preset';host.setAttribute('aria-hidden','true');host.hidden=true;
   const canvas=doc.createElement('div');canvas.className='profile-background-preset__canvas';host.append(canvas);stage.append(host);
   const abort=new win.AbortController();
-  let selected=false,dispose,generation=0,suspended=false,destroyed=false;
+  let selected='',dispose,generation=0,suspended=false,destroyed=false,visible=true;
+  const observer=win.IntersectionObserver?new win.IntersectionObserver(entries=>{const next=entries[0].isIntersecting;if(next!==visible){visible=next;sync();}}):null;observer?.observe(stage);
   function stop(){generation++;dispose?.();dispose=undefined;canvas.replaceChildren();host.classList.remove('is-ready');}
   async function sync(){
-    stop();host.hidden=!selected;stage.dataset.preset=selected?'flux-lines':'';
-    if(!selected||destroyed||suspended)return;
-    if(reduced.matches||win.navigator.connection?.saveData){onStatus('Flux Lines still preview · motion is reduced on this device.');return;}
-    const current=generation;onStatus('Loading Flux Lines preview…');
+    stop();host.hidden=!selected;stage.dataset.preset=selected;host.style.backgroundImage=selected?`url("${backgroundPoster(selected)}")`:'';
+    if(!selected||destroyed||suspended||doc.hidden||!visible)return;
+    const name=BACKGROUNDS[selected];
+    if(reduced.matches||win.navigator.connection?.saveData){onStatus(`${name} · Still preview`);return;}
+    const current=generation;onStatus(`Loading ${name}…`);
     try{
-      const [,module]=await Promise.all([loadStyles(doc),import('./vendor/flux-lines.mjs?v=20261025-9')]);
+      const [,module]=await Promise.all([loadStyles(doc,selected),loadBackground(selected)]);
       if(current!==generation||destroyed||!selected)return;
-      dispose=module.mountFluxLines(canvas,{onReady:()=>{if(current!==generation)return;host.classList.add('is-ready');onStatus('Flux Lines preview · move your cursor or click to interact. Save changes to apply.');},onError:message=>{if(current!==generation)return;stop();onStatus(message);}});
-    }catch{if(current===generation){stop();onStatus('Flux Lines animation is unavailable. Showing its still preview.');}}
+      dispose=(module.mountBackground||module.mountFluxLines)(canvas,{onReady:()=>{if(current!==generation)return;host.classList.add('is-ready');onStatus(`${name} · Live preview`);},onError:()=>{if(current!==generation)return;stop();onStatus(`${name} · Animation unavailable. Showing still preview.`);}});
+    }catch{if(current===generation){stop();onStatus(`${name} · Animation unavailable. Showing still preview.`);}}
   }
   reduced.addEventListener('change',sync,{signal:abort.signal});
+  doc.addEventListener('visibilitychange',()=>doc.hidden?stop():sync(),{signal:abort.signal});
   win.addEventListener('pagehide',event=>{if(event.persisted){suspended=true;stop();}else destroy();},{signal:abort.signal});
   win.addEventListener('pageshow',()=>{if(suspended){suspended=false;sync();}},{signal:abort.signal});
-  function destroy(){if(destroyed)return;destroyed=true;abort.abort();stop();host.remove();delete stage.dataset.preset;}
-  if(stage.dataset.preset==='flux-lines'){selected=true;sync();}
-  return {update(config){const next=config.background.kind==='preset'&&config.background.preset==='flux-lines';if(next===selected)return;selected=next;sync();if(!next)onStatus('');},destroy};
+  function destroy(){if(destroyed)return;destroyed=true;abort.abort();observer?.disconnect();stop();host.remove();delete stage.dataset.preset;}
+  if(Object.hasOwn(BACKGROUNDS,stage.dataset.preset||'')){selected=stage.dataset.preset;sync();}
+  return {update(config){const next=config.background.kind==='preset'&&Object.hasOwn(BACKGROUNDS,config.background.preset)?config.background.preset:'';if(next===selected)return;selected=next;sync();if(!next)onStatus('');},destroy};
 }

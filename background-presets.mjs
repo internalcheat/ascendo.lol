@@ -1,0 +1,1 @@
+export const BACKGROUNDS=Object.freeze({'flux-lines':'Flux Lines',antigravity:'Antigravity',ballpit:'Ballpit',beams:'Beams',dither:'Dither','crt-warp':'CRT Warp','grid-distortion':'Grid Distortion','grid-scan':'Grid Scan',lightfall:'Lightfall','line-waves':'Line Waves','plasma-wave':'Plasma Wave',topography:'Topography'});

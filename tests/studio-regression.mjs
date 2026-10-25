@@ -14,7 +14,8 @@ import { preserveVisualGroups, FONTS, TEXT_SIZES, LAYOUTS, OVERLAY_PRESETS, MEDI
 import { hasH264Track } from '../supabase/functions/profile-api/overlay-video.mjs';
 import { createOverlayParticles } from '../overlay-particles.mjs';
 import { badgeCapabilities } from '../supabase/functions/profile-api/badge-authority.mjs';
-import { transform } from 'esbuild';
+import { transform,build } from 'esbuild';
+const appBundle=async()=> (await build({entryPoints:['app.js'],bundle:true,write:false,format:'iife'})).outputFiles[0].text;
 
 const root=path.resolve('.');
 const read=file=>fs.readFileSync(path.join(root,file),'utf8');
@@ -51,7 +52,7 @@ try{
   await check('Flux Lines controller is opt-in, reduced-motion safe and cleans up pending selection',async()=>{
     const window=environment('Szikraaaa/index.html',true);globalThis.document=window.document;const {createProfileBackground}=await import('../profile-background.mjs');
     const stage=document.querySelector('.video-stage');const messages=[];const control=createProfileBackground(stage,{onStatus:message=>messages.push(message)});control.update(normalizeProfile(seeds.internalcheats));assert.equal(stage.querySelector('.profile-background-preset').hidden,true);
-    const flux=normalizeProfile(JSON.parse(read('supabase/szikraaaa-profile.json')));control.update(flux);assert.equal(stage.dataset.preset,'flux-lines');assert.equal(stage.querySelector('.profile-background-preset').hidden,false);assert.match(messages.at(-1),/motion is reduced/);assert.equal(stage.querySelectorAll('canvas').length,0);assert.equal(document.querySelectorAll('link[href*="vendor/flux-lines"]').length,0);
+    const flux=normalizeProfile(JSON.parse(read('supabase/szikraaaa-profile.json')));control.update(flux);assert.equal(stage.dataset.preset,'flux-lines');assert.equal(stage.querySelector('.profile-background-preset').hidden,false);assert.match(messages.at(-1),/Still preview/);assert.equal(stage.querySelectorAll('canvas').length,0);assert.equal(document.querySelectorAll('link[href*="vendor/flux-lines"]').length,0);
     control.update(normalizeProfile(seeds.internalcheats));assert.equal(stage.querySelector('.profile-background-preset').hidden,true);control.destroy();assert.equal(stage.querySelector('.profile-background-preset'),null);
     const provenance=JSON.parse(read('vendor/react-bits/SOURCES.json'));assert.equal(provenance.revision,'e12c22192ac7b4b452c5e2feb9b586d74765d696');assert.match(read('vendor/react-bits/LICENSE.md'),/Commons Clause/);assert.match(read('vendor/react-bits/FluxLines.runtime.jsx'),/onContextLost/);assert.match(read('vendor/react-bits/FluxLines.jsx'),/const FRAGMENT/);assert.match(read('flux-island.jsx'),/\.\.\.LOOK/);
   });
@@ -231,7 +232,7 @@ try{
     assert.equal(xhr.headers.authorization,'Bearer fresh-test-token');
   });
   await check('all seeded profiles normalize without losing names, links or bio',()=>{
-    for(const config of Object.values(seeds))assert.deepEqual({...normalizeProfile(config),cursorEffects:undefined,cardEffects:undefined,entranceEffects:undefined,colorTheme:undefined,themeColors:undefined,typography:undefined,cardLayout:undefined,electricBorder:undefined,overlays:undefined,soundtrackCard:undefined,enterScreen:undefined,pageTitle:undefined,widgets:undefined},{...config,effectSpeed:100,effectStrength:65,cursorEffects:undefined,cardEffects:undefined,entranceEffects:undefined,colorTheme:undefined,themeColors:undefined,typography:undefined,cardLayout:undefined,electricBorder:undefined,overlays:undefined,soundtrackCard:undefined,enterScreen:undefined,pageTitle:undefined,widgets:undefined});
+    for(const config of Object.values(seeds))assert.deepEqual({...normalizeProfile(config),cursorEffects:undefined,cardEffects:undefined,entranceEffects:undefined,music:undefined,colorTheme:undefined,themeColors:undefined,typography:undefined,cardLayout:undefined,electricBorder:undefined,overlays:undefined,soundtrackCard:undefined,enterScreen:undefined,pageTitle:undefined,widgets:undefined},{...config,effectSpeed:100,effectStrength:65,cursorEffects:undefined,cardEffects:undefined,entranceEffects:undefined,music:undefined,colorTheme:undefined,themeColors:undefined,typography:undefined,cardLayout:undefined,electricBorder:undefined,overlays:undefined,soundtrackCard:undefined,enterScreen:undefined,pageTitle:undefined,widgets:undefined});
     assert.equal(seeds.bal4zs.bio,'');
     assert.equal(seeds.bal4zs.socials[3].handle,'_bal4zs.exe_');
     for(const effect of EFFECTS)assert.equal(normalizeProfile({...seeds.internalcheats,effect}).effect,effect);
@@ -286,14 +287,14 @@ try{
   await check('public player supports mobile selection, quiet posters and dynamic copy rows',async()=>{
     for(const reduced of [false,true]){
       const window=environment('internalcheats/index.html',reduced);let copied='';Object.defineProperty(window.navigator,'clipboard',{value:{writeText:async value=>{copied=value;}}});window.isSecureContext=true;
-      vm.runInContext(read('app.js'),window);
+      vm.runInContext(await appBundle(),window);await flush();
       const video=window.document.querySelector('video');
       if(reduced)assert.equal(video.getAttribute('src'),null);else assert.match(video.src,/music-background.mp4/);
       const button=window.document.createElement('button');button.dataset.copy='dynamic-handle';button.dataset.platform='Discord';window.document.body.append(button);button.click();await flush();assert.equal(copied,'dynamic-handle');
       if(!reduced){video.dataset.backgroundKind='black';video.dispatchEvent(new window.Event('ascendo:background'));assert.equal(video.getAttribute('src'),null);video.dataset.backgroundKind='video';video.dispatchEvent(new window.Event('ascendo:background'));assert.match(video.src,/music-background.mp4/);}
       window.document.dispatchEvent(new window.Event('visibilitychange'));window.dispatchEvent(new window.Event('pagehide'));
     }
-    const mobile=environment();mobile.matchMedia('(max-width: 820px), (pointer: coarse)').matches=true;vm.runInContext(read('app.js'),mobile);assert.match(mobile.document.querySelector('video').src,/music-background-mobile.mp4/);
+    const mobile=environment();mobile.matchMedia('(max-width: 820px), (pointer: coarse)').matches=true;vm.runInContext(await appBundle(),mobile);await flush();assert.match(mobile.document.querySelector('video').src,/music-background-mobile.mp4/);
   });
   await check('Easter egg requires five activations and cleans up without overlaps',async()=>{
     const window=environment('index.html');const running=[];window.Element.prototype.animate=function(frames,options){let resolve;const animation={frames,options,finished:new Promise(done=>{resolve=done;}),cancel(){}};animation.resolve=resolve;running.push(animation);return animation;};
@@ -308,7 +309,7 @@ try{
     let stored={...structuredClone(seeds.internalcheats),badge:'Founder'},revision=1,previous=null,saveCalls=0,failSave=false;
     globalThis.fetch=async(url,options={})=>{
       const route=String(url).split('/profile-api')[1];let data,status=200;
-      if(route==='/uploads')data=[];
+      if(route==='/preferences')data={language:'en'};else if(route==='/uploads')data=[];
       else if(route==='/me'&&options.method==='PUT'){
         saveCalls++;if(failSave){status=409;data={error:'This profile changed in another tab.'};}
         else{const input=JSON.parse(options.body);assert.equal(input.revision,revision);previous=stored;stored=input.config;data={config:stored,revision:++revision};}
@@ -353,7 +354,7 @@ try{
     assert.equal(document.querySelectorAll('video').length,1);
     for(const heading of ['Fonts','Text Sizes','Card Layout','Electric Border','Overlays'])assert.ok([...document.querySelectorAll('h2')].some(node=>(node.querySelector('.studio-section-title')?.textContent===heading||node.textContent===heading)));
     assert.equal(byId('electricEnabled').checked,false);assert.equal(byId('overlaysEnabled').checked,false);assert.equal(byId('layout-classic').checked,true);
-    await edit('displayFont','outfit');await edit('bodyFont','sora');await edit('sizeAuto-name',false);await edit('size-name',72);await edit('layout-bento',true);await edit('electricEnabled',true);await edit('overlaysEnabled',true);byId('addOverlayLayer').click();await flush();
+    await edit('displayFont','outfit');await edit('bodyFont','sora');await edit('sizeAuto-name',false);await edit('size-name',72);await edit('layout-bento',true);await edit('electricEnabled',true);await edit('overlaysEnabled',true);document.querySelector('[data-overlay-preset=rain]').click();await flush();
     assert.equal(byId('previewCard').dataset.layout,'bento');assert.equal(byId('previewCard').style.getPropertyValue('--size-name'),'72px');assert.equal(document.querySelectorAll('#overlayLayers [data-preset]').length,2);
     const draft=JSON.parse(sessionStorage.getItem('ascendo-editor-draft'));assert.equal(draft.config.cardLayout,'bento');assert.equal(draft.config.electricBorder.enabled,true);assert.equal(draft.config.overlays.layers.length,2);assert.equal(stored.cardLayout,'classic');
     const privateVideo=byId('previewVideo');byId('expandPreview').click();await flush();assert.equal(byId('previewDialog').open,true);assert.equal(byId('previewVideo'),privateVideo);assert.equal(document.querySelectorAll('#previewVideo').length,1);byId('closeExpandedPreview').click();await flush();assert.equal(byId('previewDialog').open,false);assert.equal(byId('previewVideo'),privateVideo);
@@ -365,6 +366,9 @@ try{
     byId('restorePrevious').click();await flush();assert.equal(byId('enterEnabled').checked,false);assert.equal(byId('soundtrackEnabled').checked,false);assert.equal(stored.enterScreen.enabled,true);byId('discardChanges').click();await flush();assert.equal(byId('enterEnabled').checked,true);assert.equal(byId('hardwareWidgetRows-0-value').value,'My mouse');assert.equal(byId('themePrimary').value,'#00aaff');assert.equal(document.body.dataset.studioTheme,'custom');
     const paletteSaves=saveCalls;const hex=byId('themePrimary').closest('.studio-color').querySelector('.studio-color__hex');hex.focus();hex.value='zzzzzz';hex.dispatchEvent(new window.Event('input',{bubbles:true}));await flush();byId('profileForm').dispatchEvent(new window.Event('submit',{cancelable:true}));await flush();assert.equal(saveCalls,paletteSaves);assert.equal(hex.getAttribute('aria-invalid'),'true');byId('discardChanges').click();await flush();assert.equal(hex.value,'#00AAFF');assert.equal(hex.getAttribute('aria-invalid'),'false');
     await edit('colorTheme','monochrome');assert.equal(document.body.style.getPropertyValue('--studio-primary'),'#f2f2f2');assert.equal(byId('themePrimary').disabled,true);assert.equal(byId('themePrimary').value,'#00aaff');byId('discardChanges').click();await flush();assert.equal(document.body.dataset.studioTheme,'custom');
+    byId('videoUrl').value='';await edit('backgroundKind','video');assert.equal(byId('videoUrl').closest('.full-width').hidden,false);await edit('backgroundKind','image');assert.equal(byId('imageUrl').closest('.full-width').hidden,false);
+    await edit('backgroundKind','preset:beams');await edit('musicSource','mp3');assert.equal(byId('musicUploadFields').hidden,false);const beforeMissingMusic=saveCalls;byId('profileForm').dispatchEvent(new window.Event('submit',{cancelable:true}));await flush();assert.equal(saveCalls,beforeMissingMusic);assert.match(byId('editorStatus').textContent,/Upload an MP3/);await edit('musicUrl','https://example.com/isolated-audio.mp3');await edit('musicVolume',39);assert.equal(stored.music.source,'video');assert.equal(byId('previewVideo').getAttribute('src'),null);assert.equal(document.querySelector('[data-profile-music]').getAttribute('src'),'https://example.com/isolated-audio.mp3');
+    const musicDraft=JSON.parse(sessionStorage.getItem('ascendo-editor-draft')).config;assert.equal(musicDraft.background.preset,'beams');assert.equal(musicDraft.music.volume,39);byId('profileForm').dispatchEvent(new window.Event('submit',{cancelable:true}));await flush();assert.equal(stored.background.preset,'beams');assert.equal(stored.music.volume,39);byId('restorePrevious').click();await flush();assert.equal(byId('backgroundKind').value,'video');assert.equal(byId('musicSource').value,'video');byId('discardChanges').click();await flush();assert.equal(byId('backgroundKind').value,'preset:beams');assert.equal(byId('musicVolume').value,'39');
 
   });
   await check('regular editor shows the exact inline badge error, blocks submission and allows legitimate badges',async()=>{
@@ -373,7 +377,7 @@ try{
     globalThis.window=window;globalThis.matchMedia=window.matchMedia;globalThis.requestAnimationFrame=window.requestAnimationFrame;globalThis.cancelAnimationFrame=clearTimeout;globalThis.confirm=()=>true;
     window.sessionStorage.setItem('ascendo-editor-session',JSON.stringify({access_token:'fixture-only',refresh_token:'fixture-only',expires_at:Date.now()/1000+3600}));
     let saves=0,lastSavedConfig;
-    globalThis.fetch=async(url,options={})=>{const route=String(url).split('/profile-api')[1];let data;if(route==='/uploads')data=[];else if(options.method==='PUT'){lastSavedConfig=JSON.parse(options.body).config;saves++;data={config:JSON.parse(options.body).config,revision:2};}else data={slug:'bal4zs',config:seeds.bal4zs,defaults:seeds.bal4zs,previous:null,revision:1,capabilities:{canUseReservedBadges:false}};return new Response(JSON.stringify(data));};
+    globalThis.fetch=async(url,options={})=>{const route=String(url).split('/profile-api')[1];let data;if(route==='/preferences')data={language:'en'};else if(route==='/uploads')data=[];else if(options.method==='PUT'){lastSavedConfig=JSON.parse(options.body).config;saves++;data={config:JSON.parse(options.body).config,revision:2};}else data={slug:'bal4zs',config:seeds.bal4zs,defaults:seeds.bal4zs,previous:null,revision:1,capabilities:{canUseReservedBadges:false}};return new Response(JSON.stringify(data));};
     await import(pathToFileURL(path.join(root,'editor.mjs')).href+'?unit=regular');await flush();
     const badge=document.getElementById('badge'),form=document.getElementById('profileForm');
     for(const word of ['Founder','V1P','H o p e','Fоundеr']){badge.value=word;badge.dispatchEvent(new window.Event('input',{bubbles:true}));await flush();assert.equal(document.getElementById('badgeError').textContent,RESERVED_BADGE_ERROR);assert.equal(badge.getAttribute('aria-invalid'),'true');assert.equal(document.getElementById('saveChanges').disabled,true);form.dispatchEvent(new window.Event('submit',{cancelable:true}));await flush();assert.equal(saves,0);}

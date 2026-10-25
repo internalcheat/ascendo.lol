@@ -1,6 +1,6 @@
-import { createOverlayParticles } from './overlay-particles.mjs?v=20261025-6';
+import { createOverlayParticles } from './overlay-particles.mjs?v=20261025-15';
 import { createChromaKey } from './chroma-key.mjs?v=20261025-6';
-import {isTiledLayout} from './visual-schema.mjs?v=20261025-14';
+import {isTiledLayout} from './visual-schema.mjs?v=20261025-15';
 import {themePalette} from './profile-palette.mjs?v=20261025-14';
 
 function contour(width,height,radius) {

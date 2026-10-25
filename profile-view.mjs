@@ -1,5 +1,5 @@
-import { normalizeProfile, safeUrl } from './profile-schema.mjs?v=20261025-14';
-import { FONTS, TEXT_SIZES, isTiledLayout } from './visual-schema.mjs?v=20261025-14';
+import { normalizeProfile, safeUrl } from './profile-schema.mjs?v=20261025-15';
+import { FONTS, TEXT_SIZES, isTiledLayout } from './visual-schema.mjs?v=20261025-15';
 import {renderWidgets} from './profile-widgets.mjs?v=20261025-11';
 import {themePalette,channels} from './profile-palette.mjs?v=20261025-14';
 
@@ -212,8 +212,9 @@ export function renderProfile(panel, input, options = {}) {
   if (!identity.contains(avatar) || !identity.contains(summary)) identity.replaceChildren(avatar,summary);
   const musicKey = JSON.stringify(config.soundtrack);
   let music = panel.querySelector('.now-playing');
-  if (config.soundtrackCard.enabled && config.background.kind === 'video' && music?.dataset.sourceKey !== musicKey) { music = musicCard(config.soundtrack); music.dataset.sourceKey = musicKey; }
-  if (!config.soundtrackCard.enabled || config.background.kind !== 'video') music = null;
+  const hasMusic=config.background.kind==='video'||config.music?.source==='mp3'&&!!config.music.url;
+  if (config.soundtrackCard.enabled && hasMusic && music?.dataset.sourceKey !== musicKey) { music = musicCard(config.soundtrack); music.dataset.sourceKey = musicKey; }
+  if (!config.soundtrackCard.enabled || !hasMusic) music = null;
   const extra=renderWidgets(panel,config.widgets),contents=[socials,music,...extra].filter(Boolean).map(node=>{let outer=node;while(outer.parentElement&&outer.parentElement!==widgets&&widgets.contains(outer))outer=outer.parentElement;return outer.parentElement===widgets?outer:node;}),keep=new Set(contents);
   for(const child of [...widgets.children])if(!keep.has(child))child.remove();
   contents.forEach((node,index)=>{if(widgets.children[index]!==node)widgets.insertBefore(node,widgets.children[index]||null);});
@@ -228,16 +229,18 @@ export function bindMusic(video, panel) {
   const time = value => { const seconds = Number.isFinite(value) ? Math.max(0,Math.floor(value)) : 0; return `${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,'0')}`; };
   function update() {
     if(document.hidden)return;
+    const media=video.profileMusicPlayer?.current()||video;
     const card = panel.querySelector('.now-playing');
     if (!card) return;
-    const state = video.error ? 'Unavailable' : !video.currentSrc ? 'Sound off' : video.readyState < 2 ? 'Loading' : video.paused ? 'Not playing' : video.muted || video.volume === 0 ? 'Muted' : 'Playing';
+    const state = media.error ? 'Unavailable' : !media.currentSrc ? 'Sound off' : media.readyState < 2 ? 'Loading' : media.paused ? 'Not playing' : media.muted || media.volume === 0 ? 'Muted' : 'Playing';
     card.querySelector('.now-playing__state').textContent=state;
     card.dataset.state=state.toLowerCase().replaceAll(' ','-');
-    card.querySelector('.now-playing__time').textContent=`${time(video.currentTime)} / ${Number.isFinite(video.duration)?time(video.duration):'—'}`;
-    const ratio = Number.isFinite(video.duration) && video.duration > 0 ? Math.min(1,video.currentTime/video.duration) : 0;
+    card.querySelector('.now-playing__time').textContent=`${time(media.currentTime)} / ${Number.isFinite(media.duration)?time(media.duration):'—'}`;
+    const ratio = Number.isFinite(media.duration) && media.duration > 0 ? Math.min(1,media.currentTime/media.duration) : 0;
     card.querySelector('.now-playing__fill').style.transform=`scaleX(${ratio})`;
   }
   for (const event of ['timeupdate','durationchange','loadedmetadata','playing','pause','volumechange','waiting','error','emptied']) video.addEventListener(event,update);
+  video.addEventListener('ascendo:music-state',update);
   update();
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)update();});
   return update;

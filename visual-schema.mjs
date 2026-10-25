@@ -77,6 +77,6 @@ export function normalizeVisual(input, accent) {
 
 export function preserveVisualGroups(submitted, current) {
   const result = { ...submitted };
-  for (const group of [...VISUAL_GROUPS,'cursorEffects','cardEffects','entranceEffects']) if (!Object.hasOwn(result,group) && Object.hasOwn(current,group)) result[group] = current[group];
+  for (const group of [...VISUAL_GROUPS,'cursorEffects','cardEffects','entranceEffects','music']) if (!Object.hasOwn(result,group) && Object.hasOwn(current,group)) result[group] = current[group];
   return result;
 }

@@ -1,9 +1,9 @@
 import { API_URL, PUBLISHABLE_KEY } from './customizer-config.mjs';
-import { normalizeProfile } from './profile-schema.mjs?v=20261025-14';
-import { renderProfile, bindMusic, bindNameEffectVisibility } from './profile-view.mjs?v=20261025-14';
+import { normalizeProfile } from './profile-schema.mjs?v=20261025-15';
+import { renderProfile, bindMusic, bindNameEffectVisibility } from './profile-view.mjs?v=20261025-15';
 import { createProfileEffects } from './profile-effects.mjs?v=20261025-14';
-import { createProfileBackground } from './profile-background.mjs?v=20261025-11';
-import {createProfileAdditions} from './profile-additions.mjs?v=20261025-11';
+import { createProfileBackground } from './profile-background.mjs?v=20261025-15';
+import {createProfileAdditions} from './profile-additions.mjs?v=20261025-15';
 import {themePalette,channels} from './profile-palette.mjs?v=20261025-14';
 
 bindNameEffectVisibility();
@@ -47,6 +47,7 @@ if(panel){
     video.dataset.backgroundKind=config.background.kind;
     video.dataset.backgroundSrc=config.background.kind==='video'?config.background.url:'';
     video.dataset.mobileSrc=config.background.mobile;
+    video.dataset.musicSource=config.music.source;video.dataset.musicSrc=config.music.url;video.dataset.musicVolume=String(config.music.volume);
     const poster=['black','preset'].includes(config.background.kind)?'':config.background.kind==='image'?config.background.url:config.background.poster;
     if(poster)video.setAttribute('poster',poster);else video.removeAttribute('poster');
     const stage=document.querySelector('.video-stage');

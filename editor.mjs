@@ -1,21 +1,27 @@
 import { request, session, storeSession, freshSession } from './editor-api.mjs';
-import { normalizeProfile, ICONS, MAX_IMAGE, MAX_VIDEO } from './profile-schema.mjs?v=20261025-14';
-import { renderProfile, bindMusic, element, replayNameEffect, bindNameEffectVisibility } from './profile-view.mjs?v=20261025-14';
+import { normalizeProfile, ICONS, MAX_IMAGE, MAX_VIDEO } from './profile-schema.mjs?v=20261025-15';
+import { renderProfile, bindMusic, element, replayNameEffect, bindNameEffectVisibility } from './profile-view.mjs?v=20261025-15';
 import { PUBLISHABLE_KEY } from './customizer-config.mjs';
 import { createProfileEffects } from './profile-effects.mjs?v=20261025-14';
 import { badgeError } from './badge-policy.mjs?v=20261025-4';
-import { createVisualEditor } from './editor-visual.mjs?v=20261025-14';
-import { createProfileBackground } from './profile-background.mjs?v=20261025-11';
-import { createEditorLayout } from './editor-layout.mjs?v=20261025-14';
-import {createAdditionalEditor} from './editor-additions.mjs?v=20261025-14';
-import {createProfileAdditions} from './profile-additions.mjs?v=20261025-11';
-import {createStudioControls} from './studio-controls.mjs?v=20261025-14';
+import { createVisualEditor } from './editor-visual.mjs?v=20261025-15';
+import { createProfileBackground } from './profile-background.mjs?v=20261025-15';
+import { createEditorLayout } from './editor-layout.mjs?v=20261025-15';
+import {createAdditionalEditor} from './editor-additions.mjs?v=20261025-15';
+import {createProfileAdditions} from './profile-additions.mjs?v=20261025-15';
+import {createStudioControls} from './studio-controls.mjs?v=20261025-15';
 import {applyStudioPalette} from './profile-palette.mjs?v=20261025-14';
+import {BACKGROUNDS} from './background-catalog.mjs?v=20261025-15';
+import {createProfilePlayer} from './profile-music.mjs?v=20261025-15';
+import {createStudioLanguage,tr} from './studio-i18n.mjs?v=20261025-15';
+import {createQuickGuide} from './studio-guide.mjs?v=20261025-15';
 
 const byId = id => document.getElementById(id);
 const form = byId('profileForm');
 const status = byId('editorStatus');
 const video = byId('previewVideo');
+for(const [id,name]of Object.entries(BACKGROUNDS))if(id!=='flux-lines'){const option=element('option','',name);option.value=`preset:${id}`;byId('backgroundKind').append(option);}
+const musicPlayer=createProfilePlayer(video,{preview:true});
 const panel = byId('previewCard');
 const profileBackground=createProfileBackground(byId('previewStage'),{onStatus:message=>{byId('backgroundPresetStatus').textContent=message;}});
 const model = { saved:null, draft:null, previous:null, defaults:null, revision:0, baselineRevision:0, slug:'', uploads:new Map(), busy:false, activeUploads:0, dirty:false, previewFrame:0, canUseReservedBadges:false };
@@ -26,6 +32,8 @@ const profileEffects = createProfileEffects(panel,{scope:panel.closest('.preview
 const profileAdditions=createProfileAdditions(panel.closest('.preview-card'),panel,{preview:true});
 const studioLayout=createEditorLayout({isBusy:()=>model.busy||model.activeUploads>0,onNavigate:()=>{if(matchMedia('(max-width: 820px)').matches)byId('editTab').click();}});
 const studioControls=createStudioControls(form);
+const quickGuide=createQuickGuide({layout:studioLayout});
+const studioLanguage=createStudioLanguage({request,onChange:()=>{studioControls.close();studioControls.refresh();}});
 let renderedPreview;
 const effectFields = {
   cursorEffects:{enabled:'cursorEnabled',style:'cursorStyle',color:'cursorColor',size:'cursorSize',trail:'cursorTrail',trailLength:'cursorTrailLength',trailSmoothness:'cursorTrailSmoothness',clickEffect:'cursorClickEffect'},
@@ -64,7 +72,7 @@ function markDirty(value = true) {
 }
 function collect() {
   const current=model.draft;
-  const kind=byId('backgroundKind').value;
+  const backgroundChoice=byId('backgroundKind').value,kind=backgroundChoice.startsWith('preset')?'preset':backgroundChoice,preset=backgroundChoice==='preset'?'flux-lines':backgroundChoice.slice(7);
   const backgroundUrl=kind==='video'?byId('videoUrl').value:kind==='image'?byId('imageUrl').value:'';
   return {
     name:byId('displayName').value,bio:byId('bio').value,badge:byId('badge').value,
@@ -78,7 +86,8 @@ function collect() {
       return [key,control.type==='checkbox'?control.checked:control.type==='range'?Number(control.value):control.value];
     }))])),
     avatar:{url:byId('avatarUrl').value,poster:byId('avatarPoster').value,x:Number(byId('avatarX').value),y:Number(byId('avatarY').value)},
-    background:{kind,...(kind==='preset'?{preset:'flux-lines'}:{}),url:backgroundUrl,mobile:backgroundUrl===current.background.url?current.background.mobile:'',poster:byId('backgroundPoster').value},
+    background:{kind,...(kind==='preset'?{preset}:{}),url:backgroundUrl,mobile:backgroundUrl===current.background.url?current.background.mobile:'',poster:byId('backgroundPoster').value},
+    music:{source:byId('musicSource').value,url:byId('musicUrl').value,volume:Number(byId('musicVolume').value)},
     soundtrack:{title:byId('songTitle').value,artist:byId('songArtist').value},socials:current.socials
   };
 }
@@ -92,6 +101,8 @@ function fill(config) {
   additionalEditor.fill(config);
   const values={displayName:config.name,bio:config.bio,badge:config.badge,accent:config.accent,effect:config.effect,glow:config.glow,opacity:config.opacity,avatarUrl:config.avatar.url,avatarPoster:config.avatar.poster,avatarX:config.avatar.x,avatarY:config.avatar.y,backgroundKind:config.background.kind,videoUrl:config.background.kind==='video'?config.background.url:'',imageUrl:config.background.kind==='image'?config.background.url:'',backgroundPoster:config.background.poster,songTitle:config.soundtrack.title,songArtist:config.soundtrack.artist};
   for(const [id,value]of Object.entries(values)) byId(id).value=value;
+  if(config.background.kind==='preset'&&config.background.preset!=='flux-lines')byId('backgroundKind').value=`preset:${config.background.preset}`;
+  byId('musicSource').value=config.music.source;byId('musicUrl').value=config.music.url;byId('musicVolume').value=config.music.volume;
   byId('effectSpeed').value=config.effectSpeed;
   byId('effectStrength').value=config.effectStrength;
   for(const [group,fields]of Object.entries(effectFields))for(const [key,id]of Object.entries(fields)){
@@ -110,6 +121,9 @@ function schedulePreview() {
 }
 function preview() {
   if(!model.draft) return;
+  const chosenKind=byId('backgroundKind').value;
+  for(const [id,show]of [['videoUrl',chosenKind==='video'],['backgroundPoster',chosenKind==='video'],['imageUrl',chosenKind==='image']])byId(id).closest('.full-width').hidden=!show;
+  byId('musicUploadFields').hidden=byId('musicSource').value!=='mp3';
   let config;
   try { config=normalizeProfile(collect()); }
   catch(error) { byId('previewHint').textContent=error.message; return; }
@@ -133,7 +147,8 @@ function preview() {
   if(config.background.kind==='image') posterImage.src=source;
   else if(poster) posterImage.src=poster;
   else posterImage.removeAttribute('src');
-  byId('previewSound').hidden=!isVideo;
+  byId('previewSound').hidden=!isVideo&&config.music.source!=='mp3';
+  byId('musicVolumeValue').textContent=`${config.music.volume}%`;byId('musicVolume').setAttribute('aria-valuetext',`${config.music.volume}%`);
   if(!isVideo) { video.pause();video.removeAttribute('src');video.load();video.hidden=true; }
   else {
     video.hidden=false;
@@ -145,6 +160,7 @@ function preview() {
     if(visible&&!profileAdditions.isGated()&&!matchMedia('(prefers-reduced-motion: reduce)').matches)video.play().catch(()=>{});
     else video.pause();
   }
+  musicPlayer.update(config.music,{source:isVideo?source:'',resolve:value=>previewUrls.get(value)||value,visible:visualEditor.expanded()||!matchMedia('(max-width: 820px)').matches||byId('studioGrid').dataset.tab==='preview'});
   updateMusic();
   studioLayout.refresh();
   studioControls.refresh();
@@ -171,7 +187,7 @@ function validateBadge() {
   const control=byId('badge');
   const error=badgeError(control.value,model.canUseReservedBadges);
   byId('badgeError').textContent=error;
-  control.setCustomValidity(error);
+  control.setCustomValidity(tr(error));
   control.setAttribute('aria-invalid',String(!!error));
   byId('saveChanges').disabled=model.busy||model.activeUploads>0||!model.dirty||!!error;
   return !error;
@@ -246,7 +262,7 @@ async function library() {
     row.append(element('span','',`${upload.kind} · ${(upload.bytes/1_000_000).toFixed(1)} MB · ${upload.state}`));
     const remove=element('button','studio-button studio-button--danger','Remove');remove.type='button';
     remove.addEventListener('click',async()=>{
-      if(!confirm('Remove this unused upload? Saved current/previous media cannot be removed.')) return;
+      if(!confirm(tr('Remove this unused upload? Saved current/previous media cannot be removed.'))) return;
       remove.disabled=true;
       try{await request(`/uploads/${upload.id}`,{method:'DELETE'});await library();message('Unused file removed.');}
       catch(error){message(error.message,true);remove.disabled=false;}
@@ -256,10 +272,10 @@ async function library() {
 }
 
 async function uploadFile(file,kind,group) {
-  const isVideo=['video','overlayVideo'].includes(kind);
-  if(file.size>(isVideo?MAX_VIDEO:MAX_IMAGE)||file.size===0) throw new Error(isVideo?'Choose an MP4 up to 50 MB. Compress larger files first.':'Choose an image up to 5 MB.');
-  const mime=file.type;
-  if((isVideo&&mime!=='video/mp4')||(!isVideo&&!['image/jpeg','image/png','image/webp','image/gif'].includes(mime))) throw new Error('Unsupported file. Use MP4 video or JPEG, PNG, GIF, or WebP images.');
+  const isVideo=['video','overlayVideo'].includes(kind),isAudio=kind==='audio';
+  if(file.size>(isVideo||isAudio?MAX_VIDEO:MAX_IMAGE)||file.size===0) throw new Error(isAudio?'Choose an MP3 up to 50 MB.':isVideo?'Choose an MP4 up to 50 MB. Compress larger files first.':'Choose an image up to 5 MB.');
+  const mime=isAudio&&['audio/mp3','audio/mpeg',''].includes(file.type)&&/\.mp3$/i.test(file.name)?'audio/mpeg':file.type;
+  if((isAudio&&mime!=='audio/mpeg')||(isVideo&&mime!=='video/mp4')||(!isVideo&&!isAudio&&!['image/jpeg','image/png','image/webp','image/gif'].includes(mime))) throw new Error('Unsupported file. Use MP3 audio, MP4 video or JPEG, PNG, GIF, or WebP images.');
   const reserved=await request('/uploads',{method:'POST',body:{kind,mime,bytes:file.size}});
   if(!uploadModule) uploadModule=import('./vendor/upload.mjs');
   const {Upload}=await uploadModule;
@@ -310,8 +326,8 @@ for(const group of document.querySelectorAll('[data-upload]')){
   input.addEventListener('change',async()=>{
     const file=input.files[0];if(!file)return;
     const kind=group.dataset.upload==='overlay'?(file.type==='video/mp4'?'overlayVideo':'overlayImage'):group.dataset.upload;
-    const isVideo=['video','overlayVideo'].includes(kind),isOverlay=['overlayImage','overlayVideo'].includes(kind);
-    if(file.size>(isVideo?MAX_VIDEO:MAX_IMAGE)||file.size===0){group.querySelector('[data-upload-status]').textContent=isVideo?'Choose an MP4 up to 50 MB.':'Choose an image up to 5 MB.';input.value='';return;}
+    const isVideo=['video','overlayVideo'].includes(kind),isOverlay=['overlayImage','overlayVideo'].includes(kind),isAudio=kind==='audio';
+    if(file.size>(isVideo||isAudio?MAX_VIDEO:MAX_IMAGE)||file.size===0){group.querySelector('[data-upload-status]').textContent=isAudio?'Choose an MP3 up to 50 MB.':isVideo?'Choose an MP4 up to 50 MB.':'Choose an image up to 5 MB.';input.value='';return;}
     const target=group.parentElement.querySelector('input[type=url]');
     input.disabled=true;model.activeUploads++;markDirty();
     const generation=(mediaGenerations.get(kind)||0)+1;
@@ -320,6 +336,7 @@ for(const group of document.querySelectorAll('[data-upload]')){
       const poster=(kind==='avatar'||kind==='video'||isOverlay)?await posterFrom(file):null;
       const completed=await uploadFile(file,kind,group);
       target.value=completed.url;
+      if(isAudio)byId('musicSource').value='mp3';
       if(isOverlay){byId('overlayKind').value=isVideo?'video':'image';byId('overlayPoster').value='';byId('overlayMediaEnabled').checked=true;}
       if(kind==='avatar')byId('avatarPoster').value='';
       if(kind==='video'){byId('backgroundKind').value='video';byId('backgroundPoster').value='';}
@@ -339,15 +356,15 @@ form.addEventListener('input',event=>{
 });
 form.addEventListener('change',event=>{if(event.target.tagName==='SELECT')schedulePreview();});
 byId('addSocial').addEventListener('click',()=>{model.draft.socials.push({icon:'website',label:'Website',handle:'My website',action:'link',value:'https://'});renderSocials();schedulePreview();});
-byId('previewSound').addEventListener('click',()=>{if(profileAdditions.isGated())profileAdditions.enter({quiet:true});video.muted=false;video.volume=.65;video.play().catch(()=>{byId('previewHint').textContent='Video playback is unavailable. Check the direct URL or choose another file.';});});
-byId('discardChanges').addEventListener('click',()=>{if(model.activeUploads){message('Finish or cancel your upload first.',true);return;}if(!model.dirty||confirm('Discard your unpublished changes?')){fill(model.saved);model.revision=model.baselineRevision;markDirty(false);clearDraft();byId('reloadLatest').hidden=true;message('Unpublished changes discarded.');}});
-byId('resetProfile').addEventListener('click',()=>{if(model.activeUploads){message('Finish or cancel your upload first.',true);return;}if(confirm('Preview the original Ascendo profile? It will not publish until you save.')){fill(model.defaults);markDirty();rememberDraft();message('Original settings loaded into your private preview. Save to publish them.');}});
-byId('restorePrevious').addEventListener('click',()=>{if(model.activeUploads){message('Finish or cancel your upload first.',true);return;}if(model.previous&&confirm('Preview the previous saved version?')){fill(model.previous);markDirty();rememberDraft();message('Previous version loaded privately. Save to publish it.');}});
+byId('previewSound').addEventListener('click',()=>{if(profileAdditions.isGated())profileAdditions.enter({quiet:true});musicPlayer.volume(Number(byId('musicVolume').value));});
+byId('discardChanges').addEventListener('click',()=>{if(model.activeUploads){message('Finish or cancel your upload first.',true);return;}if(!model.dirty||confirm(tr('Discard your unpublished changes?'))){fill(model.saved);model.revision=model.baselineRevision;markDirty(false);clearDraft();byId('reloadLatest').hidden=true;message('Unpublished changes discarded.');}});
+byId('resetProfile').addEventListener('click',()=>{if(model.activeUploads){message('Finish or cancel your upload first.',true);return;}if(confirm(tr('Preview the original Ascendo profile? It will not publish until you save.'))){fill(model.defaults);markDirty();rememberDraft();message('Original settings loaded into your private preview. Save to publish them.');}});
+byId('restorePrevious').addEventListener('click',()=>{if(model.activeUploads){message('Finish or cancel your upload first.',true);return;}if(model.previous&&confirm(tr('Preview the previous saved version?'))){fill(model.previous);markDirty();rememberDraft();message('Previous version loaded privately. Save to publish it.');}});
 form.addEventListener('submit',async event=>{
   event.preventDefault();if(model.busy||model.activeUploads)return;
   if(!studioControls.validate()){message('Use a valid hex color.',true);return;}
   let config;
-  try{config=normalizeProfile(collect());if(!validateBadge()){byId('badge').focus();message(badgeError(config.badge,model.canUseReservedBadges),true);return;}}catch(error){message(error.message,true);return;}
+  try{config=normalizeProfile(collect());if(config.music.source==='mp3'&&!config.music.url)throw Error('Upload an MP3 before saving this music source.');if(!validateBadge()){byId('badge').focus();message(badgeError(config.badge,model.canUseReservedBadges),true);return;}}catch(error){message(error.message,true);return;}
   model.busy=true;form.setAttribute('aria-busy','true');markDirty();message('Publishing your profile…');
   const disabledBefore=[...form.elements].map(control=>[control,control.disabled]);
   for(const [control]of disabledBefore)control.disabled=true;
@@ -359,7 +376,7 @@ form.addEventListener('submit',async event=>{
 });
 byId('logoutButton').addEventListener('click',async()=>{
   if(model.busy){message('Wait for publishing to finish before logging out.',true);return;}
-  if(model.dirty&&!confirm('Log out and discard unpublished changes?'))return;
+  if(model.dirty&&!confirm(tr('Log out and discard unpublished changes?')))return;
   if(model.activeUploads){message('Finish or cancel the upload before logging out.',true);return;}
   try{if(session())await request('/session',{method:'DELETE'});}catch(error){message(error.message,true);return;}
   clearDraft();storeSession(null);location.replace('/login/');
@@ -368,7 +385,7 @@ function selectTab(tab){
   byId('studioGrid').dataset.tab=tab;
   byId('editTab').setAttribute('aria-selected',String(tab==='edit'));byId('previewTab').setAttribute('aria-selected',String(tab==='preview'));
   byId('editTab').tabIndex=tab==='edit'?0:-1;byId('previewTab').tabIndex=tab==='preview'?0:-1;
-  if(tab==='edit')video.pause();else preview();
+  if(tab==='edit'){video.pause();if(matchMedia('(max-width: 820px)').matches)musicPlayer.setActive(false);}else preview();
 }
 for(const [id,tab]of [['editTab','edit'],['previewTab','preview']]){
   byId(id).addEventListener('click',()=>selectTab(tab));
@@ -376,6 +393,7 @@ for(const [id,tab]of [['editTab','edit'],['previewTab','preview']]){
 }
 document.addEventListener('visibilitychange',()=>{if(document.hidden)video.pause();});
 byId('previewPanel').addEventListener('ascendo:visual-status',event=>{byId('visualStatus').textContent=event.detail.message;});
+byId('previewPanel').addEventListener('ascendo:preview-size',preview);
 window.addEventListener('pagehide',()=>{video.pause();if(model.previewFrame)cancelAnimationFrame(model.previewFrame);});
 window.addEventListener('beforeunload',event=>{if(model.dirty||model.activeUploads){event.preventDefault();event.returnValue='';}});
 
@@ -386,6 +404,7 @@ async function initialize(){
     if(current.onboarding){location.replace('/welcome/');return;}
     model.canUseReservedBadges=current.capabilities?.canUseReservedBadges===true;
     model.slug=current.slug;model.saved=normalizeProfile(current.config);model.defaults=normalizeProfile(current.defaults);model.previous=current.previous?normalizeProfile(current.previous):null;model.revision=current.revision;model.baselineRevision=current.revision;
+    studioLanguage.setAccount(current.slug);quickGuide.ready();
     const publicSlug=model.slug==='szikraaaa'?'Szikraaaa':model.slug;
     byId('studioIdentity').textContent=`Editing ${model.saved.name} · Your profile URL stays ascendo.lol/${publicSlug}/`;
     byId('viewProfile').href=`/${publicSlug}/`;byId('viewProfile').hidden=false;
@@ -396,7 +415,7 @@ async function initialize(){
 }
 byId('reloadLatest').addEventListener('click',async()=>{
   if(model.busy||model.activeUploads)return;
-  if(!confirm('Discard this draft and load the latest saved profile?'))return;
+  if(!confirm(tr('Discard this draft and load the latest saved profile?')))return;
   try{const current=await request('/me');model.canUseReservedBadges=current.capabilities?.canUseReservedBadges===true;model.saved=normalizeProfile(current.config);model.previous=current.previous;model.revision=current.revision;model.baselineRevision=current.revision;fill(model.saved);markDirty(false);clearDraft();byId('reloadLatest').hidden=true;message('Latest saved profile loaded.');}catch(error){message(error.message,true);}
 });
 initialize();
