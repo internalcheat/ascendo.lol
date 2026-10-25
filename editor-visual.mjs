@@ -1,5 +1,5 @@
-import { FONTS, TEXT_SIZES, LAYOUTS, OVERLAY_PRESETS } from './visual-schema.mjs?v=20261025-14';
-import { element } from './profile-view.mjs?v=20261025-14';
+import { FONTS, TEXT_SIZES, LAYOUTS, OVERLAY_PRESETS } from './visual-schema.mjs?v=20261025-15';
+import { element } from './profile-view.mjs?v=20261025-15';
 import {FONT_GROUPS} from './font-catalog.mjs?v=20261025-11';
 
 export function createVisualEditor({onChange,isBusy}) {
@@ -28,8 +28,14 @@ export function createVisualEditor({onChange,isBusy}) {
   const targets=element('div','electric-targets full-width');for(const [id,label]of [['electricCard','Main card'],['electricPanels','Panels'],['electricAvatar','Profile picture']])field(targets,label,input(id,'checkbox',true));border.fields.append(targets);
   const overlays=section('Overlays','Layer up to three atmospheres and one uploaded image or video, behind your cards.');toggle(overlays.heading,'overlaysEnabled','Enable page overlays');
   const layerList=element('div','overlay-layers full-width');layerList.id='overlayLayers';overlays.fields.append(layerList);
-  const emptyHint=element('p','studio-help full-width','Choose an effect and select Add layer, or upload custom media. Turning overlays on starts with Snow.');emptyHint.id='overlayEmptyHint';overlays.fields.append(emptyHint);
-  const addRow=element('div','overlay-add full-width');const presetSelect=select('overlayPreset',OVERLAY_PRESETS.map(value=>[value,title(value)]));presetSelect.setAttribute('aria-label','New overlay preset');addRow.append(presetSelect,button('+ Add layer',()=>{readLayers();const preset=presetSelect.value;if(layers.length>=3||layers.some(layer=>layer.preset===preset))return;layers.push({preset,enabled:true,opacity:35,density:35,speed:1,colorMode:'original',color:byId('accent').value||'#c19aff'});renderLayers();onChange();}));addRow.lastChild.id='addOverlayLayer';overlays.fields.append(addRow);
+  const emptyHint=element('p','studio-help full-width','Choose up to three effects. Each has its own controls.');emptyHint.id='overlayEmptyHint';overlays.fields.append(emptyHint);
+  const picker=element('div','overlay-picker full-width');picker.setAttribute('role','group');picker.setAttribute('aria-label','Overlay effects');const presetButtons=new Map();
+  for(const preset of OVERLAY_PRESETS){const choice=button(title(preset),()=>{
+    readLayers();const existing=layers.find(layer=>layer.preset===preset);
+    if(existing){const row=layerList.querySelector(`[data-preset="${preset}"]`);row.querySelector('input').focus();row.scrollIntoView?.({block:'nearest',behavior:'smooth'});return;}
+    if(layers.length>=3){notice.textContent='Remove a layer before adding another. Maximum: three effects.';return;}
+    layers.push({preset,enabled:true,opacity:35,density:35,speed:1,colorMode:'original',color:byId('accent').value||'#c19aff'});byId('overlaysEnabled').checked=true;notice.textContent='';renderLayers();onChange();
+  },'studio-button overlay-preset');choice.dataset.overlayPreset=preset;choice.setAttribute('aria-pressed','false');picker.append(choice);presetButtons.set(preset,choice);}overlays.fields.insertBefore(picker,layerList);
   const custom=element('div','overlay-custom full-width');field(custom,'Custom media layer',input('overlayMediaEnabled','checkbox',false));
   const source=element('div','full-width');const url=input('overlayUrl','url','');url.readOnly=true;url.placeholder='Upload a transparent image or MP4';field(source,'Your uploaded overlay',url);
   const upload=element('div','studio-upload');upload.dataset.upload='overlay';const file=input('overlayFile','file');file.accept='image/jpeg,image/png,image/webp,image/gif,video/mp4';file.setAttribute('aria-label','Upload custom overlay');const progress=element('progress');progress.max=100;progress.value=0;progress.hidden=true;progress.setAttribute('aria-label','Overlay upload progress');const cancel=button('Cancel upload',()=>{});cancel.dataset.cancel='';cancel.hidden=true;const uploadStatus=element('span','studio-help');uploadStatus.dataset.uploadStatus='';upload.append(file,progress,cancel,uploadStatus);source.append(upload);custom.append(source);
@@ -79,9 +85,7 @@ export function createVisualEditor({onChange,isBusy}) {
     byId('removeOverlayMedia').disabled=busy||!overlays||!byId('overlayUrl').value;
     layerList.querySelectorAll('[data-layer-field]').forEach(control=>{const row=control.closest('[data-preset]');const enabled=row.querySelector('[data-layer-field=enabled]').checked;const mode=row.querySelector('[data-layer-field=colorMode]').value;control.disabled=busy||!overlays||(control.dataset.layerField!=='enabled'&&!enabled)||(control.dataset.layerField==='color'&&mode!=='custom');});
     layerList.querySelectorAll('[data-layer-action]').forEach(control=>{const index=[...layerList.children].indexOf(control.closest('[data-preset]'));const direction=Number(control.dataset.layerAction);control.disabled=busy||!overlays||direction===-1&&index===0||direction===1&&index===layers.length-1;});
-    for(const option of presetSelect.options)option.disabled=layers.some(layer=>layer.preset===option.value);
-    if(presetSelect.selectedOptions[0]?.disabled)presetSelect.value=[...presetSelect.options].find(option=>!option.disabled)?.value||'';
-    presetSelect.disabled=busy||!overlays||layers.length>=3;byId('addOverlayLayer').disabled=presetSelect.disabled;
+    for(const [preset,button]of presetButtons){button.disabled=busy;button.setAttribute('aria-pressed',String(layers.some(layer=>layer.preset===preset)));}
     for(const control of host.querySelectorAll('input[type=range]')){const output=byId(control.id+'Value');if(output){const speed=control.id.toLowerCase().includes('speed');output.textContent=control.id.startsWith('size-')?`${control.value}px`:speed?`${Number(control.value).toFixed(2).replace(/0$/,'')}×`:`${control.value}%`;control.setAttribute('aria-valuetext',output.textContent);}}
   }
 

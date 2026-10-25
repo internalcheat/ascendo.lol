@@ -21,7 +21,7 @@ export function createOverlayParticles(canvas) {
       const total=enabled.reduce((sum,layer)=>sum+layer.density,0)||1;
       let remaining=budget;
       for(const layer of enabled){
-        const count=Math.min(remaining,Math.ceil(budget*layer.density/total*layer.density/100));remaining-=count;
+        const count=Math.min(remaining,Math.max(layer.preset==='fireworks'?32:layer.preset==='meteors'?6:1,Math.ceil(budget*layer.density/total*layer.density/100)));remaining-=count;
         const points=pool(layer.preset,count),seconds=time/1000*layer.speed;
         const colors=layer.colorMode==='accent'?[accent]:layer.colorMode==='custom'?[layer.color]:palettes[layer.preset];
         context.save();context.globalAlpha=layer.opacity/100;context.lineWidth=Math.max(1,width/1200);
@@ -45,16 +45,16 @@ export function createOverlayParticles(canvas) {
             positionX=point.positionX*width;positionY=point.positionY*height;context.globalAlpha=layer.opacity/100*(.25+.65*(.5+.5*Math.sin(phase*.8)));if(layer.preset==='stars'){context.beginPath();context.arc(positionX,positionY,size*.45,0,tau);context.fill();}else polygon(positionX,positionY,size*(.6+.4*Math.sin(phase)),4,Math.PI/4);
           }
           else if(layer.preset==='meteors'){
-            if(index>2)continue;const progress=((seconds*.15+point.phase)%1);positionX=(point.positionX+progress*.6)%1*width;positionY=progress*height;context.globalAlpha=layer.opacity/100*Math.sin(progress*Math.PI);context.beginPath();context.moveTo(positionX,positionY);context.lineTo(positionX-70,positionY-40);context.stroke();
+            if(index>5)continue;const progress=((seconds*.15+point.phase)%1);positionX=(point.positionX+progress*.6)%1*width;positionY=progress*height;context.globalAlpha=layer.opacity/100*Math.sin(progress*Math.PI);context.beginPath();context.moveTo(positionX,positionY);context.lineTo(positionX-70,positionY-40);context.stroke();
           }
           else if(layer.preset==='matrix'){
-            const columns=Math.max(6,Math.floor(width/34));positionX=(index%columns)*width/columns;positionY=((point.positionY+seconds*.08)%1)*height;context.font=`${Math.max(11,size*4)}px monospace`;context.globalAlpha=layer.opacity/100*.65;context.fillText(index%2?'1':'0',positionX,positionY);
+            const columns=Math.max(6,Math.floor(width/34));positionX=(index%columns)*width/columns;positionY=((point.positionY+seconds*.08)%1)*height;context.font=`${Math.max(11,size*4)}px monospace`;context.globalAlpha=layer.opacity/100;context.fillText(index%2?'1':'0',positionX,positionY);
           }
           else if(layer.preset==='ripples'){
-            const progress=(seconds*.17+point.phase)%1;context.globalAlpha=layer.opacity/100*(1-progress)*.6;context.beginPath();context.ellipse(point.positionX*width,point.positionY*height,progress*55,progress*18,0,0,tau);context.stroke();
+            const progress=(seconds*.17+point.phase)%1;context.globalAlpha=layer.opacity/100*(1-progress);context.beginPath();context.ellipse(point.positionX*width,point.positionY*height,progress*55,progress*18,0,0,tau);context.stroke();
           }
           else if(layer.preset==='fireworks'){
-            const burst=Math.floor(index/16),piece=index%16,progress=((seconds*.28+points[burst].phase)%1);const radius=progress*65,angle=piece/16*tau;context.globalAlpha=layer.opacity/100*(1-progress)*.7;positionX=points[burst].positionX*width+Math.cos(angle)*radius;positionY=points[burst].positionY*height+Math.sin(angle)*radius+progress*progress*16;context.beginPath();context.arc(positionX,positionY,Math.max(1,size*.45),0,tau);context.fill();
+            const burst=Math.floor(index/16),piece=index%16,progress=((seconds*.28+points[burst].phase)%1);const radius=progress*65,angle=piece/16*tau;context.globalAlpha=layer.opacity/100*(1-progress);positionX=points[burst].positionX*width+Math.cos(angle)*radius;positionY=points[burst].positionY*height+Math.sin(angle)*radius+progress*progress*16;context.beginPath();context.arc(positionX,positionY,Math.max(1,size*.45),0,tau);context.fill();
           }
           else {context.globalAlpha=layer.opacity/100*.8;context.beginPath();context.arc(positionX,positionY,size*.65,0,tau);context.fill();}
         }

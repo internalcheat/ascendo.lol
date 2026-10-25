@@ -1,0 +1,173 @@
+{
+  "repository": "https://github.com/DavidHDev/react-bits",
+  "commit": "e12c22192ac7b4b452c5e2feb9b586d74765d696",
+  "license": "MIT + Commons Clause License Condition v1.0",
+  "purpose": "Original components embedded in ASCENDO profile backgrounds, not a component/tool distribution service.",
+  "files": [
+    {
+      "file": "vendor/react-bits/backgrounds/Antigravity.jsx",
+      "source": "src/content/Backgrounds/Antigravity/Antigravity.jsx",
+      "sha256": "aa19e7f2d7cfe4b1ebd6b16e73285cde63a37593495c2bdf7e3a7a153343459b"
+    },
+    {
+      "file": "vendor/react-bits/backgrounds/Antigravity.css",
+      "source": "src/content/Backgrounds/Antigravity/Antigravity.css",
+      "sha256": "62e58422afc0cb5c10d7962b9b1f125e568b74c13131d0f65dbf66fa22693e30"
+    },
+    {
+      "file": "assets/background-presets/antigravity.webp",
+      "source": "public/assets/studio/antigravity-dark.webp",
+      "sha256": "f8f3ff2ea82f04d7cd99a46e825054c08ed5b17446e842f092f88391784a4139"
+    },
+    {
+      "file": "vendor/react-bits/backgrounds/Ballpit.jsx",
+      "source": "src/content/Backgrounds/Ballpit/Ballpit.jsx",
+      "sha256": "1729eb657f166fe5533ec0094581c8977e480a05c5502ecf733018179e35e27b"
+    },
+    {
+      "file": "assets/background-presets/ballpit.webp",
+      "source": "public/assets/studio/ballpit-dark.webp",
+      "sha256": "2efabcc9d1286a028d14db43b7e9b45af6bbb6359ca682730bb6df23ee4a4818"
+    },
+    {
+      "file": "vendor/react-bits/backgrounds/Beams.jsx",
+      "source": "src/content/Backgrounds/Beams/Beams.jsx",
+      "sha256": "2079eb95b1e020bced1f287371dc45b3c84062b21d625de1bc80753010f21759"
+    },
+    {
+      "file": "vendor/react-bits/backgrounds/Beams.css",
+      "source": "src/content/Backgrounds/Beams/Beams.css",
+      "sha256": "7dc56f881d28b2970f0e61edae7283d01189b8fc430415d913c0ed5dd95c88be"
+    },
+    {
+      "file": "assets/background-presets/beams.webp",
+      "source": "public/assets/studio/beams-dark.webp",
+      "sha256": "e8ddec4a36bbf14ab4375c2f054bb2497b50c376e89db639796facf4bd258af3"
+    },
+    {
+      "file": "vendor/react-bits/backgrounds/Dither.jsx",
+      "source": "src/content/Backgrounds/Dither/Dither.jsx",
+      "sha256": "ea1457deada8dd1764a10abc3a62051a5610b3ff5f3e80bfc153dc3b41458e8a"
+    },
+    {
+      "file": "vendor/react-bits/backgrounds/Dither.css",
+      "source": "src/content/Backgrounds/Dither/Dither.css",
+      "sha256": "e78be0f2c3edd67e5d479d4b6f233bc04a6526275aea1cb455dcfb8aeee963d8"
+    },
+    {
+      "file": "assets/background-presets/dither.webp",
+      "source": "public/assets/studio/dither-dark.webp",
+      "sha256": "b981dc32793f86727a2803f1b6af16dd809926400ee21740da73a987b27feeca"
+    },
+    {
+      "file": "vendor/react-bits/backgrounds/CRTWarp.jsx",
+      "source": "src/content/Backgrounds/CRTWarp/CRTWarp.jsx",
+      "sha256": "f2a1839d60fe3631da47db9df68e986e7694dfdb508a13d730b07e8747e7dfac"
+    },
+    {
+      "file": "vendor/react-bits/backgrounds/CRTWarp.css",
+      "source": "src/content/Backgrounds/CRTWarp/CRTWarp.css",
+      "sha256": "abc6fe89772a3297dc7706c8852934458115a7cacc531b5e4ffe32060d7ac177"
+    },
+    {
+      "file": "assets/background-presets/crt-warp.webp",
+      "source": "public/assets/studio/crt-warp-dark.webp",
+      "sha256": "414f502a3b32afea35f060b8a47f8592b7a27041df346a168e1dee5aa1b28613"
+    },
+    {
+      "file": "vendor/react-bits/backgrounds/GridDistortion.jsx",
+      "source": "src/content/Backgrounds/GridDistortion/GridDistortion.jsx",
+      "sha256": "fa1fe06baeec8f74e7a21565088d4c2447c2a62d22efc937aae6c960fa8684a9"
+    },
+    {
+      "file": "vendor/react-bits/backgrounds/GridDistortion.css",
+      "source": "src/content/Backgrounds/GridDistortion/GridDistortion.css",
+      "sha256": "85c5caa7ea96ffb23f2ae35053accbe8c44e348b0bb5110b736814ce72a3f982"
+    },
+    {
+      "file": "assets/background-presets/grid-distortion-image.webp",
+      "source": "public/assets/demo/night-landscape.webp",
+      "sha256": "e3d1d817bd64d5afc0993ed370aa1d7632e661fe9293efbc3924b9bc0334bf93"
+    },
+    {
+      "file": "assets/background-presets/grid-distortion.webp",
+      "source": "public/assets/studio/grid-distortion-dark.webp",
+      "sha256": "8c4579f7dc0b22efd52a95df61814d96fb4d14e6011d509d13021eec0943d3f4"
+    },
+    {
+      "file": "vendor/react-bits/backgrounds/GridScan.jsx",
+      "source": "src/content/Backgrounds/GridScan/GridScan.jsx",
+      "sha256": "126d7b9fabb57681cca37fc89f4fdb99b913f5fb666227ceb0026cea0c7029c2"
+    },
+    {
+      "file": "vendor/react-bits/backgrounds/GridScan.css",
+      "source": "src/content/Backgrounds/GridScan/GridScan.css",
+      "sha256": "7bbe44b0b38707303223e09ac63ef1029aae79540fdd65a2ac94e79daec99091"
+    },
+    {
+      "file": "assets/background-presets/grid-scan.webp",
+      "source": "public/assets/studio/grid-scan-dark.webp",
+      "sha256": "b8bbb8fd137936650f1d37d9dc22f547da8292316d456f35373113f4385a4017"
+    },
+    {
+      "file": "vendor/react-bits/backgrounds/Lightfall.jsx",
+      "source": "src/content/Backgrounds/Lightfall/Lightfall.jsx",
+      "sha256": "f704fc0200dd78d7706714f2e1dc5e3940e7afb7abe755441e5c0e87266f9c23"
+    },
+    {
+      "file": "vendor/react-bits/backgrounds/Lightfall.css",
+      "source": "src/content/Backgrounds/Lightfall/Lightfall.css",
+      "sha256": "4e8779dce36b9df8a8c510aee8ae7bbb2ef22bda32d004feb47a53c04bd0c928"
+    },
+    {
+      "file": "assets/background-presets/lightfall.webp",
+      "source": "public/assets/studio/lightfall-dark.webp",
+      "sha256": "9497b9ff91cf97f4206357113bab6bd954649f7f615e01ed7b0d519aea35ad2d"
+    },
+    {
+      "file": "vendor/react-bits/backgrounds/LineWaves.jsx",
+      "source": "src/content/Backgrounds/LineWaves/LineWaves.jsx",
+      "sha256": "e0c34966c66ac62269451a96c77dbe3869866d906edf16fd0a676570bb45aa57"
+    },
+    {
+      "file": "vendor/react-bits/backgrounds/LineWaves.css",
+      "source": "src/content/Backgrounds/LineWaves/LineWaves.css",
+      "sha256": "8813828e6897d59730e45b539f3c5a2858d81a1b311be48e6d6c58a2521059c3"
+    },
+    {
+      "file": "assets/background-presets/line-waves.webp",
+      "source": "public/assets/studio/line-waves-dark.webp",
+      "sha256": "9ebfd683917421ae334a5fb695a27ba15ffcba7106e1771cb8984f5f7fa229d8"
+    },
+    {
+      "file": "vendor/react-bits/backgrounds/PlasmaWave.jsx",
+      "source": "src/content/Backgrounds/PlasmaWave/PlasmaWave.jsx",
+      "sha256": "c13309f02839d4578afb1663aca27281d86769d4875e6a6119311bce4d121b9e"
+    },
+    {
+      "file": "vendor/react-bits/backgrounds/PlasmaWave.css",
+      "source": "src/content/Backgrounds/PlasmaWave/PlasmaWave.css",
+      "sha256": "deb47dca58611d25d752c6e15f5c863597b3dd3614fc4edd3a357076693bf0f9"
+    },
+    {
+      "file": "assets/background-presets/plasma-wave.webp",
+      "source": "public/assets/studio/plasma-wave-dark.webp",
+      "sha256": "daba81665c8fb13ea9992f21be26e90362b0d9e0f4e33068b759a7d6358737da"
+    },
+    {
+      "file": "vendor/react-bits/backgrounds/Topography.jsx",
+      "source": "src/content/Backgrounds/Topography/Topography.jsx",
+      "sha256": "c974208bbeff6a7d392a5615a69e8dd580e41cdd51c69803bb46f39b84352d8f"
+    },
+    {
+      "file": "vendor/react-bits/backgrounds/Topography.css",
+      "source": "src/content/Backgrounds/Topography/Topography.css",
+      "sha256": "d1364beeb385ab74d15411271637282074d0fd2f84a350288c71d7dc328c5a35"
+    },
+    {
+      "file": "assets/background-presets/topography.webp",
+      "source": "public/assets/studio/topography-dark.webp",
+      "sha256": "e1717de200ed72aecb967d547c9ee957ce7ff38d0aaca149666ae4807c3d69bc"
+    }
+  ]
+}

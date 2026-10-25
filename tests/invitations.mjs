@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 import {webcrypto,createHmac} from 'node:crypto';
-import {transform} from 'esbuild';
+import {transform,build} from 'esbuild';
 import {Window} from 'happy-dom';
 import {normalizeHandle,createInvitedProfile,RESERVED_HANDLES} from '../invitation-policy.mjs';
 import {normalizeProfile,profileMedia,MAX_IMAGE,MAX_VIDEO,OWNER_QUOTA} from '../profile-schema.mjs';
@@ -83,7 +83,7 @@ await check('Pages fallback mounts only existing handles and initializes the nor
   const win=new Window({url:'https://ascendo.lol/new-fixture/',settings:{disableJavaScriptEvaluation:true,disableJavaScriptFileLoading:true,disableCSSFileLoading:true,disableIframePageLoading:true}});windows.push(win);win.document.write(read('404.html'));win.document.close();win.document.body.className='page';
   for(const key of ['window','document','sessionStorage','localStorage','location','history','Event','CustomEvent','Image','HTMLVideoElement'])Object.defineProperty(globalThis,key,{value:key==='window'?win:win[key],configurable:true,writable:true});globalThis.matchMedia=win.matchMedia.bind(win);globalThis.requestAnimationFrame=win.requestAnimationFrame.bind(win);globalThis.cancelAnimationFrame=win.cancelAnimationFrame.bind(win);win.HTMLMediaElement.prototype.load=function(){};win.HTMLMediaElement.prototype.pause=function(){};
   const {routeHandle,resolveProfileRoute}=await import('../route-profile.mjs?fixture=router');assert.equal(routeHandle('/new-person/'),'new-person');for(const path of ['/nested/new-person/','/assets/','/login','/bad_handle','/whatever.js'])assert.equal(routeHandle(path),'');
-  globalThis.fetch=async()=>new Response('{}',{status:404});assert.equal(await resolveProfileRoute(),false);assert.ok(document.querySelector('.nf-hero'));vm.runInContext(read('app.js'),win);
+  globalThis.fetch=async()=>new Response('{}',{status:404});assert.equal(await resolveProfileRoute(),false);assert.ok(document.querySelector('.nf-hero'));vm.runInContext((await build({entryPoints:['app.js'],bundle:true,write:false,format:'iife'})).outputFiles[0].text,win);
   globalThis.fetch=async()=>new Response(JSON.stringify({config:createInvitedProfile('new-fixture'),revision:1}));assert.equal(await resolveProfileRoute(),true);await tick();assert.equal(document.body.className,'page page--profile');assert.equal(document.body.dataset.person,'new-fixture');assert.equal(document.querySelector('.nf-hero'),null);assert.equal(document.querySelector('h1').textContent,'new-fixture');assert.equal(document.getElementById('musicBackground').dataset.playerReady,'true');assert.equal(document.getElementById('mediaControls').hidden,true);assert.equal(document.querySelector('link[rel=canonical]').href,'https://ascendo.lol/new-fixture/');document.dispatchEvent(new win.Event('ascendo:profile-ready'));assert.equal(document.querySelectorAll('#musicBackground').length,1);win.dispatchEvent(new win.Event('pagehide'));
 });
 console.log(JSON.stringify({passed:checks.length,checks},null,2));

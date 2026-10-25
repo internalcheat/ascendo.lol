@@ -75,3 +75,5 @@
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   [data-layout='bento'] :is(.profile-identity,.social-link,.now-playing) { background-color: #17121e; }
 }
+
+.video-stage[data-preset]:not([data-preset=""]) .video-stage__shade{display:none}.profile-background-preset__canvas,.profile-background-preset__canvas>div{width:100%;height:100%}

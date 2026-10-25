@@ -14,11 +14,11 @@
 <link rel="stylesheet" href="/profile-custom.css?v=20261025-4">
 <link rel="stylesheet" href="/profile-effects.css?v=20261025-6">
 <link rel="stylesheet" href="/editor.css?v=20261025-6">
-<link rel="stylesheet" href="/editor-layout.css?v=20261025-10">
-<script src="/app.js?v=20261025-13" defer></script>
-<script type="module" src="/editor.mjs?v=20261025-14"></script>
+<link rel="stylesheet" href="/editor-layout.css?v=20261025-15">
+<script src="/app.js?v=20261025-15" defer></script>
+<script type="module" src="/editor.mjs?v=20261025-15"></script>
 <link rel="stylesheet" href="/fonts.css?v=20261025-11">
-<link rel="stylesheet" href="/profile-visual.css?v=20261025-11">
+<link rel="stylesheet" href="/profile-visual.css?v=20261025-15">
 <link rel="stylesheet" href="/profile-additions.css?v=20261025-12">
 <link rel="stylesheet" href="/profile-palette.css?v=20261025-14">
 <link rel="stylesheet" href="/studio-controls.css?v=20261025-14">
@@ -101,6 +101,9 @@
 <div class="full-width"><label class="studio-label">Video URL<input class="studio-input" id="videoUrl" type="url" maxlength="2048" placeholder="https://…"></label><div class="studio-upload" data-upload="video"><input type="file" accept="video/mp4" aria-label="Upload video url"><progress max="100" value="0" hidden aria-label="Video URL upload progress"></progress><button class="studio-button" type="button" data-cancel hidden>Cancel upload</button><span class="studio-help" data-upload-status></span></div></div>
 <div class="full-width"><label class="studio-label">Background image URL<input class="studio-input" id="imageUrl" type="url" maxlength="2048" placeholder="https://…"></label><div class="studio-upload" data-upload="backgroundImage"><input type="file" accept="image/jpeg,image/png,image/webp,image/gif" aria-label="Upload background image url"><progress max="100" value="0" hidden aria-label="Background image URL upload progress"></progress><button class="studio-button" type="button" data-cancel hidden>Cancel upload</button><span class="studio-help" data-upload-status></span></div></div>
 <div class="full-width"><label class="studio-label">Video poster URL<input class="studio-input" id="backgroundPoster" type="url" maxlength="2048" placeholder="https://…"></label><div class="studio-upload" data-upload="poster"><input type="file" accept="image/jpeg,image/png,image/webp,image/gif" aria-label="Upload video poster url"><progress max="100" value="0" hidden aria-label="Video poster URL upload progress"></progress><button class="studio-button" type="button" data-cancel hidden>Cancel upload</button><span class="studio-help" data-upload-status></span></div></div>
+<label class="studio-label">Music source<select class="studio-input" id="musicSource"><option value="video">Background video audio</option><option value="mp3">Uploaded MP3</option></select></label>
+<label class="studio-label">Starting volume <output id="musicVolumeValue" for="musicVolume">65%</output><input class="studio-input" id="musicVolume" type="range" min="0" max="70" step="1" value="65"></label>
+<div class="full-width" id="musicUploadFields" hidden><label class="studio-label">MP3 file<input class="studio-input" id="musicUrl" type="url" readonly></label><div class="studio-upload" data-upload="audio"><input type="file" accept="audio/mpeg,.mp3" aria-label="Upload MP3"><progress max="100" value="0" hidden aria-label="MP3 upload progress"></progress><button class="studio-button" type="button" data-cancel hidden>Cancel upload</button><span class="studio-help" data-upload-status></span></div><p class="studio-help">MP3 · up to 50 MB</p></div>
 <label class="studio-label">Song title<input class="studio-input" id="songTitle" type="text" maxlength="100" placeholder="Profile soundtrack"></label>
 <label class="studio-label">Artist<input class="studio-input" id="songArtist" type="text" maxlength="140" placeholder="Optional"></label>
 </div><p class="studio-help">MP4 up to 50 MB, images up to 5 MB. Use direct HTTPS media files—not YouTube/TikTok webpages. Hosted files can expire or track visitors; 720p compressed MP4 is recommended. The video supplies the audio.</p></section>

@@ -231,94 +231,17 @@
     refreshDisclosure();
   }
 
-  function syncVolume() {
-    if (!volumeControl) return;
-    const percentage = Math.round(video.muted ? 0 : video.volume * 100);
-    volumeControl.value = String(percentage);
-    volumeControl.style.setProperty('--volume', `${percentage}%`);
-    if (volumeValue) volumeValue.textContent = `${percentage}%`;
-    mediaControls?.classList.toggle('is-muted', percentage === 0);
-    volumeControl.setAttribute('aria-valuetext', percentage === 0 ? 'Muted' : `${percentage} percent`);
-  }
-
-  video.addEventListener('volumechange', syncVolume);
-  video.addEventListener('playing', () => {
-    if(video.dataset.entryBlocked==='true'){video.pause();return;}
-    document.body.classList.add('has-video');
-    if (mediaControls) mediaControls.hidden = false;
-    syncVolume();
-  });
-  video.addEventListener('error', () => {
-    document.body.classList.remove('has-video');
-    if (mediaControls) mediaControls.hidden = true;
-    showToast('Background media could not be loaded');
-  });
-
-  const saveData = navigator.connection?.saveData === true;
-  const smallMedia = matchMedia('(max-width: 820px), (pointer: coarse)');
-  let desiredSource;
-  let sourceGeneration = 0;
-  function backgroundSource() {
-    const kind = video.dataset.backgroundKind || 'video';
-    if (kind !== 'video') return '';
-    return smallMedia.matches && video.dataset.mobileSrc ? video.dataset.mobileSrc : video.dataset.backgroundSrc || '../assets/music-background.mp4';
-  }
-  function quietBackground() { return reduceMotion.matches || saveData; }
-  async function startBackground(userInitiated = false) {
-    if(video.dataset.entryBlocked==='true'){video.pause();return;}
-    const source = backgroundSource();
-    const quiet = quietBackground();
-    document.body.classList.toggle('media-poster-only', quiet);
-    if (mediaControls) mediaControls.hidden = !source;
-    const stage = video.closest?.('.video-stage');
-    const poster = video.getAttribute?.('poster') || '';
-    if (stage && poster) {
-      stage.style.backgroundImage = `url(${JSON.stringify(poster)})`;
-      stage.style.backgroundSize = 'cover';
-      stage.style.backgroundPosition = 'center';
-    }
-    if (!source) {
-      desiredSource = undefined;
-      sourceGeneration++;
-      video.pause(); video.removeAttribute('src'); video.load();
-      document.body.classList.remove('has-video');
-      return;
-    }
-    const absolute = new URL(source,location.href).href;
-    if (quiet && ((!userInitiated && (video.muted || !video.currentSrc)) || (video.muted && video.volume === 0))) {
-      video.pause(); video.muted = true; syncVolume();
-      return;
-    }
-    const changed = desiredSource !== absolute;
-    if (changed) {
-      desiredSource = absolute;
-      sourceGeneration++;
-      video.src = source;
-      document.body.classList.remove('has-video');
-    }
-    if (!changed && !video.paused) return;
-    const generation = sourceGeneration;
-    try { await video.play(); }
-    catch {
-      if (video.error || generation !== sourceGeneration || video.dataset.entryBlocked==='true') return;
-      video.muted = true; syncVolume();
-      try { await video.play(); } catch { if (generation === sourceGeneration) showToast('Background playback is unavailable'); }
-    }
-  }
-  video.volume = 0.65;
-  video.muted = quietBackground();
-  syncVolume();
-  startBackground();
-  video.addEventListener('ascendo:background', () => startBackground());
-  reduceMotion.addEventListener('change', () => startBackground());
-  smallMedia.addEventListener('change', () => startBackground());
-
-  volumeControl?.addEventListener('input', () => {
-    const volume = Number(volumeControl.value) / 100;
-    video.volume = volume;
-    video.muted = volume === 0;
-    syncVolume();
-    if (!video.error) startBackground(true);
+  import('./profile-music.mjs?v=20261025-15').then(({createProfilePlayer})=>{
+    const player=createProfilePlayer(video,{onState:media=>{
+      const percentage=Math.round(media.muted?0:media.volume*100);
+      if(volumeControl){volumeControl.max='70';volumeControl.value=String(percentage);volumeControl.style.setProperty('--volume',`${percentage/70*100}%`);volumeControl.setAttribute('aria-valuetext',percentage===0?'Muted':`${percentage} percent`);}
+      if(volumeValue)volumeValue.textContent=`${percentage}%`;
+      if(mediaControls){mediaControls.hidden=!media.getAttribute('src');mediaControls.classList.toggle('is-muted',percentage===0);}
+    }});
+    player.fromDataset();
+    volumeControl?.addEventListener('input',()=>player.volume(Number(volumeControl.value)));
+    document.addEventListener('pointerdown',()=>player.start(true),{once:true});
+    document.addEventListener('keydown',()=>player.start(true),{once:true});
   });
   }
   initializeProfileMedia();

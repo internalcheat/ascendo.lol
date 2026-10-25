@@ -1,0 +1,23 @@
+export const STUDIO_COPY={
+  'Search settings or choose a category.':'Search or choose a category.',
+  'Choose two colors for your card and studio. Photos and videos keep their own colors. Preview here; publish with Save changes.':'Two colors for your card and studio. Photos and videos keep their colors.',
+  'A personal native cursor, with optional traces of light. Your links and text controls keep their familiar cursors.':'Choose a cursor and optional trail.',
+  'A quiet sense of depth that follows your mouse. Keep it subtle or give your card a little more presence.':'Subtle depth that follows your mouse.',
+  'Choose your first impression. Profiles always open immediately; slower settings never hide an already-visible card.':'Choose how your profile appears.',
+  'Two faces, one identity. All font files are hosted by Ascendo, not Google.':'Separate name and body fonts, hosted locally.',
+  'Auto keeps the original responsive sizing. Choose a custom size for any part of your card.':'Keep responsive sizes or set your own.',
+  'Same profile, a different composition. Your existing avatar and widgets move with you.':'A new arrangement for your existing content.',
+  'A fine, living outline. Choose a separate color and the surfaces it follows.':'An animated outline on selected surfaces.',
+  'Layer up to three atmospheres and one uploaded image or video, behind your cards.':'Up to three effects and one media layer, behind your card.',
+  'Up to 5 MB. Animated GIF/WebP stays animated; a still fallback is generated when you upload.':'Up to 5 MB. GIF/WebP animation and a still fallback.',
+  'MP4 up to 50 MB, images up to 5 MB. Use direct HTTPS media files—not YouTube/TikTok webpages. Hosted files can expire or track visitors; 720p compressed MP4 is recommended. The video supplies the audio.':'MP4 / MP3: up to 50 MB. Images: up to 5 MB. Upload or use a direct HTTPS file.',
+  'Up to 16 rows. Links open new tabs; copy rows copy only the value you provide.':'Up to 16 links or copy buttons.',
+  'Current and previous saved media are protected. Unused uploads are cleaned after 24 hours; you can remove unreferenced files here sooner.':'Saved media is protected. Unused files are removed after 24 hours.',
+  'Show the small song card using the title and artist from Backgrounds & soundtrack. Turning it off removes the card and keeps your music and volume control. It starts off by default.':'Show song details and playback status. Music keeps playing when this card is off.',
+  'The card appears when your background uses a video with audio.':'Works with video audio or a separate MP3.',
+  'An optional click-to-enter introduction with a second line. Your profile remains public; this is a visual introduction, not a password screen.':'An optional click-to-enter introduction. This does not password-protect your profile.',
+  'Cycle up to eight browser-tab lines. The private preview shows a small tab-title preview without changing the editor’s own tab.':'Up to eight animated tab titles. Previewed privately.',
+  'Show your game, sensitivity, resolution, crosshair code and other settings. Only filled fields appear.':'Your game settings. Only filled fields appear.',
+  'Add the details you want visitors to know. Empty fields stay off your public card.':'Tell visitors about yourself. Empty fields stay hidden.',
+  'Add official Spotify, Apple Music, YouTube or Twitch players. Spotify albums and playlists can show their song lists inside the card. Players follow the service’s playback and sign-in rules.':'Spotify, Apple Music, YouTube or Twitch. Playback follows the provider’s rules.'
+};

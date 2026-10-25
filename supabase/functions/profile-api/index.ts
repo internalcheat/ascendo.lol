@@ -5,6 +5,7 @@ import { badgeCapabilities } from './badge-authority.mjs';
 import { preserveVisualGroups } from '../../../visual-schema.mjs';
 import { verifyOverlayVideo } from './overlay-video.mjs';
 import { normalizeHandle, createInvitedProfile } from '../../../invitation-policy.mjs';
+import {verifyMp3} from './audio-file.mjs';
 
 const url = Deno.env.get('SUPABASE_URL')!;
 const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -124,6 +125,8 @@ async function publishFiles(ownerId: string, config: any) {
     selected.push(upload);
   }
   const overlay = selected.find(upload => publicUrl(upload.path) === config.overlays?.media?.url);
+  const music=selected.find(upload=>publicUrl(upload.path)===config.music?.url);
+  if(config.music?.url&&(!config.music.url.startsWith(mediaPrefix)||!music||music.kind!=='audio'||music.mime!=='audio/mpeg'))throw new HttpError(400,'Choose your own uploaded MP3.');
   if(overlay && config.overlays.media.kind === 'video' && overlay.kind !== 'overlayVideo') {
     const source = overlay.state === 'published' ? publicUrl(overlay.path) : await signedDraft(overlay.path);
     if(!await verifyOverlayVideo(source,overlay.bytes).catch(()=>false))throw new HttpError(400,'Use an H.264 MP4 for your overlay. Re-export the video with H.264 encoding.');
@@ -220,6 +223,13 @@ async function route(request: Request, path: string) {
     return { signedOut: true };
   }
   if (request.method === 'GET' && path === '/invitation') return await invitationCommand('status',{owner:user.id});
+  if (['GET','PUT'].includes(request.method) && path === '/preferences') {
+    const input=request.method==='PUT'?await body(request):{};
+    if(request.method==='PUT'&&(!input||Object.keys(input).some(key=>key!=='language')||!['en','hu'].includes(input.language)))throw new HttpError(400,'Choose English or Hungarian.');
+    const {data,error}=await admin.rpc('profile_editor_language',{profile_owner:user.id,selected_language:input.language??null});
+    if(error)throw new HttpError(503,'Could not save your language preference.');
+    return {language:data};
+  }
   if (request.method === 'POST' && ['/invitation/check','/invitation/claim'].includes(path)) {
     const input=await body(request);
     if(!input||typeof input!=='object'||Array.isArray(input))throw new HttpError(400,'Choose a handle.');
@@ -246,6 +256,7 @@ async function route(request: Request, path: string) {
     const current = await command('mine', { owner: user.id });
     if (!input.config || typeof input.config !== 'object' || Array.isArray(input.config)) throw new HttpError(400, 'Invalid profile.');
     try { config = normalizeProfile(preserveVisualGroups(input.config,current.config)); } catch (error) { throw new HttpError(400, error.message); }
+    if(config.music.source==='mp3'&&!config.music.url)throw new HttpError(400,'Upload an MP3 before saving this music source.');
     if (!Number.isSafeInteger(input.revision) || input.revision < 1) throw new HttpError(400, 'Invalid profile revision.');
     const reservedError = badgeError(config.badge, badgeCapabilities(current).canUseReservedBadges);
     if (reservedError) throw new HttpError(400, reservedError);
@@ -257,9 +268,10 @@ async function route(request: Request, path: string) {
   }
   if (request.method === 'POST' && path === '/uploads') {
     const input = await body(request);
-    const types: Record<string,string> = { 'image/jpeg':'jpg','image/png':'png','image/webp':'webp','image/gif':'gif','video/mp4':'mp4' };
+    const types: Record<string,string> = { 'image/jpeg':'jpg','image/png':'png','image/webp':'webp','image/gif':'gif','video/mp4':'mp4','audio/mpeg':'mp3' };
     const isVideo = ['video','overlayVideo'].includes(input.kind);
-    if (!['avatar','poster','backgroundImage','video','overlayImage','overlayVideo'].includes(input.kind) || !types[input.mime] || isVideo !== (input.mime === 'video/mp4') || !Number.isSafeInteger(input.bytes) || input.bytes <= 0 || input.bytes > (isVideo ? MAX_VIDEO : MAX_IMAGE)) throw new HttpError(400, 'Choose an image up to 5 MB or an MP4 up to 50 MB.');
+    const isAudio=input.kind==='audio';
+    if (!['avatar','poster','backgroundImage','video','overlayImage','overlayVideo','audio'].includes(input.kind) || !types[input.mime] || isVideo !== (input.mime === 'video/mp4') || isAudio !== (input.mime==='audio/mpeg') || !Number.isSafeInteger(input.bytes) || input.bytes <= 0 || input.bytes > (isVideo||isAudio ? MAX_VIDEO : MAX_IMAGE)) throw new HttpError(400, 'Choose an image up to 5 MB, or an MP4 / MP3 up to 50 MB.');
     await cleanup(user.id);
     const id = crypto.randomUUID();
     const path = `${user.id}/${id}.${types[input.mime]}`;
@@ -286,8 +298,12 @@ async function route(request: Request, path: string) {
     const preview = await signedDraft(upload.path);
     const metadata = await admin.storage.from('profile-drafts').info(upload.path);
     if (metadata.error || metadata.data.size !== upload.bytes || metadata.data.contentType !== upload.mime) throw new HttpError(400, 'Upload size or format did not match.');
-    const response = await fetch(preview, { headers: { Range: 'bytes=0-31' }, signal: AbortSignal.timeout(10000) });
-    if (!response.ok || !validMagic(new Uint8Array(await response.arrayBuffer()), upload.mime)) throw new HttpError(400, 'This is not a supported image or MP4 file.');
+    if(upload.kind==='audio'){
+      if(!await verifyMp3(preview,upload.bytes).catch(()=>false))throw new HttpError(400,'This is not a valid MP3 audio file.');
+    }else{
+      const response = await fetch(preview, { headers: { Range: 'bytes=0-31' }, signal: AbortSignal.timeout(10000) });
+      if (!response.ok || !validMagic(new Uint8Array(await response.arrayBuffer()), upload.mime)) throw new HttpError(400, 'This is not a supported image or MP4 file.');
+    }
     if(upload.kind==='overlayVideo'&&!await verifyOverlayVideo(preview,upload.bytes).catch(()=>false))throw new HttpError(400,'Use an H.264 MP4 for your overlay. Re-export the video with H.264 encoding.');
     await command('ready', { owner: user.id, id: upload.id });
     return { id: upload.id, url: publicUrl(upload.path), preview };

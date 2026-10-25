@@ -1,9 +1,11 @@
-import { normalizeVisual } from './visual-schema.mjs?v=20261025-14';
+import { normalizeVisual } from './visual-schema.mjs?v=20261025-15';
+import {BACKGROUNDS} from './background-presets.mjs?v=20261025-15';
 
 export const EFFECTS = ['none', 'glow', 'glitch', 'shimmer', 'typewriter', 'pulse', 'aurora', 'wave', 'float'];
 export const ICONS = ['instagram', 'discord', 'youtube', 'tiktok', 'github', 'minecraft', 'twitch', 'x', 'spotify', 'website'];
 export const MAX_VIDEO = 50_000_000;
 export const MAX_IMAGE = 5_000_000;
+export const MAX_AUDIO = 50_000_000;
 export const OWNER_QUOTA = 250_000_000;
 
 function text(value, limit, label, optional = false) {
@@ -92,7 +94,8 @@ export function normalizeProfile(input) {
   if (!EFFECTS.includes(input.effect)) throw new Error('Choose a supported name effect.');
   if (!/^#[0-9a-f]{6}$/i.test(input.accent)) throw new Error('Choose a valid accent color.');
   if (!['black', 'image', 'video', 'preset'].includes(input.background?.kind)) throw new Error('Choose a background type.');
-  if (input.background.kind === 'preset' && input.background.preset !== 'flux-lines') throw new Error('Choose a supported background preset.');
+  if (input.background.kind === 'preset' && !Object.hasOwn(BACKGROUNDS,input.background.preset)) throw new Error('Choose a supported background preset.');
+  const music=group(input.music,'music',['source','url','volume']);
   const socials = input.socials;
   if (!Array.isArray(socials) || socials.length > 16) throw new Error('Use no more than 16 social rows.');
   const result = {
@@ -108,7 +111,8 @@ export function normalizeProfile(input) {
     ...normalizeEffects(input, input.accent),
     ...normalizeVisual(input, input.accent),
     avatar: { url: mediaUrl(input.avatar?.url, 'image'), poster: mediaUrl(input.avatar?.poster ?? '', 'image'), x: number(input.avatar?.x, 0, 100, 'avatar crop'), y: number(input.avatar?.y, 0, 100, 'avatar crop') },
-    background: { kind: input.background.kind, ...(input.background.kind === 'preset' ? {preset:'flux-lines'} : {}), url: mediaUrl(input.background.url, input.background.kind), mobile: mediaUrl(input.background.mobile ?? '', 'video'), poster: mediaUrl(input.background.poster ?? '', 'image') },
+    background: { kind: input.background.kind, ...(input.background.kind === 'preset' ? {preset:input.background.preset} : {}), url: mediaUrl(input.background.url, input.background.kind), mobile: mediaUrl(input.background.mobile ?? '', 'video'), poster: mediaUrl(input.background.poster ?? '', 'image') },
+    music:{source:choice(music.source,['video','mp3'],'video','music source'),url:mediaUrl(music.url??'','audio'),volume:number(music.volume??65,0,70,'music volume')},
     soundtrack: { title: text(input.soundtrack?.title ?? '', 100, 'song title', true), artist: text(input.soundtrack?.artist ?? '', 140, 'artist', true) },
     socials: socials.map(row => {
       if (!row || !ICONS.includes(row.icon) || !['link', 'copy'].includes(row.action)) throw new Error('Choose a supported social action and icon.');
@@ -121,5 +125,5 @@ export function normalizeProfile(input) {
 }
 
 export function profileMedia(profile) {
-  return [...new Set([profile.avatar.url, profile.avatar.poster, profile.background.url, profile.background.mobile, profile.background.poster, profile.overlays?.media?.url, profile.overlays?.media?.poster].filter(Boolean))];
+  return [...new Set([profile.avatar.url, profile.avatar.poster, profile.background.url, profile.background.mobile, profile.background.poster, profile.music?.url, profile.overlays?.media?.url, profile.overlays?.media?.poster].filter(Boolean))];
 }

@@ -1,0 +1,40 @@
+{
+  "entries": [
+    "antigravity",
+    "ballpit",
+    "beams",
+    "dither",
+    "crt-warp",
+    "grid-distortion",
+    "grid-scan",
+    "lightfall",
+    "line-waves",
+    "plasma-wave",
+    "topography"
+  ],
+  "outputs": [
+    "vendor/backgrounds/line-waves.mjs",
+    "vendor/backgrounds/plasma-wave.mjs",
+    "vendor/backgrounds/topography.mjs",
+    "vendor/backgrounds/antigravity.mjs",
+    "vendor/backgrounds/ballpit.mjs",
+    "vendor/backgrounds/beams.mjs",
+    "vendor/backgrounds/dither.mjs",
+    "vendor/backgrounds/crt-warp.mjs",
+    "vendor/backgrounds/grid-distortion.mjs",
+    "vendor/backgrounds/grid-scan.mjs",
+    "vendor/backgrounds/lightfall.mjs",
+    "vendor/backgrounds/shared-SIGNVFDT.mjs.LEGAL.txt",
+    "vendor/backgrounds/shared-SIGNVFDT.mjs",
+    "vendor/backgrounds/line-waves.css",
+    "vendor/backgrounds/plasma-wave.css",
+    "vendor/backgrounds/topography.css",
+    "vendor/backgrounds/antigravity.css",
+    "vendor/backgrounds/beams.css",
+    "vendor/backgrounds/dither.css",
+    "vendor/backgrounds/crt-warp.css",
+    "vendor/backgrounds/grid-distortion.css",
+    "vendor/backgrounds/grid-scan.css",
+    "vendor/backgrounds/lightfall.css"
+  ]
+}
