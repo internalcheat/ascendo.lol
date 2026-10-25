@@ -1,6 +1,7 @@
-import { normalizeProfile, safeUrl } from './profile-schema.mjs?v=20261025-11';
-import { FONTS, TEXT_SIZES, isTiledLayout } from './visual-schema.mjs?v=20261025-11';
+import { normalizeProfile, safeUrl } from './profile-schema.mjs?v=20261025-14';
+import { FONTS, TEXT_SIZES, isTiledLayout } from './visual-schema.mjs?v=20261025-14';
 import {renderWidgets} from './profile-widgets.mjs?v=20261025-11';
+import {themePalette,channels} from './profile-palette.mjs?v=20261025-14';
 
 export function element(tag, className = '', content) {
   const node = document.createElement(tag);
@@ -138,16 +139,17 @@ export function renderProfile(panel, input, options = {}) {
     if (value === null) panel.style.removeProperty(`--size-${id}`);
     else panel.style.setProperty(`--size-${id}`,`${value}px`);
   }
-  const accent = config.colorTheme === 'monochrome' ? '#f2f2f2' : config.accent;
+  const palette=themePalette(config),accent=palette.primary;
   const rgb = [1,3,5].map(offset => parseInt(accent.slice(offset,offset+2),16)).join(',');
   panel.style.setProperty('--profile-accent',accent);
   panel.style.setProperty('--accent-rgb',rgb);
+  panel.style.setProperty('--profile-secondary',palette.secondary);panel.style.setProperty('--secondary-rgb',channels(palette.secondary).join(','));
   panel.style.setProperty('--profile-opacity',String(config.opacity / 100));
   panel.style.setProperty('--name-glow',String(config.glow / 100));
   panel.style.setProperty('--effect-strength',String(config.effectStrength / 100));
   const tint = (channels) => `rgb(${channels.map(channel=>Math.round(255+(channel-255)*config.effectStrength/100)).join(',')})`;
   panel.style.setProperty('--effect-color',tint(rgb.split(',').map(Number)));
-  panel.style.setProperty('--effect-cyan',tint([126,232,255]));
+  panel.style.setProperty('--effect-cyan',tint(config.colorTheme==='custom'?channels(palette.secondary):[126,232,255]));
   panel.style.setProperty('--effect-duration',`${(effectDurations[config.effect] || 2800) * 100 / config.effectSpeed}ms`);
   panel.style.setProperty('--effect-step',`${-50 * 100 / config.effectSpeed}ms`);
   const avatarKey = JSON.stringify([config.avatar,resolved(config.avatar.url),resolved(config.avatar.poster)]);

@@ -1,14 +1,16 @@
 import { request, session, storeSession, freshSession } from './editor-api.mjs';
-import { normalizeProfile, ICONS, MAX_IMAGE, MAX_VIDEO } from './profile-schema.mjs?v=20261025-11';
-import { renderProfile, bindMusic, element, replayNameEffect, bindNameEffectVisibility } from './profile-view.mjs?v=20261025-11';
+import { normalizeProfile, ICONS, MAX_IMAGE, MAX_VIDEO } from './profile-schema.mjs?v=20261025-14';
+import { renderProfile, bindMusic, element, replayNameEffect, bindNameEffectVisibility } from './profile-view.mjs?v=20261025-14';
 import { PUBLISHABLE_KEY } from './customizer-config.mjs';
-import { createProfileEffects } from './profile-effects.mjs?v=20261025-11';
+import { createProfileEffects } from './profile-effects.mjs?v=20261025-14';
 import { badgeError } from './badge-policy.mjs?v=20261025-4';
-import { createVisualEditor } from './editor-visual.mjs?v=20261025-11';
+import { createVisualEditor } from './editor-visual.mjs?v=20261025-14';
 import { createProfileBackground } from './profile-background.mjs?v=20261025-11';
-import { createEditorLayout } from './editor-layout.mjs?v=20261025-11';
-import {createAdditionalEditor} from './editor-additions.mjs?v=20261025-11';
+import { createEditorLayout } from './editor-layout.mjs?v=20261025-14';
+import {createAdditionalEditor} from './editor-additions.mjs?v=20261025-14';
 import {createProfileAdditions} from './profile-additions.mjs?v=20261025-11';
+import {createStudioControls} from './studio-controls.mjs?v=20261025-14';
+import {applyStudioPalette} from './profile-palette.mjs?v=20261025-14';
 
 const byId = id => document.getElementById(id);
 const form = byId('profileForm');
@@ -23,6 +25,7 @@ const additionalEditor=createAdditionalEditor({onChange:schedulePreview,isBusy:(
 const profileEffects = createProfileEffects(panel,{scope:panel.closest('.preview-card'),preview:true});
 const profileAdditions=createProfileAdditions(panel.closest('.preview-card'),panel,{preview:true});
 const studioLayout=createEditorLayout({isBusy:()=>model.busy||model.activeUploads>0,onNavigate:()=>{if(matchMedia('(max-width: 820px)').matches)byId('editTab').click();}});
+const studioControls=createStudioControls(form);
 let renderedPreview;
 const effectFields = {
   cursorEffects:{enabled:'cursorEnabled',style:'cursorStyle',color:'cursorColor',size:'cursorSize',trail:'cursorTrail',trailLength:'cursorTrailLength',trailSmoothness:'cursorTrailSmoothness',clickEffect:'cursorClickEffect'},
@@ -66,6 +69,7 @@ function collect() {
   return {
     name:byId('displayName').value,bio:byId('bio').value,badge:byId('badge').value,
     colorTheme:byId('colorTheme').value,accent:byId('accent').value,effect:byId('effect').value,glow:Number(byId('glow').value),opacity:Number(byId('opacity').value),
+    themeColors:{primary:byId('themePrimary').value,secondary:byId('themeSecondary').value},
     effectSpeed:Number(byId('effectSpeed').value),effectStrength:Number(byId('effectStrength').value),
     ...visualEditor.collect(),
     ...additionalEditor.collect(),
@@ -81,6 +85,8 @@ function collect() {
 function fill(config) {
   config=normalizeProfile(config);
   byId('colorTheme').value=config.colorTheme;
+  byId('themePrimary').value=config.themeColors.primary;byId('themeSecondary').value=config.themeColors.secondary;
+  studioControls.close();
   model.draft=structuredClone(config);
   visualEditor.fill(config);
   additionalEditor.fill(config);
@@ -93,6 +99,7 @@ function fill(config) {
     if(control.type==='checkbox')control.checked=config[group][key];else control.value=config[group][key];
   }
   renderSocials();
+  studioControls.refresh({force:true});
   preview();
 }
 function schedulePreview() {
@@ -107,6 +114,7 @@ function preview() {
   try { config=normalizeProfile(collect()); }
   catch(error) { byId('previewHint').textContent=error.message; return; }
   byId('previewHint').textContent='';
+  applyStudioPalette(document.body,config);
   const contentKey=JSON.stringify({...config,cursorEffects:undefined,cardEffects:undefined,entranceEffects:undefined,electricBorder:undefined,overlays:undefined,previewUrls:[...previewUrls]});
   if(contentKey!==renderedPreview){renderProfile(panel,config,{previewUrls});renderedPreview=contentKey;}
   profileEffects.update(config,{previewUrls});
@@ -139,10 +147,12 @@ function preview() {
   }
   updateMusic();
   studioLayout.refresh();
+  studioControls.refresh();
 }
 
 function updateEffectControls() {
-  byId('accent').disabled=model.busy||byId('colorTheme').value==='monochrome';
+  byId('accent').disabled=model.busy||byId('colorTheme').value!=='original';
+  for(const id of ['themePrimary','themeSecondary'])byId(id).disabled=model.busy||byId('colorTheme').value!=='custom';
   const effect=byId('effect').value;
   const animated=!['none','glow'].includes(effect);
   byId('effectSpeed').disabled=!animated;
@@ -335,6 +345,7 @@ byId('resetProfile').addEventListener('click',()=>{if(model.activeUploads){messa
 byId('restorePrevious').addEventListener('click',()=>{if(model.activeUploads){message('Finish or cancel your upload first.',true);return;}if(model.previous&&confirm('Preview the previous saved version?')){fill(model.previous);markDirty();rememberDraft();message('Previous version loaded privately. Save to publish it.');}});
 form.addEventListener('submit',async event=>{
   event.preventDefault();if(model.busy||model.activeUploads)return;
+  if(!studioControls.validate()){message('Use a valid hex color.',true);return;}
   let config;
   try{config=normalizeProfile(collect());if(!validateBadge()){byId('badge').focus();message(badgeError(config.badge,model.canUseReservedBadges),true);return;}}catch(error){message(error.message,true);return;}
   model.busy=true;form.setAttribute('aria-busy','true');markDirty();message('Publishing your profile…');

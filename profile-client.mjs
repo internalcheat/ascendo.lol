@@ -1,9 +1,10 @@
 import { API_URL, PUBLISHABLE_KEY } from './customizer-config.mjs';
-import { normalizeProfile } from './profile-schema.mjs?v=20261025-11';
-import { renderProfile, bindMusic, bindNameEffectVisibility } from './profile-view.mjs?v=20261025-11';
-import { createProfileEffects } from './profile-effects.mjs?v=20261025-11';
+import { normalizeProfile } from './profile-schema.mjs?v=20261025-14';
+import { renderProfile, bindMusic, bindNameEffectVisibility } from './profile-view.mjs?v=20261025-14';
+import { createProfileEffects } from './profile-effects.mjs?v=20261025-14';
 import { createProfileBackground } from './profile-background.mjs?v=20261025-11';
 import {createProfileAdditions} from './profile-additions.mjs?v=20261025-11';
+import {themePalette,channels} from './profile-palette.mjs?v=20261025-14';
 
 bindNameEffectVisibility();
 
@@ -38,9 +39,10 @@ if(panel){
     renderProfile(panel,config);
     effects.update(config);
     background.update(config);
-    const accent=config.colorTheme==='monochrome'?'#f2f2f2':config.accent;
+    const palette=themePalette(config),accent=palette.primary;
     document.body.style.setProperty('--profile-accent',accent);
     document.body.style.setProperty('--accent-rgb',[1,3,5].map(offset=>parseInt(accent.slice(offset,offset+2),16)).join(','));
+    document.body.style.setProperty('--profile-secondary',palette.secondary);document.body.style.setProperty('--secondary-rgb',channels(palette.secondary).join(','));
     if(!config.pageTitle.enabled)document.title=`${config.name} | Ascendo`;
     video.dataset.backgroundKind=config.background.kind;
     video.dataset.backgroundSrc=config.background.kind==='video'?config.background.url:'';

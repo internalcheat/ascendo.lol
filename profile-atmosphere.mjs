@@ -1,6 +1,7 @@
 import { createOverlayParticles } from './overlay-particles.mjs?v=20261025-6';
 import { createChromaKey } from './chroma-key.mjs?v=20261025-6';
-import {isTiledLayout} from './visual-schema.mjs?v=20261025-11';
+import {isTiledLayout} from './visual-schema.mjs?v=20261025-14';
+import {themePalette} from './profile-palette.mjs?v=20261025-14';
 
 function contour(width,height,radius) {
   const points=[], arc=Math.PI*radius/2;
@@ -35,7 +36,7 @@ export function createProfileAtmosphere(panel,scope,{clock,preview=false}) {
   const wantedMedia=()=>!!config?.overlays.enabled&&config.overlays.media.enabled&&config.overlays.media.opacity>0&&!!config.overlays.media.url&&(!(reduced.matches||win.navigator.connection?.saveData)||config.overlays.media.kind==='image');
   const wantedParticles=()=>!!config?.overlays.enabled&&!particlesFailed&&!reduced.matches&&activeLayers().length>0;
   const electricAnimated=()=>!!config?.electricBorder.enabled&&config.electricBorder.intensity>0&&!reduced.matches;
-  function staticParticles(){if(!reduced.matches||!active||doc.hidden||!config?.overlays.enabled||particlesFailed||!activeLayers().length)return;try{particles ||= createOverlayParticles(canvas);particles.draw(activeLayers(),0,config.accent,mobile.matches?128:384);}catch(error){particlesFailed=true;notify(error.message);}}
+  function staticParticles(){if(!reduced.matches||!active||doc.hidden||!config?.overlays.enabled||particlesFailed||!activeLayers().length)return;try{particles ||= createOverlayParticles(canvas);particles.draw(activeLayers(),0,themePalette(config).primary,mobile.matches?128:384);}catch(error){particlesFailed=true;notify(error.message);}}
   const needsFrames=()=>wantedParticles()||electricAnimated()||(keyer&&mediaReady&&!mediaFailed&&(sourceDirty||mediaElement?.tagName==='VIDEO'&&!mediaElement.requestVideoFrameCallback));
   function schedule(){if(!frame&&active&&!doc.hidden&&needsFrames())frame=clock.request(draw);}
   function cancelVideoCallback(){if(videoCallback&&mediaElement?.cancelVideoFrameCallback)mediaElement.cancelVideoFrameCallback(videoCallback);videoCallback=0;}
@@ -128,7 +129,7 @@ export function createProfileAtmosphere(panel,scope,{clock,preview=false}) {
       const started=win.performance.now();lastDraw=time;
       drawBorders(time);
       if(wantedParticles()){
-        try{particles ||= createOverlayParticles(canvas);particles.draw(activeLayers(),time,config.accent,Math.floor((mobile.matches?128:384)*quality));}catch(error){particlesFailed=true;notify(error.message);}
+        try{particles ||= createOverlayParticles(canvas);particles.draw(activeLayers(),time,themePalette(config).primary,Math.floor((mobile.matches?128:384)*quality));}catch(error){particlesFailed=true;notify(error.message);}
       }else particles?.clear();
       if(keyer&&mediaReady&&!mediaFailed&&(sourceDirty||!mediaElement.requestVideoFrameCallback)){
         try{keyer.draw(mediaElement,config.overlays.media.key,config.overlays.media.fit);sourceDirty=false;}catch{failMedia('Green-screen removal could not read this upload. The overlay has been hidden.');}

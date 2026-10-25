@@ -1,4 +1,4 @@
-import { normalizeVisual } from './visual-schema.mjs?v=20261025-11';
+import { normalizeVisual } from './visual-schema.mjs?v=20261025-14';
 
 export const EFFECTS = ['none', 'glow', 'glitch', 'shimmer', 'typewriter', 'pulse', 'aurora', 'wave', 'float'];
 export const ICONS = ['instagram', 'discord', 'youtube', 'tiktok', 'github', 'minecraft', 'twitch', 'x', 'spotify', 'website'];
