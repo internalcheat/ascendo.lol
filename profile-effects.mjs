@@ -1,3 +1,6 @@
+import { createProfileClock } from './profile-clock.mjs?v=20261025-6';
+import { createProfileAtmosphere } from './profile-atmosphere.mjs?v=20261025-6';
+
 const templates = Object.freeze({
   arrow: '<path d="M5 3v24l6-7 5 11 5-2-5-11 10-1Z"/>',
   dot: '<circle cx="18" cy="18" r="7"/>',
@@ -16,6 +19,7 @@ export function nativeCursor(config) {
 export function createProfileEffects(panel, { scope, preview = false } = {}) {
   const doc = panel.ownerDocument;
   const win = doc.defaultView;
+  const clock = createProfileClock(win);
   const reduced = win.matchMedia('(prefers-reduced-motion: reduce)');
   const fine = win.matchMedia('(hover: hover) and (pointer: fine)');
   const abort = new AbortController();
@@ -26,6 +30,8 @@ export function createProfileEffects(panel, { scope, preview = false } = {}) {
   const surface = make('profile-effects-surface');
   panel.before(boundary); boundary.append(entry); entry.append(surface); surface.append(panel);
   scope ||= boundary;
+  const atmosphere = createProfileAtmosphere(panel,scope,{clock,preview});
+  const cards = new Map();
   const light = make('profile-effects-light');
   const orb = make('profile-effects-orb');
   light.setAttribute('aria-hidden','true'); light.append(orb); surface.append(light);
@@ -40,13 +46,12 @@ export function createProfileEffects(panel, { scope, preview = false } = {}) {
       const node = make('profile-click-particle'); decorations.append(node); particles.push({node,animation:null});
     }
   }
-  let config, entranceKey, bounds, scopeBounds, artwork, pendingEntrance;
+  let config, entranceKey, bounds, scopeBounds, pendingEntrance;
   let frame = 0, lastTime = 0, slowFrames = 0, limited = false, onscreen = true;
   let painted = !preview && (doc.readyState === 'complete' || (win.performance.getEntriesByType?.('paint') || []).some(entry => entry.name === 'first-contentful-paint'));
-  let targetX = 0, targetY = 0, currentX = 0, currentY = 0, lightOpacity = 0, targetLight = 0;
   let mouseX = 0, mouseY = 0, lastMove = -Infinity, trailStarted = false;
   const animations = new Set();
-  const firstPaint = win.requestAnimationFrame(() => { painted = true; });
+  const firstPaint = clock.request(() => { painted = true; });
   const interactive = () => !!config && fine.matches && !reduced.matches && !limited && onscreen && !doc.hidden;
   const cursorEnabled = () => !!config?.cursorEffects.enabled && fine.matches && onscreen && !doc.hidden;
   const cardEnabled = () => interactive() && config.cardEffects.enabled;
@@ -54,6 +59,33 @@ export function createProfileEffects(panel, { scope, preview = false } = {}) {
   function geometry() {
     bounds = boundary.getBoundingClientRect();
     scopeBounds = scope.getBoundingClientRect();
+    for (const record of cards.values()) record.bounds = record.boundary.getBoundingClientRect();
+    atmosphere.geometry();
+  }
+  function resetCard(record) {
+    record.targetX = record.targetY = record.currentX = record.currentY = record.opacity = record.targetOpacity = 0;
+    record.surface.style.removeProperty('transform'); record.artwork?.style.removeProperty('translate'); record.light.style.opacity = '0';
+  }
+  function syncCards() {
+    const targets = config.cardLayout === 'bento' ? [panel.querySelector('.profile-identity'),...panel.querySelectorAll('.social-link,.now-playing')].filter(Boolean) : [panel];
+    light.hidden = config.cardLayout === 'bento';
+    for (const [node,record] of cards) if (!targets.includes(node) || !record.boundary.isConnected || !record.boundary.contains(node)) {
+      resetCard(record);
+      if (node !== panel) { record.boundary.before(node); record.boundary.remove(); }
+      cards.delete(node);
+    }
+    for (const node of targets) {
+      if (cards.has(node)) { cards.get(node).artwork = node.querySelector('.avatar'); continue; }
+      let cardBoundary = boundary, cardSurface = surface, cardLight = light, cardOrb = orb;
+      if (node !== panel) {
+        cardBoundary = make('profile-tile-boundary'); cardSurface = make('profile-tile-surface');
+        cardLight = make('profile-effects-light'); cardOrb = make('profile-effects-orb');
+        cardLight.setAttribute('aria-hidden','true'); cardLight.append(cardOrb);
+        node.before(cardBoundary); cardBoundary.append(cardSurface); cardSurface.append(node,cardLight);
+      }
+      const record = {node,boundary:cardBoundary,surface:cardSurface,light:cardLight,orb:cardOrb,artwork:node.querySelector('.avatar')};
+      resetCard(record); cards.set(node,record);
+    }
   }
   function clearEntrances() {
     for (const animation of animations) animation.cancel();
@@ -63,12 +95,9 @@ export function createProfileEffects(panel, { scope, preview = false } = {}) {
     for (const particle of particles) { particle.animation?.cancel(); particle.animation = null; particle.node.style.opacity = '0'; }
   }
   function neutral() {
-    if (frame) win.cancelAnimationFrame(frame);
+    if (frame) clock.cancel(frame);
     frame = lastTime = 0;
-    targetX = targetY = currentX = currentY = lightOpacity = targetLight = 0;
-    surface.style.removeProperty('transform');
-    artwork?.style.removeProperty('translate');
-    light.style.opacity = '0';
+    for (const record of cards.values()) resetCard(record);
     trailStarted = false; lastMove = -Infinity;
     for (const point of trail) point.node.style.opacity = '0';
     clearParticles();
@@ -79,7 +108,7 @@ export function createProfileEffects(panel, { scope, preview = false } = {}) {
     if (enabled) scope.style.setProperty('--custom-cursor',nativeCursor(config.cursorEffects));
     else scope.style.removeProperty('--custom-cursor');
   }
-  function schedule() { if (!frame && interactive()) frame = win.requestAnimationFrame(step); }
+  function schedule() { if (!frame && interactive()) frame = clock.request(step); }
   function step(time) {
     frame = 0;
     if (!interactive()) { neutral(); return; }
@@ -88,18 +117,19 @@ export function createProfileEffects(panel, { scope, preview = false } = {}) {
     slowFrames = elapsed > 34 ? slowFrames + 1 : 0;
     if (slowFrames >= 10) { limited = true; neutral(); return; }
     let unsettled = false;
-    if (config.cardEffects.enabled) {
+    if (config.cardEffects.enabled) for (const record of cards.values()) {
       const card = config.cardEffects;
       const response = 1 - Math.exp(-Math.min(elapsed,40) * .014 * card.speed);
-      currentX += (targetX - currentX) * response;
-      currentY += (targetY - currentY) * response;
-      lightOpacity += (targetLight - lightOpacity) * response;
+      record.currentX += (record.targetX - record.currentX) * response;
+      record.currentY += (record.targetY - record.currentY) * response;
+      record.opacity += (record.targetOpacity - record.opacity) * response;
+      const {currentX,currentY} = record;
       const strength = card.intensity / 100;
-      surface.style.transform = card.tilt ? `perspective(900px) rotateX(${-currentY * 6 * strength}deg) rotateY(${currentX * 6 * strength}deg)` : '';
-      if (artwork) artwork.style.translate = card.parallax ? `${currentX * 8 * strength}px ${currentY * 8 * strength}px` : '';
-      light.style.opacity = card.glow ? String(lightOpacity * strength * .42) : '0';
-      orb.style.transform = `translate3d(${(currentX + 1) * bounds.width / 2 - 130}px,${(currentY + 1) * bounds.height / 2 - 130}px,0)`;
-      unsettled = Math.abs(targetX-currentX) + Math.abs(targetY-currentY) + Math.abs(targetLight-lightOpacity) > .001;
+      record.surface.style.transform = card.tilt ? `perspective(900px) rotateX(${-currentY * 6 * strength}deg) rotateY(${currentX * 6 * strength}deg)` : '';
+      if (record.artwork) record.artwork.style.translate = card.parallax ? `${currentX * 8 * strength}px ${currentY * 8 * strength}px` : '';
+      record.light.style.opacity = card.glow ? String(record.opacity * strength * .42) : '0';
+      record.orb.style.transform = `translate3d(${(currentX + 1) * record.bounds.width / 2 - 130}px,${(currentY + 1) * record.bounds.height / 2 - 130}px,0)`;
+      unsettled ||= Math.abs(record.targetX-currentX) + Math.abs(record.targetY-currentY) + Math.abs(record.targetOpacity-record.opacity) > .001;
     }
     const cursor = config.cursorEffects;
     if (cursor.enabled && cursor.trail && trailStarted) {
@@ -123,11 +153,12 @@ export function createProfileEffects(panel, { scope, preview = false } = {}) {
   function pointer(event) {
     if (event.pointerType !== 'mouse' || !interactive()) return;
     if (!bounds || !scopeBounds) geometry();
-    if (cardEnabled()) {
-      const overCard = boundary.contains(event.target) && bounds.width > 0 && bounds.height > 0;
-      targetX = overCard ? Math.max(-1,Math.min(1,(event.clientX - bounds.left) / bounds.width * 2 - 1)) : 0;
-      targetY = overCard ? Math.max(-1,Math.min(1,(event.clientY - bounds.top) / bounds.height * 2 - 1)) : 0;
-      targetLight = overCard ? 1 : 0;
+    if (cardEnabled()) for (const record of cards.values()) {
+      const box = record.bounds;
+      const overCard = record.boundary.contains(event.target) && box.width > 0 && box.height > 0;
+      record.targetX = overCard ? Math.max(-1,Math.min(1,(event.clientX - box.left) / box.width * 2 - 1)) : 0;
+      record.targetY = overCard ? Math.max(-1,Math.min(1,(event.clientY - box.top) / box.height * 2 - 1)) : 0;
+      record.targetOpacity = overCard ? 1 : 0;
     }
     if (config.cursorEffects.enabled && config.cursorEffects.trail) {
       mouseX = event.clientX - scopeBounds.left; mouseY = event.clientY - scopeBounds.top;
@@ -137,7 +168,7 @@ export function createProfileEffects(panel, { scope, preview = false } = {}) {
     }
     if (config.cardEffects.enabled || trailStarted) schedule();
   }
-  function leave() { targetX = targetY = targetLight = 0; if (trailStarted) lastMove = win.performance.now() - 100; schedule(); }
+  function leave() { for (const record of cards.values()) record.targetX = record.targetY = record.targetOpacity = 0; if (trailStarted) lastMove = win.performance.now() - 100; schedule(); }
   function click(event) {
     if (event.pointerType !== 'mouse' || !interactive() || !config.cursorEffects.enabled || config.cursorEffects.clickEffect === 'none' || typeof entry.animate !== 'function') return;
     if (!scopeBounds) geometry();
@@ -170,7 +201,7 @@ export function createProfileEffects(panel, { scope, preview = false } = {}) {
     };
     if (!full) { play(entry,[{transform:'translateY(3px)'},{transform:'none'}]); return; }
     if (settings.style === 'stagger') {
-      const nodes = [...panel.children].flatMap(node => node.classList.contains('social-list') ? [...node.children] : [node]);
+      const nodes = [...panel.querySelectorAll('.avatar,.profile__name,.profile-badge,.profile__bio,.social-link,.now-playing')];
       nodes.forEach((node,index) => play(node,[{opacity:0,transform:`translateY(${settings.distance}px)`},{opacity:1,transform:'none'}],Math.min(600,index*settings.stagger)));
       return;
     }
@@ -184,13 +215,15 @@ export function createProfileEffects(panel, { scope, preview = false } = {}) {
     play(entry,[from,to]);
   }
 
-  function update(next, { replayEntrance = false } = {}) {
+  function update(next, { replayEntrance = false, previewUrls } = {}) {
     const old = config;
     config = next;
-    const nextArtwork = panel.querySelector('.avatar');
-    if (artwork !== nextArtwork) { artwork?.style.removeProperty('translate'); artwork = nextArtwork; targetX = targetY = targetLight = 0; schedule(); }
+    const width = config.cardLayout === 'bento' ? 960 : config.cardLayout === 'portrait' ? 720 : 460;
+    boundary.style.setProperty('--layout-width',`${width}px`); scope.style.setProperty('--layout-width',`${width}px`);
+    syncCards();
     surface.style.setProperty('--accent-rgb',[1,3,5].map(offset=>parseInt(config.accent.slice(offset,offset+2),16)).join(','));
     geometry();
+    atmosphere.update(config,{previewUrls}); atmosphere.setActive(!doc.hidden && onscreen);
     const key = JSON.stringify(config.entranceEffects);
     const changed = key !== entranceKey;
     entranceKey = key;
@@ -203,18 +236,17 @@ export function createProfileEffects(panel, { scope, preview = false } = {}) {
       for (const point of trail) point.node.style.opacity = '0';
     }
     if (!config.cardEffects.enabled) {
-      targetX = targetY = currentX = currentY = lightOpacity = targetLight = 0;
-      surface.style.removeProperty('transform'); artwork?.style.removeProperty('translate'); light.style.opacity = '0';
+      for (const record of cards.values()) resetCard(record);
     } else if (JSON.stringify(old?.cardEffects) !== JSON.stringify(config.cardEffects)) schedule();
-    if (!config.cursorEffects.trail && !config.cardEffects.enabled && frame) { win.cancelAnimationFrame(frame); frame = lastTime = 0; }
+    if (!config.cursorEffects.trail && !config.cardEffects.enabled && frame) { clock.cancel(frame); frame = lastTime = 0; }
     if (!config.entranceEffects.enabled) { clearEntrances(); pendingEntrance = undefined; }
     else if (changed || replayEntrance) replay({full:preview || !painted});
     else if (pendingEntrance !== undefined && onscreen && bounds.width && bounds.height) replay({full:pendingEntrance});
     syncCursor();
   }
-  function suspend() { neutral(); clearEntrances(); syncCursor(); }
-  function visibility() { if (doc.hidden) suspend(); else { geometry(); syncCursor(); if (pendingEntrance !== undefined) replay({full:pendingEntrance}); } }
-  function preferences() { suspend(); pendingEntrance = undefined; geometry(); }
+  function suspend() { neutral(); clearEntrances(); syncCursor(); atmosphere.setActive(false); }
+  function visibility() { if (doc.hidden) suspend(); else { geometry(); syncCursor(); atmosphere.setActive(onscreen); if (pendingEntrance !== undefined) replay({full:pendingEntrance}); } }
+  function preferences() { suspend(); pendingEntrance = undefined; geometry(); atmosphere.setActive(!doc.hidden && onscreen); }
   listen(scope,'pointermove',pointer,{passive:true});
   listen(scope,'pointerleave',leave,{passive:true});
   listen(scope,'pointerdown',click,{passive:true});
@@ -222,17 +254,21 @@ export function createProfileEffects(panel, { scope, preview = false } = {}) {
   listen(win,'scroll',() => { neutral(); bounds = scopeBounds = null; },{passive:true,capture:true});
   listen(win,'resize',() => { neutral(); geometry(); },{passive:true});
   listen(win,'pagehide',event => { if (event.persisted) suspend(); else destroy(); });
-  listen(win,'pageshow',() => { geometry(); syncCursor(); });
+  listen(win,'pageshow',visibility);
+  if (doc.fonts) listen(doc.fonts,'loadingdone',geometry);
+  listen(scope,'ascendo:preview-size',() => { neutral(); geometry(); atmosphere.setActive(!doc.hidden && onscreen); });
   listen(reduced,'change',preferences); listen(fine,'change',preferences);
   const observer = typeof win.IntersectionObserver === 'function' ? new win.IntersectionObserver(entries => {
     onscreen = entries[0].isIntersecting;
-    if (!onscreen) suspend(); else { geometry(); syncCursor(); if (pendingEntrance !== undefined) replay({full:pendingEntrance}); }
+    if (!onscreen) suspend(); else { geometry(); syncCursor(); atmosphere.setActive(!doc.hidden); if (pendingEntrance !== undefined) replay({full:pendingEntrance}); }
   }) : null;
   observer?.observe(scope);
   const resize = typeof win.ResizeObserver === 'function' ? new win.ResizeObserver(() => { neutral(); geometry(); }) : null;
   resize?.observe(boundary);
   function destroy() {
-    suspend(); abort.abort(); observer?.disconnect(); resize?.disconnect(); win.cancelAnimationFrame(firstPaint);
+    suspend(); abort.abort(); observer?.disconnect(); resize?.disconnect(); clock.cancel(firstPaint); atmosphere.destroy();
+    for (const [node,record] of cards) if (node !== panel) { record.boundary.before(node); record.boundary.remove(); }
+    cards.clear(); clock.destroy();
     scope.classList.remove('profile-custom-cursor'); scope.style.removeProperty('--custom-cursor');
     decorations.remove(); boundary.before(panel); boundary.remove();
   }

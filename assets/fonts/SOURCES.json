@@ -1,0 +1,119 @@
+{
+  "provider": "Fontsource variable font packages",
+  "version": "5.3.0",
+  "license": "OFL-1.1",
+  "files": [
+    {
+      "file": "dm-sans-latin-ext-wght-normal.woff2",
+      "bytes": 18228,
+      "sha256": "a5d38fe99f930275684999b462c7123faa063d9e44e73b4b241723d884aa0f49",
+      "package": "@fontsource-variable/dm-sans@5.3.0",
+      "source": "https://registry.npmjs.org/@fontsource-variable/dm-sans/-/dm-sans-5.3.0.tgz"
+    },
+    {
+      "file": "dm-sans-latin-wght-normal.woff2",
+      "bytes": 36932,
+      "sha256": "9fea608a947e67020c33cad9a6fe3d60c54119dfb8cff87768a8117a15ed7543",
+      "package": "@fontsource-variable/dm-sans@5.3.0",
+      "source": "https://registry.npmjs.org/@fontsource-variable/dm-sans/-/dm-sans-5.3.0.tgz"
+    },
+    {
+      "file": "inter-latin-ext-wght-normal.woff2",
+      "bytes": 85068,
+      "sha256": "34b9c504cab7a73e37b746343a449132e56cf7b5481af2cb81dc74dcff25c956",
+      "package": "@fontsource-variable/inter@5.3.0",
+      "source": "https://registry.npmjs.org/@fontsource-variable/inter/-/inter-5.3.0.tgz"
+    },
+    {
+      "file": "inter-latin-wght-normal.woff2",
+      "bytes": 48256,
+      "sha256": "3100e775e8616cd2611beecfa23a4263d7037586789b43f035236a2e6fbd4c62",
+      "package": "@fontsource-variable/inter@5.3.0",
+      "source": "https://registry.npmjs.org/@fontsource-variable/inter/-/inter-5.3.0.tgz"
+    },
+    {
+      "file": "space-grotesk-latin-ext-wght-normal.woff2",
+      "bytes": 18940,
+      "sha256": "952dddb45d2f96f71cbf3b7f510b24379afc3c89ea02fcf89d377b45d62c0166",
+      "package": "@fontsource-variable/space-grotesk@5.3.0",
+      "source": "https://registry.npmjs.org/@fontsource-variable/space-grotesk/-/space-grotesk-5.3.0.tgz"
+    },
+    {
+      "file": "space-grotesk-latin-wght-normal.woff2",
+      "bytes": 22288,
+      "sha256": "0640890476fc1198ab4de571fb658de443c4d85b66466ec09534a8737ab1ce9d",
+      "package": "@fontsource-variable/space-grotesk@5.3.0",
+      "source": "https://registry.npmjs.org/@fontsource-variable/space-grotesk/-/space-grotesk-5.3.0.tgz"
+    },
+    {
+      "file": "sora-latin-ext-wght-normal.woff2",
+      "bytes": 15548,
+      "sha256": "c163c536f68befd99a83d4f17e8b88030e7f54229688a45c44f70c7149db7385",
+      "package": "@fontsource-variable/sora@5.3.0",
+      "source": "https://registry.npmjs.org/@fontsource-variable/sora/-/sora-5.3.0.tgz"
+    },
+    {
+      "file": "sora-latin-wght-normal.woff2",
+      "bytes": 33652,
+      "sha256": "fa26406eeda9a3c6ec3d9ea8813c3045d6dc755e30c716d5c094e8ef43be5a7f",
+      "package": "@fontsource-variable/sora@5.3.0",
+      "source": "https://registry.npmjs.org/@fontsource-variable/sora/-/sora-5.3.0.tgz"
+    },
+    {
+      "file": "outfit-latin-ext-wght-normal.woff2",
+      "bytes": 14808,
+      "sha256": "0f53d1c03b3918d744a843b5039001ee31695ca1e255e3914188df81beb461e9",
+      "package": "@fontsource-variable/outfit@5.3.0",
+      "source": "https://registry.npmjs.org/@fontsource-variable/outfit/-/outfit-5.3.0.tgz"
+    },
+    {
+      "file": "outfit-latin-wght-normal.woff2",
+      "bytes": 32292,
+      "sha256": "6c18d579fd87c3776be068b762cbc83fde3acb543d49eabd3ade842eb987e887",
+      "package": "@fontsource-variable/outfit@5.3.0",
+      "source": "https://registry.npmjs.org/@fontsource-variable/outfit/-/outfit-5.3.0.tgz"
+    },
+    {
+      "file": "playfair-display-latin-ext-wght-normal.woff2",
+      "bytes": 21140,
+      "sha256": "42898ad49a6b23f32b109243e1df596edf831015ed685f429e4dafbb181d599d",
+      "package": "@fontsource-variable/playfair-display@5.3.0",
+      "source": "https://registry.npmjs.org/@fontsource-variable/playfair-display/-/playfair-display-5.3.0.tgz"
+    },
+    {
+      "file": "playfair-display-latin-wght-normal.woff2",
+      "bytes": 38404,
+      "sha256": "e0c764a8e9e1cce92163c55bac4b2ad6cd4cf8c696ce2289ab5c41565e65b7e2",
+      "package": "@fontsource-variable/playfair-display@5.3.0",
+      "source": "https://registry.npmjs.org/@fontsource-variable/playfair-display/-/playfair-display-5.3.0.tgz"
+    },
+    {
+      "file": "cinzel-latin-ext-wght-normal.woff2",
+      "bytes": 14540,
+      "sha256": "8fc2606f8ae6c569f444e138dba052d9a6e3f0657f9031796503bbb94eced600",
+      "package": "@fontsource-variable/cinzel@5.3.0",
+      "source": "https://registry.npmjs.org/@fontsource-variable/cinzel/-/cinzel-5.3.0.tgz"
+    },
+    {
+      "file": "cinzel-latin-wght-normal.woff2",
+      "bytes": 25904,
+      "sha256": "09941fb1c169c38fd414536b37690057fc01b3117a5c63dd6571186540c8f370",
+      "package": "@fontsource-variable/cinzel@5.3.0",
+      "source": "https://registry.npmjs.org/@fontsource-variable/cinzel/-/cinzel-5.3.0.tgz"
+    },
+    {
+      "file": "jetbrains-mono-latin-ext-wght-normal.woff2",
+      "bytes": 15196,
+      "sha256": "79bfdab9ba467e26eea4122e6f2567e188dd8a09a8c730d501fc487c4ab99c6e",
+      "package": "@fontsource-variable/jetbrains-mono@5.3.0",
+      "source": "https://registry.npmjs.org/@fontsource-variable/jetbrains-mono/-/jetbrains-mono-5.3.0.tgz"
+    },
+    {
+      "file": "jetbrains-mono-latin-wght-normal.woff2",
+      "bytes": 40404,
+      "sha256": "18be452724bfdc236c074ca94a249a7f41a86752c7d04ab258ce9ed5651f6a7e",
+      "package": "@fontsource-variable/jetbrains-mono@5.3.0",
+      "source": "https://registry.npmjs.org/@fontsource-variable/jetbrains-mono/-/jetbrains-mono-5.3.0.tgz"
+    }
+  ]
+}
