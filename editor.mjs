@@ -5,7 +5,7 @@ import { PUBLISHABLE_KEY } from './customizer-config.mjs';
 import { createProfileEffects } from './profile-effects.mjs?v=20261025-14';
 import { badgeError } from './badge-policy.mjs?v=20261025-4';
 import { createVisualEditor } from './editor-visual.mjs?v=20261025-15';
-import { createProfileBackground } from './profile-background.mjs?v=20261025-15';
+import { createProfileBackground } from './profile-background.mjs?v=20261026-1';
 import { createEditorLayout } from './editor-layout.mjs?v=20261025-15';
 import {createAdditionalEditor} from './editor-additions.mjs?v=20261025-15';
 import {createProfileAdditions} from './profile-additions.mjs?v=20261025-15';

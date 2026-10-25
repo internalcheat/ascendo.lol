@@ -41,13 +41,39 @@ await check('all twelve backgrounds persist without changing defaults; original 
 });
 await check('reduced-motion selection uses each original still without importing a renderer',()=>{
   const win=environment('internalcheats/index.html');win.matchMedia('(prefers-reduced-motion: reduce)').matches=true;const stage=document.querySelector('.video-stage'),controller=createProfileBackground(stage);
-  for(const id of Object.keys(BACKGROUNDS)){controller.update({...base,background:{kind:'preset',preset:id}});assert.equal(stage.dataset.preset,id);assert.match(stage.querySelector('.profile-background-preset').style.backgroundImage,new RegExp(backgroundPoster(id)));assert.equal(stage.querySelectorAll('canvas').length,0);}
+  for(const id of Object.keys(BACKGROUNDS)){controller.update({...base,background:{kind:'preset',preset:id}});assert.equal(stage.dataset.preset,id);assert.match(stage.querySelector('.profile-background-preset__poster').style.backgroundImage,new RegExp(backgroundPoster(id)));assert.equal(stage.querySelector('.profile-background-preset__poster').hidden,false);assert.equal(stage.querySelector('.profile-background-preset').style.backgroundImage,'');assert.equal(stage.querySelectorAll('canvas').length,0);}
   assert.equal(document.querySelectorAll('link[href*="vendor/backgrounds"]').length,0);controller.update(base);assert.equal(stage.dataset.preset,'');controller.destroy();assert.equal(stage.querySelector('.profile-background-preset'),null);
 });
 await check('music defaults preserve video audio and old-client saves retain uploaded music and exact volume',()=>{
   assert.deepEqual(base.music,{source:'video',url:'',volume:65});const url='https://fstdttaxflayhtwhnbih.supabase.co/storage/v1/object/public/profile-media/11111111-1111-4111-8111-111111111111/22222222-2222-4222-8222-222222222222.mp3';
   const custom=normalizeProfile({...base,music:{source:'mp3',url,volume:27}});assert.ok(profileMedia(custom).includes(url));assert.equal(normalizeProfile(preserveVisualGroups(seeds.internalcheats,custom)).music.volume,27);
   for(const music of [null,{volume:-1},{volume:70.1},{volume:'50'},{source:'script'},{url:'javascript:alert(1)'},{arbitrary:'css'}])assert.throws(()=>normalizeProfile({...base,music}));
+});
+await check('live backgrounds replace their poster without double exposure in public and editor stages',async()=>{
+  for(const file of ['internalcheats/index.html','customize/index.html']){
+    const win=environment(file),stage=document.querySelector('.video-stage,.preview-stage'),style=document.createElement('style');style.textContent=read('styles.css')+'\n'+read('profile-visual.css');document.head.append(style);
+    const callbacks=[];let active=0;const controller=createProfileBackground(stage,{ensureStyles:async()=>{},loadRenderer:async()=>({mountBackground:(container,events)=>{assert.notEqual(win.getComputedStyle(container).display,'none');container.append(document.createElement('canvas'));callbacks.push(events);active++;return ()=>{active--;};}})});
+    assert.equal(createProfileBackground(stage),controller);
+    for(const id of Object.keys(BACKGROUNDS)){
+      controller.update({...base,background:{kind:'preset',preset:id}});await flush();const host=stage.querySelector('.profile-background-preset'),poster=host.querySelector('.profile-background-preset__poster'),canvas=host.querySelector('.profile-background-preset__canvas');
+      assert.equal(stage.querySelectorAll('.profile-background-preset').length,1);assert.equal(active,1);assert.doesNotMatch(win.getComputedStyle(host).backgroundImage,/url\(/);assert.equal(host.style.backgroundImage,'');assert.equal(poster.hidden,false);assert.equal(win.getComputedStyle(canvas).visibility,'hidden');
+      callbacks.at(-1).onReady();assert.equal(poster.hidden,true);assert.equal(win.getComputedStyle(poster).display,'none');assert.equal(win.getComputedStyle(canvas).visibility,'visible');
+      const video=stage.querySelector('video');assert.equal(win.getComputedStyle(video).visibility,'hidden');assert.equal(win.getComputedStyle(video).opacity,'0');
+      callbacks.at(-1).onError();assert.equal(active,0);assert.equal(poster.hidden,false);assert.equal(win.getComputedStyle(canvas).visibility,'hidden');assert.equal(canvas.children.length,0);
+    }
+    controller.update(base);assert.equal(stage.dataset.preset,'');assert.notEqual(win.getComputedStyle(stage.querySelector('video')).visibility,'hidden');controller.destroy();assert.equal(active,0);
+  }
+});
+await check('rapid background switching ignores stale loads, readiness and failure callbacks',async()=>{
+  environment('internalcheats/index.html');const stage=document.querySelector('.video-stage'),pending=new Map(),events=new Map(),mounted=[],released=[];
+  const controller=createProfileBackground(stage,{ensureStyles:async()=>{},loadRenderer:id=>new Promise(resolve=>pending.set(id,()=>resolve({mountBackground:(container,callbacks)=>{mounted.push(id);events.set(id,callbacks);container.append(document.createElement('canvas'));return ()=>released.push(id);}})))});
+  const select=id=>controller.update({...base,background:{kind:'preset',preset:id}});select('beams');select('antigravity');pending.get('antigravity')();await flush();events.get('antigravity').onReady();pending.get('beams')();await flush();assert.deepEqual(mounted,['antigravity']);
+  select('ballpit');pending.get('ballpit')();await flush();events.get('ballpit').onReady();events.get('antigravity').onReady();events.get('antigravity').onError();assert.equal(stage.dataset.preset,'ballpit');assert.equal(stage.querySelector('.profile-background-preset__poster').hidden,true);assert.equal(stage.querySelectorAll('canvas').length,1);assert.deepEqual(released,['antigravity']);controller.destroy();assert.deepEqual(released,['antigravity','ballpit']);
+});
+await check('synchronous renderer failures clean up immediately and leave only the still fallback',async()=>{
+  environment('internalcheats/index.html');const stage=document.querySelector('.video-stage');let releases=0;
+  const controller=createProfileBackground(stage,{ensureStyles:async()=>{},loadRenderer:async()=>({mountBackground:(container,events)=>{container.append(document.createElement('canvas'));events.onError();return ()=>releases++;}})});
+  controller.update({...base,background:{kind:'preset',preset:'beams'}});await flush();assert.equal(releases,1);assert.equal(stage.querySelectorAll('canvas').length,0);assert.equal(stage.querySelector('.profile-background-preset__poster').hidden,false);assert.equal(stage.querySelector('.profile-background-preset').classList.contains('is-ready'),false);controller.destroy();assert.equal(releases,1);
 });
 await check('MP3 validation requires consecutive Layer III frames and safely skips ID3 metadata',async()=>{
   const frame=Buffer.alloc(417);frame.set([255,251,144,0]);const bytes=Buffer.concat([frame,frame,frame]);assert.equal(mp3Frames(bytes),true);assert.equal(mp3Frames(Buffer.from('ID3notaudio')),false);assert.equal(mp3Frames(Buffer.alloc(8192)),false);
