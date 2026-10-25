@@ -1,0 +1,12 @@
+import fs from 'node:fs/promises';
+import {build} from 'esbuild';
+let source=await fs.readFile('vendor/react-bits/FluxLines.jsx','utf8');
+const replace=(before,after)=>{if(!source.includes(before))throw Error('Upstream source changed: '+before);source=source.replace(before,after);};
+replace('  paused = false,','  onReady,\n  onError,\n  paused = false,');
+replace('if (!container || !canvas || !gl) return undefined;',"if (!container || !canvas || !gl) { onError?.('Flux Lines needs WebGL 2. Showing its still preview.'); return undefined; }");
+replace('if (!program) return undefined;',"if (!program) { gl.getExtension('WEBGL_lose_context')?.loseContext(); onError?.('Flux Lines could not start. Showing its still preview.'); return undefined; }");
+replace('    const buffer = gl.createBuffer();',"    const onContextLost = event => { event.preventDefault(); onError?.('Graphics were interrupted. Showing the Flux Lines still preview.'); };\n    canvas.addEventListener('webglcontextlost', onContextLost);\n    const buffer = gl.createBuffer();");
+replace('    let lastDpr = settingsRef.current.dpr;','    onReady?.();\n    let lastDpr = settingsRef.current.dpr;');
+replace('      cancelAnimationFrame(raf);',"      canvas.removeEventListener('webglcontextlost', onContextLost);\n      cancelAnimationFrame(raf);");
+await fs.writeFile('vendor/react-bits/FluxLines.runtime.jsx',source);
+await build({entryPoints:['flux-island.jsx'],bundle:true,minify:true,format:'esm',target:'es2022',jsx:'automatic',outfile:'vendor/flux-lines.mjs',define:{'process.env.NODE_ENV':'"production"'},legalComments:'linked'});

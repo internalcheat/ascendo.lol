@@ -1,7 +1,8 @@
 import { API_URL, PUBLISHABLE_KEY } from './customizer-config.mjs';
-import { normalizeProfile } from './profile-schema.mjs?v=20261025-7';
-import { renderProfile, bindMusic, bindNameEffectVisibility } from './profile-view.mjs?v=20261025-7';
+import { normalizeProfile } from './profile-schema.mjs?v=20261025-9';
+import { renderProfile, bindMusic, bindNameEffectVisibility } from './profile-view.mjs?v=20261025-9';
 import { createProfileEffects } from './profile-effects.mjs?v=20261025-7';
+import { createProfileBackground } from './profile-background.mjs?v=20261025-9';
 
 bindNameEffectVisibility();
 
@@ -23,6 +24,7 @@ async function profile(slug, apply) {
 
 const panel=document.querySelector('.page--profile .profile__panel');
 if(panel){
+  const background=createProfileBackground(document.querySelector('.video-stage'));
   const effects=createProfileEffects(panel,{scope:panel.closest('.profile')});
   const video=document.getElementById('musicBackground');
   const update=bindMusic(video,panel);
@@ -33,6 +35,7 @@ if(panel){
     rendered=serialized;
     renderProfile(panel,config);
     effects.update(config);
+    background.update(config);
     const accent=config.colorTheme==='monochrome'?'#f2f2f2':config.accent;
     document.body.style.setProperty('--profile-accent',accent);
     document.body.style.setProperty('--accent-rgb',[1,3,5].map(offset=>parseInt(accent.slice(offset,offset+2),16)).join(','));
@@ -40,7 +43,7 @@ if(panel){
     video.dataset.backgroundKind=config.background.kind;
     video.dataset.backgroundSrc=config.background.kind==='video'?config.background.url:'';
     video.dataset.mobileSrc=config.background.mobile;
-    const poster=config.background.kind==='black'?'':config.background.kind==='image'?config.background.url:config.background.poster;
+    const poster=['black','preset'].includes(config.background.kind)?'':config.background.kind==='image'?config.background.url:config.background.poster;
     if(poster)video.setAttribute('poster',poster);else video.removeAttribute('poster');
     const stage=document.querySelector('.video-stage');
     stage.style.backgroundImage=poster?`url(${JSON.stringify(poster)})`:'';

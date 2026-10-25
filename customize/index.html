@@ -15,9 +15,9 @@
 <link rel="stylesheet" href="/profile-effects.css?v=20261025-6">
 <link rel="stylesheet" href="/editor.css?v=20261025-6">
 <script src="/app.js?v=20261025-1" defer></script>
-<script type="module" src="/editor.mjs?v=20261025-7"></script>
+<script type="module" src="/editor.mjs?v=20261025-9"></script>
 <link rel="stylesheet" href="/fonts.css?v=20261025-6">
-<link rel="stylesheet" href="/profile-visual.css?v=20261025-8">
+<link rel="stylesheet" href="/profile-visual.css?v=20261025-9">
 </head>
 <body class="page page--editor">
 <div class="studio-shell">
@@ -89,8 +89,9 @@
 <label class="studio-label">Crop horizontally<input class="studio-input" id="avatarX" type="range" min="0" max="100" step="1"></label>
 <label class="studio-label">Crop vertically<input class="studio-input" id="avatarY" type="range" min="0" max="100" step="1"></label>
 </div><p class="studio-help">Up to 5 MB. Animated GIF/WebP stays animated; a still fallback is generated when you upload.</p></section>
-<section class="studio-section studio-panel"><h2>Background &amp; soundtrack</h2><div class="studio-fields">
-<label class="studio-label full-width">Background type<select class="studio-input" id="backgroundKind"><option value="video">Video with its own audio</option><option value="image">Image</option><option value="black">Solid black</option></select></label>
+<section class="studio-section studio-panel"><h2>Backgrounds &amp; soundtrack</h2><div class="studio-fields">
+<label class="studio-label full-width">Background type<select class="studio-input" id="backgroundKind" aria-describedby="backgroundPresetStatus"><option value="video">Video with its own audio</option><option value="image">Image</option><option value="black">Solid black</option><option value="preset">Flux Lines</option></select></label>
+<p class="studio-help full-width" id="backgroundPresetStatus" role="status" aria-live="polite"></p>
 <div class="full-width"><label class="studio-label">Video URL<input class="studio-input" id="videoUrl" type="url" maxlength="2048" placeholder="https://…"></label><div class="studio-upload" data-upload="video"><input type="file" accept="video/mp4" aria-label="Upload video url"><progress max="100" value="0" hidden aria-label="Video URL upload progress"></progress><button class="studio-button" type="button" data-cancel hidden>Cancel upload</button><span class="studio-help" data-upload-status></span></div></div>
 <div class="full-width"><label class="studio-label">Background image URL<input class="studio-input" id="imageUrl" type="url" maxlength="2048" placeholder="https://…"></label><div class="studio-upload" data-upload="backgroundImage"><input type="file" accept="image/jpeg,image/png,image/webp,image/gif" aria-label="Upload background image url"><progress max="100" value="0" hidden aria-label="Background image URL upload progress"></progress><button class="studio-button" type="button" data-cancel hidden>Cancel upload</button><span class="studio-help" data-upload-status></span></div></div>
 <div class="full-width"><label class="studio-label">Video poster URL<input class="studio-input" id="backgroundPoster" type="url" maxlength="2048" placeholder="https://…"></label><div class="studio-upload" data-upload="poster"><input type="file" accept="image/jpeg,image/png,image/webp,image/gif" aria-label="Upload video poster url"><progress max="100" value="0" hidden aria-label="Video poster URL upload progress"></progress><button class="studio-button" type="button" data-cancel hidden>Cancel upload</button><span class="studio-help" data-upload-status></span></div></div>

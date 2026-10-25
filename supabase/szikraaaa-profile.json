@@ -1,0 +1,99 @@
+{
+  "name": "Szikraaaa",
+  "bio": "",
+  "badge": "",
+  "accent": "#c19aff",
+  "glow": 65,
+  "opacity": 53,
+  "effect": "glow",
+  "effectSpeed": 100,
+  "effectStrength": 65,
+  "cursorEffects": {
+    "enabled": false,
+    "style": "arrow",
+    "color": "#c19aff",
+    "size": 24,
+    "trail": false,
+    "trailLength": 8,
+    "trailSmoothness": 55,
+    "clickEffect": "none"
+  },
+  "cardEffects": {
+    "enabled": false,
+    "tilt": true,
+    "parallax": true,
+    "glow": true,
+    "intensity": 35,
+    "speed": 1
+  },
+  "entranceEffects": {
+    "enabled": false,
+    "style": "fade",
+    "direction": "up",
+    "duration": 600,
+    "distance": 16,
+    "zoom": 4,
+    "stagger": 60
+  },
+  "colorTheme": "original",
+  "typography": {
+    "display": "dm-sans",
+    "body": "dm-sans",
+    "sizes": {
+      "name": null,
+      "badge": null,
+      "bio": null,
+      "socialLabel": null,
+      "socialHandle": null,
+      "songTitle": null,
+      "songArtist": null,
+      "songMeta": null
+    }
+  },
+  "cardLayout": "classic",
+  "electricBorder": {
+    "enabled": false,
+    "color": "#c19aff",
+    "intensity": 35,
+    "speed": 1,
+    "card": true,
+    "panels": true,
+    "avatar": true
+  },
+  "overlays": {
+    "enabled": false,
+    "layers": [],
+    "media": {
+      "enabled": false,
+      "kind": "image",
+      "url": "",
+      "poster": "",
+      "fit": "contain",
+      "opacity": 35,
+      "key": {
+        "enabled": false,
+        "color": "#00ff00",
+        "tolerance": 25,
+        "softness": 10
+      }
+    }
+  },
+  "avatar": {
+    "url": "https://ascendo.lol/assets/szikraaaa-avatar.svg",
+    "poster": "",
+    "x": 50,
+    "y": 50
+  },
+  "background": {
+    "kind": "preset",
+    "preset": "flux-lines",
+    "url": "",
+    "mobile": "",
+    "poster": ""
+  },
+  "soundtrack": {
+    "title": "",
+    "artist": ""
+  },
+  "socials": []
+}

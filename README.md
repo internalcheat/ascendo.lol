@@ -56,7 +56,15 @@ The owner-supplied JARs are hosted unchanged under `/downloads/`. Their metadata
 | `AscendOSit-26.3-v0.4.2-RIGHTCLICK-HOTFIX.jar` | 35,871 | `b9899302d5533089fb168886b11c895304d833e1c7a159e0154fe1fc843a26fd` |
 | `AscendOEnchants-v1.0.0-EXPERIMENTAL.jar` | 40,472 | `8cf1f5f06a4aa056db826080f7fd399247cc8b53a77254b9b2a1c7f2daa5348f` |
 
-To add a curated profile, copy an existing profile directory and edit the identity, optional bio, links, and canonical URL. Add a founder card only for profiles intended to be listed publicly. Provision its owner privately; never embed access codes in HTML, scripts, seed files, or Git history. The current studio deliberately supports only the three provisioned profiles.
+To add a curated profile, copy an existing profile directory and edit the identity, optional bio, links, and canonical URL. Add a founder card only for profiles intended to be listed publicly. Provision its owner privately; never embed access codes in HTML, scripts, seed files, or Git history. The studio remains invite-only, with no public signup form. `/Szikraaaa/` is an additional curated profile with a case-preserving canonical route. Its ordinary account has no reserved-badge privileges and is absent from the homepage founder list.
+
+### Flux Lines background preset
+
+**Backgrounds & soundtrack → Flux Lines** previews the actual React Bits Flux Lines component before Save changes publishes it for that profile. Existing background types, site defaults and saved profiles are unchanged. The owner explicitly selected Flux Lines as Szikraaaa's starting background. Its regular profile template is `supabase/szikraaaa-profile.json`, with a local S monogram, no invented bio or socials, and other optional effects OFF.
+
+The original JSX, CSS, demo settings, license and source hashes are kept in `vendor/react-bits/`, pinned to React Bits commit `e12c22192ac7b4b452c5e2feb9b586d74765d696`. Its MIT + Commons Clause notice permits application use; this site does not provide a component or background export service. `npm ci --ignore-scripts && npm run build:flux` rebuilds the isolated React/React DOM 19.3.1 production island. The build adds readiness/error/context-loss reporting without changing the original shaders, demo motion parameters, pointer magnet or click swirl. React's license notices are preserved in the linked bundle notice.
+
+Only a selected Flux Lines background loads its local island and component stylesheet. The canvas fills the preview/profile background behind the card, has no focus or hit targets, and uses the original passive window pointer interaction. Upstream visibility/intersection observers pause hidden/offscreen drawing; switching away, navigation and cached-history suspension unmount the island and release graphics resources. Desktop DPR is capped at 2 and mobile at 1.25. Reduced motion and data saving use the official still preview; missing WebGL 2, shader/bundle failures and context loss retain that fallback. The preset is silent; video backgrounds retain their existing music and volume behavior. There are no React Bits/Google network requests at runtime. Changed entries, shared dependencies and visual styles use cache version `20261025-9`.
 
 ## Private profile studio
 

@@ -91,7 +91,8 @@ export function normalizeProfile(input) {
   if (!input || typeof input !== 'object' || Array.isArray(input)) throw new Error('Invalid profile.');
   if (!EFFECTS.includes(input.effect)) throw new Error('Choose a supported name effect.');
   if (!/^#[0-9a-f]{6}$/i.test(input.accent)) throw new Error('Choose a valid accent color.');
-  if (!['black', 'image', 'video'].includes(input.background?.kind)) throw new Error('Choose a background type.');
+  if (!['black', 'image', 'video', 'preset'].includes(input.background?.kind)) throw new Error('Choose a background type.');
+  if (input.background.kind === 'preset' && input.background.preset !== 'flux-lines') throw new Error('Choose a supported background preset.');
   const socials = input.socials;
   if (!Array.isArray(socials) || socials.length > 16) throw new Error('Use no more than 16 social rows.');
   const result = {
@@ -107,14 +108,14 @@ export function normalizeProfile(input) {
     ...normalizeEffects(input, input.accent),
     ...normalizeVisual(input, input.accent),
     avatar: { url: mediaUrl(input.avatar?.url, 'image'), poster: mediaUrl(input.avatar?.poster ?? '', 'image'), x: number(input.avatar?.x, 0, 100, 'avatar crop'), y: number(input.avatar?.y, 0, 100, 'avatar crop') },
-    background: { kind: input.background.kind, url: mediaUrl(input.background.url, input.background.kind), mobile: mediaUrl(input.background.mobile ?? '', 'video'), poster: mediaUrl(input.background.poster ?? '', 'image') },
+    background: { kind: input.background.kind, ...(input.background.kind === 'preset' ? {preset:'flux-lines'} : {}), url: mediaUrl(input.background.url, input.background.kind), mobile: mediaUrl(input.background.mobile ?? '', 'video'), poster: mediaUrl(input.background.poster ?? '', 'image') },
     soundtrack: { title: text(input.soundtrack?.title ?? '', 100, 'song title', true), artist: text(input.soundtrack?.artist ?? '', 140, 'artist', true) },
     socials: socials.map(row => {
       if (!row || !ICONS.includes(row.icon) || !['link', 'copy'].includes(row.action)) throw new Error('Choose a supported social action and icon.');
       return { icon: row.icon, label: text(row.label, 40, 'social label'), handle: text(row.handle, 100, 'social handle'), action: row.action, value: row.action === 'link' ? safeUrl(row.value, false) : text(row.value, 200, 'copy value') };
     })
   };
-  if (result.background.kind !== 'black' && !result.background.url) throw new Error('Choose a background file or direct URL.');
+  if (!['black','preset'].includes(result.background.kind) && !result.background.url) throw new Error('Choose a background file or direct URL.');
   if (!result.avatar.url) throw new Error('Choose an avatar.');
   return result;
 }

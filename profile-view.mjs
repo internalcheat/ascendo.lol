@@ -1,4 +1,4 @@
-import { normalizeProfile, safeUrl } from './profile-schema.mjs?v=20261025-7';
+import { normalizeProfile, safeUrl } from './profile-schema.mjs?v=20261025-9';
 import { FONTS, TEXT_SIZES } from './visual-schema.mjs?v=20261025-7';
 
 export function element(tag, className = '', content) {
