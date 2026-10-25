@@ -1,0 +1,60 @@
+{
+  "author": "Ascendo",
+  "method": "Original deterministic oscillator and filtered-noise synthesis; no sampled recordings.",
+  "files": [
+    {
+      "file": "chime.wav",
+      "duration": 0.8,
+      "rate": 44100,
+      "channels": 1,
+      "peak": 0.62,
+      "bytes": 70604,
+      "sha256": "37352b7dcf4aa3b25b7f1cf8cfe3564765d893f39cfef8c683e18a7a80efa1d0"
+    },
+    {
+      "file": "glass.wav",
+      "duration": 0.72,
+      "rate": 44100,
+      "channels": 1,
+      "peak": 0.62,
+      "bytes": 63548,
+      "sha256": "738aba75f71997f813b306abf0d893aead8a29fc87981ed642d9852a6865e940"
+    },
+    {
+      "file": "pulse.wav",
+      "duration": 0.56,
+      "rate": 44100,
+      "channels": 1,
+      "peak": 0.62,
+      "bytes": 49438,
+      "sha256": "ca5a6e11d25c5d280ac889ba8ac13b3b68c997a378f9847d324b8f8c6f978e05"
+    },
+    {
+      "file": "spark.wav",
+      "duration": 0.38,
+      "rate": 44100,
+      "channels": 1,
+      "peak": 0.62,
+      "bytes": 33560,
+      "sha256": "71eb4871b65f58e73f650fa834eeaba7e9f39432e934ec8237f7e129d0606ed9"
+    },
+    {
+      "file": "sweep.wav",
+      "duration": 0.8,
+      "rate": 44100,
+      "channels": 1,
+      "peak": 0.62,
+      "bytes": 70604,
+      "sha256": "caa63725261bd6dc53604b44c1d48d0997c85c35ea3285d5c27674f94f3c0e63"
+    },
+    {
+      "file": "click.wav",
+      "duration": 0.16,
+      "rate": 44100,
+      "channels": 1,
+      "peak": 0.62,
+      "bytes": 14156,
+      "sha256": "c9fbbe523a1d0a976065e492d794b47b692168acbf1468499e1077dcbca9bfcd"
+    }
+  ]
+}

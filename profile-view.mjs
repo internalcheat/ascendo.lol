@@ -1,5 +1,6 @@
-import { normalizeProfile, safeUrl } from './profile-schema.mjs?v=20261025-9';
-import { FONTS, TEXT_SIZES } from './visual-schema.mjs?v=20261025-7';
+import { normalizeProfile, safeUrl } from './profile-schema.mjs?v=20261025-11';
+import { FONTS, TEXT_SIZES, isTiledLayout } from './visual-schema.mjs?v=20261025-11';
+import {renderWidgets} from './profile-widgets.mjs?v=20261025-11';
 
 export function element(tag, className = '', content) {
   const node = document.createElement(tag);
@@ -125,10 +126,11 @@ export function renderProfile(panel, input, options = {}) {
   panel.classList.add('custom-profile');
   panel.dataset.effect = config.effect;
   panel.dataset.layout = config.cardLayout;
+  panel.dataset.tiled=String(isTiledLayout(config.cardLayout));
   panel.dataset.profileTheme = config.colorTheme;
   const themeScope = panel.closest('.preview-card') || panel.closest('.page--profile');
   if (themeScope) themeScope.dataset.profileTheme = config.colorTheme;
-  panel.dataset.hasWidgets = String(config.socials.length > 0 || config.background.kind === 'video');
+  panel.dataset.soundtrack=String(config.soundtrackCard.enabled);
   panel.style.setProperty('--display-font',`"${FONTS[config.typography.display]}",system-ui,sans-serif`);
   panel.style.setProperty('--body-font',`"${FONTS[config.typography.body]}",system-ui,sans-serif`);
   for (const id of Object.keys(TEXT_SIZES)) {
@@ -197,6 +199,7 @@ export function renderProfile(panel, input, options = {}) {
     control.append(symbol,info,arrow); socials.append(control);
   }
   }
+  socials.hidden=config.socials.length===0;
   nodes.forEach((node,index)=>{
     const current = summary.children[index];
     if(current === node) return;
@@ -207,9 +210,13 @@ export function renderProfile(panel, input, options = {}) {
   if (!identity.contains(avatar) || !identity.contains(summary)) identity.replaceChildren(avatar,summary);
   const musicKey = JSON.stringify(config.soundtrack);
   let music = panel.querySelector('.now-playing');
-  if (config.background.kind === 'video' && music?.dataset.sourceKey !== musicKey) { music = musicCard(config.soundtrack); music.dataset.sourceKey = musicKey; }
-  if (config.background.kind !== 'video') music = null;
-  if (widgets.firstElementChild !== socials || widgets.querySelector('.now-playing') !== music) widgets.replaceChildren(...[socials,music].filter(Boolean));
+  if (config.soundtrackCard.enabled && config.background.kind === 'video' && music?.dataset.sourceKey !== musicKey) { music = musicCard(config.soundtrack); music.dataset.sourceKey = musicKey; }
+  if (!config.soundtrackCard.enabled || config.background.kind !== 'video') music = null;
+  const extra=renderWidgets(panel,config.widgets),contents=[socials,music,...extra].filter(Boolean).map(node=>{let outer=node;while(outer.parentElement&&outer.parentElement!==widgets&&widgets.contains(outer))outer=outer.parentElement;return outer.parentElement===widgets?outer:node;}),keep=new Set(contents);
+  for(const child of [...widgets.children])if(!keep.has(child))child.remove();
+  contents.forEach((node,index)=>{if(widgets.children[index]!==node)widgets.insertBefore(node,widgets.children[index]||null);});
+  panel.dataset.hasWidgets=String(config.socials.length>0||!!music||extra.length>0);
+  [identity,...socials.querySelectorAll('.social-link'),music,...extra].filter(Boolean).forEach((node,index)=>{node.dataset.layoutIndex=String(index+1).padStart(2,'0');});
   if (!panel.contains(identity) || !panel.contains(widgets)) panel.replaceChildren(identity,widgets);
   panel.setAttribute('aria-label',`${config.name} profile`);
   return config;

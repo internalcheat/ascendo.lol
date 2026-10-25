@@ -1,5 +1,6 @@
 import { createProfileClock } from './profile-clock.mjs?v=20261025-6';
-import { createProfileAtmosphere } from './profile-atmosphere.mjs?v=20261025-6';
+import { createProfileAtmosphere } from './profile-atmosphere.mjs?v=20261025-11';
+import {isTiledLayout,layoutWidth} from './visual-schema.mjs?v=20261025-11';
 
 const templates = Object.freeze({
   arrow: '<path d="M5 3v24l6-7 5 11 5-2-5-11 10-1Z"/>',
@@ -67,8 +68,8 @@ export function createProfileEffects(panel, { scope, preview = false } = {}) {
     record.surface.style.removeProperty('transform'); record.artwork?.style.removeProperty('translate'); record.light.style.opacity = '0';
   }
   function syncCards() {
-    const targets = config.cardLayout === 'bento' ? [panel.querySelector('.profile-identity'),...panel.querySelectorAll('.social-link,.now-playing')].filter(Boolean) : [panel];
-    light.hidden = config.cardLayout === 'bento';
+    const targets = isTiledLayout(config.cardLayout) ? [panel.querySelector('.profile-identity'),...panel.querySelectorAll('.social-link,.now-playing,.profile-widget')].filter(Boolean) : [panel];
+    light.hidden = isTiledLayout(config.cardLayout);
     for (const [node,record] of cards) if (!targets.includes(node) || !record.boundary.isConnected || !record.boundary.contains(node)) {
       resetCard(record);
       if (node !== panel) { record.boundary.before(node); record.boundary.remove(); }
@@ -218,7 +219,7 @@ export function createProfileEffects(panel, { scope, preview = false } = {}) {
   function update(next, { replayEntrance = false, previewUrls } = {}) {
     const old = config;
     config = next.colorTheme === 'monochrome' ? {...next,accent:'#f2f2f2',cursorEffects:{...next.cursorEffects,color:'#f2f2f2'}} : next;
-    const width = config.cardLayout === 'bento' ? 960 : config.cardLayout === 'portrait' ? 720 : 460;
+    const width = layoutWidth(config.cardLayout);
     boundary.style.setProperty('--layout-width',`${width}px`); scope.style.setProperty('--layout-width',`${width}px`);
     syncCards();
     surface.style.setProperty('--accent-rgb',[1,3,5].map(offset=>parseInt(config.accent.slice(offset,offset+2),16)).join(','));
@@ -257,6 +258,7 @@ export function createProfileEffects(panel, { scope, preview = false } = {}) {
   listen(win,'pageshow',visibility);
   if (doc.fonts) listen(doc.fonts,'loadingdone',geometry);
   listen(scope,'ascendo:preview-size',() => { neutral(); geometry(); atmosphere.setActive(!doc.hidden && onscreen); });
+  listen(scope,'ascendo:enter-profile',() => { geometry(); replay(); });
   listen(reduced,'change',preferences); listen(fine,'change',preferences);
   const observer = typeof win.IntersectionObserver === 'function' ? new win.IntersectionObserver(entries => {
     onscreen = entries[0].isIntersecting;

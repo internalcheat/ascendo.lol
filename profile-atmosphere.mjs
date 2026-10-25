@@ -1,5 +1,6 @@
 import { createOverlayParticles } from './overlay-particles.mjs?v=20261025-6';
 import { createChromaKey } from './chroma-key.mjs?v=20261025-6';
+import {isTiledLayout} from './visual-schema.mjs?v=20261025-11';
 
 function contour(width,height,radius) {
   const points=[], arc=Math.PI*radius/2;
@@ -34,6 +35,7 @@ export function createProfileAtmosphere(panel,scope,{clock,preview=false}) {
   const wantedMedia=()=>!!config?.overlays.enabled&&config.overlays.media.enabled&&config.overlays.media.opacity>0&&!!config.overlays.media.url&&(!(reduced.matches||win.navigator.connection?.saveData)||config.overlays.media.kind==='image');
   const wantedParticles=()=>!!config?.overlays.enabled&&!particlesFailed&&!reduced.matches&&activeLayers().length>0;
   const electricAnimated=()=>!!config?.electricBorder.enabled&&config.electricBorder.intensity>0&&!reduced.matches;
+  function staticParticles(){if(!reduced.matches||!active||doc.hidden||!config?.overlays.enabled||particlesFailed||!activeLayers().length)return;try{particles ||= createOverlayParticles(canvas);particles.draw(activeLayers(),0,config.accent,mobile.matches?128:384);}catch(error){particlesFailed=true;notify(error.message);}}
   const needsFrames=()=>wantedParticles()||electricAnimated()||(keyer&&mediaReady&&!mediaFailed&&(sourceDirty||mediaElement?.tagName==='VIDEO'&&!mediaElement.requestVideoFrameCallback));
   function schedule(){if(!frame&&active&&!doc.hidden&&needsFrames())frame=clock.request(draw);}
   function cancelVideoCallback(){if(videoCallback&&mediaElement?.cancelVideoFrameCallback)mediaElement.cancelVideoFrameCallback(videoCallback);videoCallback=0;}
@@ -85,7 +87,7 @@ export function createProfileAtmosphere(panel,scope,{clock,preview=false}) {
   }
   function syncBorders(){
     const settings=config.electricBorder;
-    const targets=settings.enabled?[...(settings.card?[config.cardLayout==='bento'?panel.querySelector('.profile-identity'):panel]:[]),...(settings.panels?[...panel.querySelectorAll('.social-link,.now-playing')]:[]),...(settings.avatar?[panel.querySelector('.avatar')]:[])].filter(Boolean):[];
+    const targets=settings.enabled?[...(settings.card?[isTiledLayout(config.cardLayout)?panel.querySelector('.profile-identity'):panel]:[]),...(settings.panels?[...panel.querySelectorAll('.social-link,.now-playing,.profile-widget')]:[]),...(settings.avatar?[panel.querySelector('.avatar')]:[])].filter(Boolean):[];
     for(const [target,record]of borders)if(!targets.includes(target)||!target.contains(record.svg)){record.svg.remove();borders.delete(target);}
     for(const target of targets)if(!borders.has(target)){
       const svg=doc.createElementNS('http://www.w3.org/2000/svg','svg');svg.classList.add('profile-electric');svg.setAttribute('aria-hidden','true');
@@ -107,7 +109,7 @@ export function createProfileAtmosphere(panel,scope,{clock,preview=false}) {
       const radius=Math.min(Math.min(targetWidth,targetHeight)/2,radiusText.includes('%')?parseFloat(radiusText)/100*Math.min(targetWidth,targetHeight):parseFloat(radiusText)||0);
       record.svg.setAttribute('viewBox',`0 0 ${targetWidth+10} ${targetHeight+10}`);record.points=contour(targetWidth,targetHeight,radius);
     }
-    if(config){drawBorders(win.performance.now());sourceDirty=true;schedule();}
+    if(config){drawBorders(win.performance.now());staticParticles();sourceDirty=true;schedule();}
   }
   function drawBorders(time){
     if(!config?.electricBorder.enabled)return;
@@ -121,7 +123,7 @@ export function createProfileAtmosphere(panel,scope,{clock,preview=false}) {
   }
   function draw(time){
     frame=0;if(!active||doc.hidden||!config)return;
-    const interval=mobile.matches||quality<1?1000/30:1000/60;
+    const interval=quality<=.25?1000/15:mobile.matches||quality<1?1000/30:1000/60;
     if(time-lastDraw>=interval-1){
       const started=win.performance.now();lastDraw=time;
       drawBorders(time);
@@ -132,22 +134,23 @@ export function createProfileAtmosphere(panel,scope,{clock,preview=false}) {
         try{keyer.draw(mediaElement,config.overlays.media.key,config.overlays.media.fit);sourceDirty=false;}catch{failMedia('Green-screen removal could not read this upload. The overlay has been hidden.');}
       }
       slow=win.performance.now()-started>8?slow+1:Math.max(0,slow-1);
-      if(slow>=12){slow=0;if(quality>.25){quality*=.5;geometry();notify('Preview quality was reduced to keep this device responsive. Saved settings are unchanged.');}else if(keyer&&!mediaFailed)failMedia('The green-screen layer was stopped to protect responsiveness.');else if(maxLayers>0){maxLayers--;notify('A decorative layer was suspended to keep this device responsive. Saved settings are unchanged.');}}
+      if(slow>=12){slow=0;if(quality>.25){quality*=.5;geometry();notify('Preview quality was reduced to keep this device responsive. Saved settings are unchanged.');}else if(keyer&&!mediaFailed)failMedia('The green-screen layer was stopped to protect responsiveness.');else if(maxLayers>1){maxLayers--;notify('A decorative layer was suspended to keep this device responsive. Saved settings are unchanged.');}}
     }
     if(wantedParticles()||electricAnimated()||(keyer&&mediaElement?.tagName==='VIDEO'&&mediaReady&&!mediaFailed&&!mediaElement.requestVideoFrameCallback))schedule();
     else if(sourceDirty&&keyer&&mediaReady&&!mediaFailed)schedule();
   }
   function update(next,options={}){
+    if(particlesFailed&&next.overlays.enabled&&(!config?.overlays.enabled||JSON.stringify(config?.overlays.layers)!==JSON.stringify(next.overlays.layers))){particles?.destroy();particles=undefined;particlesFailed=false;}
     config=next;previewUrls=options.previewUrls;
     root.hidden=!config.overlays.enabled;
     syncBorders();configureMedia();geometry();drawBorders(win.performance.now());
-    if(!wantedParticles())particles?.clear();if(frame&&!needsFrames()){clock.cancel(frame);frame=0;}schedule();
+    if(!wantedParticles()&&!(reduced.matches&&config.overlays.enabled&&activeLayers().length))particles?.clear();if(frame&&!needsFrames()){clock.cancel(frame);frame=0;}schedule();
   }
   function setActive(value){
     active=value;
     if(!active){if(frame)clock.cancel(frame);frame=0;lastDraw=0;}
     for(const record of borders.values())record.svg.toggleAttribute('hidden',!active);
-    if(config){configureMedia();syncMedia();if(active)schedule();}
+    if(config){configureMedia();syncMedia();if(active){staticParticles();schedule();}}
   }
   function destroy(){if(frame)clock.cancel(frame);releaseMedia();particles?.destroy();for(const record of borders.values())record.svg.remove();borders.clear();root.remove();}
   return {update,geometry,setActive,destroy};

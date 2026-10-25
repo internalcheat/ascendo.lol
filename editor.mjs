@@ -1,12 +1,14 @@
 import { request, session, storeSession, freshSession } from './editor-api.mjs';
-import { normalizeProfile, ICONS, MAX_IMAGE, MAX_VIDEO } from './profile-schema.mjs?v=20261025-9';
-import { renderProfile, bindMusic, element, replayNameEffect, bindNameEffectVisibility } from './profile-view.mjs?v=20261025-9';
+import { normalizeProfile, ICONS, MAX_IMAGE, MAX_VIDEO } from './profile-schema.mjs?v=20261025-11';
+import { renderProfile, bindMusic, element, replayNameEffect, bindNameEffectVisibility } from './profile-view.mjs?v=20261025-11';
 import { PUBLISHABLE_KEY } from './customizer-config.mjs';
-import { createProfileEffects } from './profile-effects.mjs?v=20261025-7';
+import { createProfileEffects } from './profile-effects.mjs?v=20261025-11';
 import { badgeError } from './badge-policy.mjs?v=20261025-4';
-import { createVisualEditor } from './editor-visual.mjs?v=20261025-9';
-import { createProfileBackground } from './profile-background.mjs?v=20261025-9';
-import { createEditorLayout } from './editor-layout.mjs?v=20261025-10';
+import { createVisualEditor } from './editor-visual.mjs?v=20261025-11';
+import { createProfileBackground } from './profile-background.mjs?v=20261025-11';
+import { createEditorLayout } from './editor-layout.mjs?v=20261025-11';
+import {createAdditionalEditor} from './editor-additions.mjs?v=20261025-11';
+import {createProfileAdditions} from './profile-additions.mjs?v=20261025-11';
 
 const byId = id => document.getElementById(id);
 const form = byId('profileForm');
@@ -17,7 +19,9 @@ const profileBackground=createProfileBackground(byId('previewStage'),{onStatus:m
 const model = { saved:null, draft:null, previous:null, defaults:null, revision:0, baselineRevision:0, slug:'', uploads:new Map(), busy:false, activeUploads:0, dirty:false, previewFrame:0, canUseReservedBadges:false };
 const previewUrls = new Map();
 const visualEditor = createVisualEditor({onChange:schedulePreview,isBusy:()=>model.busy||model.activeUploads>0});
+const additionalEditor=createAdditionalEditor({onChange:schedulePreview,isBusy:()=>model.busy||model.activeUploads>0,previewSound:(sound,volume)=>profileAdditions.previewSound(sound,volume),replayEntry:()=>profileAdditions.replayEntry(),replayTitle:()=>profileAdditions.replayTitle()});
 const profileEffects = createProfileEffects(panel,{scope:panel.closest('.preview-card'),preview:true});
+const profileAdditions=createProfileAdditions(panel.closest('.preview-card'),panel,{preview:true});
 const studioLayout=createEditorLayout({isBusy:()=>model.busy||model.activeUploads>0,onNavigate:()=>{if(matchMedia('(max-width: 820px)').matches)byId('editTab').click();}});
 let renderedPreview;
 const effectFields = {
@@ -64,6 +68,7 @@ function collect() {
     colorTheme:byId('colorTheme').value,accent:byId('accent').value,effect:byId('effect').value,glow:Number(byId('glow').value),opacity:Number(byId('opacity').value),
     effectSpeed:Number(byId('effectSpeed').value),effectStrength:Number(byId('effectStrength').value),
     ...visualEditor.collect(),
+    ...additionalEditor.collect(),
     ...Object.fromEntries(Object.entries(effectFields).map(([group,fields])=>[group,Object.fromEntries(Object.entries(fields).map(([key,id])=>{
       const control=byId(id);
       return [key,control.type==='checkbox'?control.checked:control.type==='range'?Number(control.value):control.value];
@@ -78,6 +83,7 @@ function fill(config) {
   byId('colorTheme').value=config.colorTheme;
   model.draft=structuredClone(config);
   visualEditor.fill(config);
+  additionalEditor.fill(config);
   const values={displayName:config.name,bio:config.bio,badge:config.badge,accent:config.accent,effect:config.effect,glow:config.glow,opacity:config.opacity,avatarUrl:config.avatar.url,avatarPoster:config.avatar.poster,avatarX:config.avatar.x,avatarY:config.avatar.y,backgroundKind:config.background.kind,videoUrl:config.background.kind==='video'?config.background.url:'',imageUrl:config.background.kind==='image'?config.background.url:'',backgroundPoster:config.background.poster,songTitle:config.soundtrack.title,songArtist:config.soundtrack.artist};
   for(const [id,value]of Object.entries(values)) byId(id).value=value;
   byId('effectSpeed').value=config.effectSpeed;
@@ -105,9 +111,11 @@ function preview() {
   if(contentKey!==renderedPreview){renderProfile(panel,config,{previewUrls});renderedPreview=contentKey;}
   profileEffects.update(config,{previewUrls});
   profileBackground.update(config);
+  profileAdditions.update(config);
   updateEffectControls();
   updateProfileEffectControls();
   visualEditor.updateControls();
+  additionalEditor.updateControls();
   validateBadge();
   const source=previewUrls.get(config.background.url)||config.background.url;
   const poster=previewUrls.get(config.background.poster)||config.background.poster;
@@ -126,7 +134,7 @@ function preview() {
       video.pause();video.muted=true;video.src=source;
     }
     const visible=!document.hidden&&(visualEditor.expanded()||!matchMedia('(max-width: 820px)').matches||byId('studioGrid').dataset.tab==='preview');
-    if(visible&&!matchMedia('(prefers-reduced-motion: reduce)').matches)video.play().catch(()=>{});
+    if(visible&&!profileAdditions.isGated()&&!matchMedia('(prefers-reduced-motion: reduce)').matches)video.play().catch(()=>{});
     else video.pause();
   }
   updateMusic();
@@ -321,7 +329,7 @@ form.addEventListener('input',event=>{
 });
 form.addEventListener('change',event=>{if(event.target.tagName==='SELECT')schedulePreview();});
 byId('addSocial').addEventListener('click',()=>{model.draft.socials.push({icon:'website',label:'Website',handle:'My website',action:'link',value:'https://'});renderSocials();schedulePreview();});
-byId('previewSound').addEventListener('click',()=>{video.muted=false;video.volume=.65;video.play().catch(()=>{byId('previewHint').textContent='Video playback is unavailable. Check the direct URL or choose another file.';});});
+byId('previewSound').addEventListener('click',()=>{if(profileAdditions.isGated())profileAdditions.enter({quiet:true});video.muted=false;video.volume=.65;video.play().catch(()=>{byId('previewHint').textContent='Video playback is unavailable. Check the direct URL or choose another file.';});});
 byId('discardChanges').addEventListener('click',()=>{if(model.activeUploads){message('Finish or cancel your upload first.',true);return;}if(!model.dirty||confirm('Discard your unpublished changes?')){fill(model.saved);model.revision=model.baselineRevision;markDirty(false);clearDraft();byId('reloadLatest').hidden=true;message('Unpublished changes discarded.');}});
 byId('resetProfile').addEventListener('click',()=>{if(model.activeUploads){message('Finish or cancel your upload first.',true);return;}if(confirm('Preview the original Ascendo profile? It will not publish until you save.')){fill(model.defaults);markDirty();rememberDraft();message('Original settings loaded into your private preview. Save to publish them.');}});
 byId('restorePrevious').addEventListener('click',()=>{if(model.activeUploads){message('Finish or cancel your upload first.',true);return;}if(model.previous&&confirm('Preview the previous saved version?')){fill(model.previous);markDirty();rememberDraft();message('Previous version loaded privately. Save to publish it.');}});
@@ -336,7 +344,7 @@ form.addEventListener('submit',async event=>{
     const saved=await request('/me',{method:'PUT',body:{revision:model.revision,config}});
     model.previous=model.saved;model.saved=saved.config;model.revision=saved.revision;model.baselineRevision=saved.revision;fill(saved.config);markDirty(false);clearDraft();byId('reloadLatest').hidden=true;message('Published. Your profile is updated.',false,true);await library().then(preview).catch(()=>message('Published. The media list could not refresh; reload it later.',false,true));
   }catch(error){rememberDraft();message(error.message,true);if(error.status===409)byId('reloadLatest').hidden=false;if(error.status===401){const link=element('a','studio-button','Sign in again');link.href='/login/';status.after(link);}}
-  finally{for(const [control,disabled]of disabledBefore)control.disabled=disabled;byId('restorePrevious').disabled=!model.previous;model.busy=false;form.removeAttribute('aria-busy');updateEffectControls();updateProfileEffectControls();visualEditor.updateControls();markDirty(model.dirty);}
+  finally{for(const [control,disabled]of disabledBefore)control.disabled=disabled;byId('restorePrevious').disabled=!model.previous;model.busy=false;form.removeAttribute('aria-busy');updateEffectControls();updateProfileEffectControls();visualEditor.updateControls();additionalEditor.updateControls();markDirty(model.dirty);}
 });
 byId('logoutButton').addEventListener('click',async()=>{
   if(model.busy){message('Wait for publishing to finish before logging out.',true);return;}

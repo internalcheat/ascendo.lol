@@ -1,8 +1,9 @@
 import { API_URL, PUBLISHABLE_KEY } from './customizer-config.mjs';
-import { normalizeProfile } from './profile-schema.mjs?v=20261025-9';
-import { renderProfile, bindMusic, bindNameEffectVisibility } from './profile-view.mjs?v=20261025-9';
-import { createProfileEffects } from './profile-effects.mjs?v=20261025-7';
-import { createProfileBackground } from './profile-background.mjs?v=20261025-9';
+import { normalizeProfile } from './profile-schema.mjs?v=20261025-11';
+import { renderProfile, bindMusic, bindNameEffectVisibility } from './profile-view.mjs?v=20261025-11';
+import { createProfileEffects } from './profile-effects.mjs?v=20261025-11';
+import { createProfileBackground } from './profile-background.mjs?v=20261025-11';
+import {createProfileAdditions} from './profile-additions.mjs?v=20261025-11';
 
 bindNameEffectVisibility();
 
@@ -26,6 +27,7 @@ const panel=document.querySelector('.page--profile .profile__panel');
 if(panel){
   const background=createProfileBackground(document.querySelector('.video-stage'));
   const effects=createProfileEffects(panel,{scope:panel.closest('.profile')});
+  const additions=createProfileAdditions(document.body,panel);
   const video=document.getElementById('musicBackground');
   const update=bindMusic(video,panel);
   let rendered;
@@ -39,7 +41,7 @@ if(panel){
     const accent=config.colorTheme==='monochrome'?'#f2f2f2':config.accent;
     document.body.style.setProperty('--profile-accent',accent);
     document.body.style.setProperty('--accent-rgb',[1,3,5].map(offset=>parseInt(accent.slice(offset,offset+2),16)).join(','));
-    document.title=`${config.name} | Ascendo`;
+    if(!config.pageTitle.enabled)document.title=`${config.name} | Ascendo`;
     video.dataset.backgroundKind=config.background.kind;
     video.dataset.backgroundSrc=config.background.kind==='video'?config.background.url:'';
     video.dataset.mobileSrc=config.background.mobile;
@@ -48,6 +50,7 @@ if(panel){
     const stage=document.querySelector('.video-stage');
     stage.style.backgroundImage=poster?`url(${JSON.stringify(poster)})`:'';
     stage.style.backgroundSize='cover';stage.style.backgroundPosition='center';
+    additions.update(config);
     video.dispatchEvent(new Event('ascendo:background'));
     update();
   });

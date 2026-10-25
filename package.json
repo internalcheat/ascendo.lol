@@ -3,8 +3,10 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "test": "node tests/profile-features.mjs && node tests/studio-regression.mjs",
     "build:upload": "esbuild upload-source.mjs --bundle --minify --format=esm --target=es2022 --outfile=vendor/upload.mjs",
-    "build:flux": "node build-flux.mjs"
+    "build:flux": "node build-flux.mjs",
+    "build:entry-sounds": "node build-entry-sounds.mjs"
   },
   "dependencies": {
     "react": "19.3.1",
@@ -12,6 +14,7 @@
     "tus-js-client": "4.3.1"
   },
   "devDependencies": {
-    "esbuild": "0.28.2"
+    "esbuild": "0.28.2",
+    "happy-dom": "21.0.4"
   }
 }
