@@ -106,6 +106,7 @@ function profileName(config) {
 export function replayNameEffect(panel) {
   const heading = panel.querySelector('.profile__name');
   for(const animation of heading?.getAnimations?.({subtree:true}) || []) {
+    if(animation.id === 'ascendo-profile-entrance') continue;
     animation.currentTime = 0;
     animation.play();
   }

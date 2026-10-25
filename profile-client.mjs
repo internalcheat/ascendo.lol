@@ -1,7 +1,7 @@
 import { API_URL, PUBLISHABLE_KEY } from './customizer-config.mjs';
 import { normalizeProfile } from './profile-schema.mjs?v=20261025-4';
-import { renderProfile, bindMusic, bindNameEffectVisibility } from './profile-view.mjs?v=20261025-4';
-import { createProfileEffects } from './profile-effects.mjs?v=20261025-4';
+import { renderProfile, bindMusic, bindNameEffectVisibility } from './profile-view.mjs?v=20261025-5';
+import { createProfileEffects } from './profile-effects.mjs?v=20261025-5';
 
 bindNameEffectVisibility();
 

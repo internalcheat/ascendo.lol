@@ -1,8 +1,8 @@
 import { request, session, storeSession, freshSession } from './editor-api.mjs';
 import { normalizeProfile, ICONS, MAX_IMAGE, MAX_VIDEO } from './profile-schema.mjs?v=20261025-4';
-import { renderProfile, bindMusic, element, replayNameEffect, bindNameEffectVisibility } from './profile-view.mjs?v=20261025-4';
+import { renderProfile, bindMusic, element, replayNameEffect, bindNameEffectVisibility } from './profile-view.mjs?v=20261025-5';
 import { PUBLISHABLE_KEY } from './customizer-config.mjs';
-import { createProfileEffects } from './profile-effects.mjs?v=20261025-4';
+import { createProfileEffects } from './profile-effects.mjs?v=20261025-5';
 import { badgeError } from './badge-policy.mjs?v=20261025-4';
 
 const byId = id => document.getElementById(id);
