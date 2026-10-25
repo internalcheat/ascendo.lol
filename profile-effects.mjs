@@ -137,7 +137,7 @@ export function createProfileEffects(panel, { scope, preview = false } = {}) {
     }
     if (config.cardEffects.enabled || trailStarted) schedule();
   }
-  function leave() { targetX = targetY = targetLight = 0; lastMove = -Infinity; schedule(); }
+  function leave() { targetX = targetY = targetLight = 0; if (trailStarted) lastMove = win.performance.now() - 100; schedule(); }
   function click(event) {
     if (event.pointerType !== 'mouse' || !interactive() || !config.cursorEffects.enabled || config.cursorEffects.clickEffect === 'none' || typeof entry.animate !== 'function') return;
     if (!scopeBounds) geometry();
@@ -164,6 +164,7 @@ export function createProfileEffects(panel, { scope, preview = false } = {}) {
     const settings = config.entranceEffects;
     const play = (node,frames,delay = 0) => {
       const animation = node.animate(frames,{duration:full?settings.duration:Math.min(360,settings.duration),delay,easing:'cubic-bezier(.22,1,.36,1)',fill:'backwards'});
+      animation.id = 'ascendo-profile-entrance';
       animations.add(animation);
       animation.finished.then(() => animations.delete(animation),() => animations.delete(animation));
     };
@@ -220,7 +221,7 @@ export function createProfileEffects(panel, { scope, preview = false } = {}) {
   listen(doc,'visibilitychange',visibility);
   listen(win,'scroll',() => { neutral(); bounds = scopeBounds = null; },{passive:true,capture:true});
   listen(win,'resize',() => { neutral(); geometry(); },{passive:true});
-  listen(win,'pagehide',suspend);
+  listen(win,'pagehide',event => { if (event.persisted) suspend(); else destroy(); });
   listen(win,'pageshow',() => { geometry(); syncCursor(); });
   listen(reduced,'change',preferences); listen(fine,'change',preferences);
   const observer = typeof win.IntersectionObserver === 'function' ? new win.IntersectionObserver(entries => {
