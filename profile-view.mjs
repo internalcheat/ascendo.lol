@@ -1,4 +1,4 @@
-import { normalizeProfile, safeUrl } from './profile-schema.mjs?v=20261025-3';
+import { normalizeProfile, safeUrl } from './profile-schema.mjs?v=20261025-4';
 
 export function element(tag, className = '', content) {
   const node = document.createElement(tag);

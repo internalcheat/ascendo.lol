@@ -1,5 +1,7 @@
 import { createClient } from 'npm:@supabase/supabase-js@2.118.0';
 import { normalizeProfile, profileMedia, MAX_IMAGE, MAX_VIDEO, OWNER_QUOTA } from '../../../profile-schema.mjs';
+import { badgeError } from '../../../badge-policy.mjs';
+import { badgeCapabilities } from './badge-authority.mjs';
 
 const url = Deno.env.get('SUPABASE_URL')!;
 const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -186,7 +188,8 @@ async function route(request: Request, path: string) {
   }
   if (request.method === 'GET' && path === '/me') {
     await cleanup(user.id);
-    return command('mine', { owner: user.id });
+    const current = await command('mine', { owner: user.id });
+    return { ...current, capabilities: badgeCapabilities(current) };
   }
   if (request.method === 'GET' && path === '/uploads') {
     const uploads=await command('uploads',{owner:user.id});
@@ -198,6 +201,8 @@ async function route(request: Request, path: string) {
     try { config = normalizeProfile(input.config); } catch (error) { throw new HttpError(400, error.message); }
     if (!Number.isSafeInteger(input.revision) || input.revision < 1) throw new HttpError(400, 'Invalid profile revision.');
     const current = await command('mine', { owner: user.id });
+    const reservedError = badgeError(config.badge, badgeCapabilities(current).canUseReservedBadges);
+    if (reservedError) throw new HttpError(400, reservedError);
     if (current.revision !== input.revision) throw new HttpError(409, 'This profile changed in another tab. Keep your draft, then reload the latest saved version.');
     await publishFiles(user.id, config);
     const saved = await command('save', { owner: user.id, revision: input.revision, config });

@@ -212,6 +212,7 @@
   }
   document.addEventListener('pointermove', event => {
     if (event.pointerType !== 'mouse' || !finePointer.matches || reducedMotion.matches || performanceLimited || document.hidden) return;
+    if (event.target.closest?.('[data-card-effects-active]')) { stopMotion(); return; }
     const element = event.target.closest?.(surfaceSelector);
     if (!element) { releaseActive(); scheduleMotion(); return; }
     if (activeRecord?.element !== element) {
@@ -227,6 +228,14 @@
     moving.add(activeRecord);
     scheduleMotion();
   }, { passive: true });
+  document.addEventListener('ascendo:card-effects', event => {
+    if (!event.target.hasAttribute('data-card-effects-active')) return;
+    for (const [element,record] of records) if (event.target.contains(element)) {
+      restoreRecord(record); moving.delete(record); records.delete(element);
+      element.querySelector('.motion-light')?.remove(); element.classList.remove('motion-surface');
+      if (record === activeRecord) activeRecord = undefined;
+    }
+  });
   document.addEventListener('pointerout', event => {
     if (!event.relatedTarget) { releaseActive(); scheduleMotion(); }
   }, { passive: true });

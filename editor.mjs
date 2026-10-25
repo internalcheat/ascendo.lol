@@ -1,15 +1,24 @@
 import { request, session, storeSession, freshSession } from './editor-api.mjs';
-import { normalizeProfile, ICONS, MAX_IMAGE, MAX_VIDEO } from './profile-schema.mjs?v=20261025-3';
-import { renderProfile, bindMusic, element, replayNameEffect, bindNameEffectVisibility } from './profile-view.mjs?v=20261025-3';
+import { normalizeProfile, ICONS, MAX_IMAGE, MAX_VIDEO } from './profile-schema.mjs?v=20261025-4';
+import { renderProfile, bindMusic, element, replayNameEffect, bindNameEffectVisibility } from './profile-view.mjs?v=20261025-4';
 import { PUBLISHABLE_KEY } from './customizer-config.mjs';
+import { createProfileEffects } from './profile-effects.mjs?v=20261025-4';
+import { badgeError } from './badge-policy.mjs?v=20261025-4';
 
 const byId = id => document.getElementById(id);
 const form = byId('profileForm');
 const status = byId('editorStatus');
 const video = byId('previewVideo');
 const panel = byId('previewCard');
-const model = { saved:null, draft:null, previous:null, defaults:null, revision:0, baselineRevision:0, slug:'', uploads:new Map(), busy:false, activeUploads:0, dirty:false, previewFrame:0 };
+const model = { saved:null, draft:null, previous:null, defaults:null, revision:0, baselineRevision:0, slug:'', uploads:new Map(), busy:false, activeUploads:0, dirty:false, previewFrame:0, canUseReservedBadges:false };
 const previewUrls = new Map();
+const profileEffects = createProfileEffects(panel,{scope:panel.closest('.preview-card'),preview:true});
+let renderedPreview;
+const effectFields = {
+  cursorEffects:{enabled:'cursorEnabled',style:'cursorStyle',color:'cursorColor',size:'cursorSize',trail:'cursorTrail',trailLength:'cursorTrailLength',trailSmoothness:'cursorTrailSmoothness',clickEffect:'cursorClickEffect'},
+  cardEffects:{enabled:'cardEnabled',tilt:'cardTilt',parallax:'cardParallax',glow:'cardGlow',intensity:'cardIntensity',speed:'cardSpeed'},
+  entranceEffects:{enabled:'entranceEnabled',style:'entranceStyle',direction:'entranceDirection',duration:'entranceDuration',distance:'entranceDistance',zoom:'entranceZoom',stagger:'entranceStagger'}
+};
 const updateMusic = bindMusic(video,panel);
 bindNameEffectVisibility();
 const reducedNames = matchMedia('(prefers-reduced-motion: reduce)');
@@ -38,7 +47,7 @@ function message(value, error = false, success = false) {
 function markDirty(value = true) {
   model.dirty=value;
   byId('saveState').textContent=value?'Unpublished changes':'All changes saved';
-  byId('saveChanges').disabled=model.busy || model.activeUploads>0 || !value;
+  byId('saveChanges').disabled=model.busy || model.activeUploads>0 || !value || !!badgeError(byId('badge').value,model.canUseReservedBadges);
 }
 function collect() {
   const current=model.draft;
@@ -48,17 +57,26 @@ function collect() {
     name:byId('displayName').value,bio:byId('bio').value,badge:byId('badge').value,
     accent:byId('accent').value,effect:byId('effect').value,glow:Number(byId('glow').value),opacity:Number(byId('opacity').value),
     effectSpeed:Number(byId('effectSpeed').value),effectStrength:Number(byId('effectStrength').value),
+    ...Object.fromEntries(Object.entries(effectFields).map(([group,fields])=>[group,Object.fromEntries(Object.entries(fields).map(([key,id])=>{
+      const control=byId(id);
+      return [key,control.type==='checkbox'?control.checked:control.type==='range'?Number(control.value):control.value];
+    }))])),
     avatar:{url:byId('avatarUrl').value,poster:byId('avatarPoster').value,x:Number(byId('avatarX').value),y:Number(byId('avatarY').value)},
     background:{kind,url:backgroundUrl,mobile:backgroundUrl===current.background.url?current.background.mobile:'',poster:byId('backgroundPoster').value},
     soundtrack:{title:byId('songTitle').value,artist:byId('songArtist').value},socials:current.socials
   };
 }
 function fill(config) {
+  config=normalizeProfile(config);
   model.draft=structuredClone(config);
   const values={displayName:config.name,bio:config.bio,badge:config.badge,accent:config.accent,effect:config.effect,glow:config.glow,opacity:config.opacity,avatarUrl:config.avatar.url,avatarPoster:config.avatar.poster,avatarX:config.avatar.x,avatarY:config.avatar.y,backgroundKind:config.background.kind,videoUrl:config.background.kind==='video'?config.background.url:'',imageUrl:config.background.kind==='image'?config.background.url:'',backgroundPoster:config.background.poster,songTitle:config.soundtrack.title,songArtist:config.soundtrack.artist};
   for(const [id,value]of Object.entries(values)) byId(id).value=value;
   byId('effectSpeed').value=config.effectSpeed;
   byId('effectStrength').value=config.effectStrength;
+  for(const [group,fields]of Object.entries(effectFields))for(const [key,id]of Object.entries(fields)){
+    const control=byId(id);
+    if(control.type==='checkbox')control.checked=config[group][key];else control.value=config[group][key];
+  }
   renderSocials();
   preview();
 }
@@ -74,8 +92,12 @@ function preview() {
   try { config=normalizeProfile(collect()); }
   catch(error) { byId('previewHint').textContent=error.message; return; }
   byId('previewHint').textContent='';
-  renderProfile(panel,config,{previewUrls});
+  const contentKey=JSON.stringify({...config,cursorEffects:undefined,cardEffects:undefined,entranceEffects:undefined,previewUrls:[...previewUrls]});
+  if(contentKey!==renderedPreview){renderProfile(panel,config,{previewUrls});renderedPreview=contentKey;}
+  profileEffects.update(config);
   updateEffectControls();
+  updateProfileEffectControls();
+  validateBadge();
   const source=previewUrls.get(config.background.url)||config.background.url;
   const poster=previewUrls.get(config.background.poster)||config.background.poster;
   const posterImage=byId('previewPoster');
@@ -113,6 +135,39 @@ function updateEffectControls() {
 }
 byId('replayEffect').addEventListener('click',()=>replayNameEffect(panel));
 reducedNames.addEventListener('change',updateEffectControls);
+
+function validateBadge() {
+  const control=byId('badge');
+  const error=badgeError(control.value,model.canUseReservedBadges);
+  byId('badgeError').textContent=error;
+  control.setCustomValidity(error);
+  control.setAttribute('aria-invalid',String(!!error));
+  byId('saveChanges').disabled=model.busy||model.activeUploads>0||!model.dirty||!!error;
+  return !error;
+}
+function updateProfileEffectControls() {
+  const cursor=byId('cursorEnabled').checked, card=byId('cardEnabled').checked, entrance=byId('entranceEnabled').checked;
+  const style=byId('entranceStyle').value;
+  for(const [group,fields]of Object.entries(effectFields))for(const [key,id]of Object.entries(fields)){
+    if(key==='enabled')continue;
+    let enabled=group==='cursorEffects'?cursor:group==='cardEffects'?card:entrance;
+    if(['trailLength','trailSmoothness'].includes(key))enabled&&=byId('cursorTrail').checked;
+    if(key==='direction')enabled&&=style==='slide';
+    if(key==='distance')enabled&&=['slide','stagger'].includes(style);
+    if(key==='zoom')enabled&&=style==='zoom';
+    if(key==='stagger')enabled&&=style==='stagger';
+    byId(id).disabled=!enabled||model.busy;
+  }
+  for(const [id,format]of Object.entries({cursorSize:value=>`${value}px`,cursorTrailLength:value=>`${value} points`,cursorTrailSmoothness:value=>`${value}%`,cardIntensity:value=>`${value}%`,cardSpeed:value=>`${Number(value).toFixed(1)}×`,entranceDuration:value=>`${value}ms`,entranceDistance:value=>`${value}px`,entranceZoom:value=>`${value}%`,entranceStagger:value=>`${value}ms`})){
+    const control=byId(id), label=format(control.value);
+    byId(`${id}Value`).textContent=label;control.setAttribute('aria-valuetext',label);
+  }
+  byId('replayEntrance').disabled=!entrance||reducedNames.matches||model.busy;
+  byId('profileMotionHelp').textContent=reducedNames.matches?'Reduced motion is on: trails, click effects, 3D motion and entrances stay still. Your saved settings are retained.':'Effects run only in your preview until you save. Hover effects need a mouse; touch devices keep normal controls.';
+}
+byId('badge').addEventListener('input',validateBadge);
+byId('replayEntrance').addEventListener('click',()=>profileEffects.replay());
+reducedNames.addEventListener('change',updateProfileEffectControls);
 
 function inputField(label,value,onChange,options = {}) {
   const wrapper=element('label','studio-label',label);
@@ -257,7 +312,7 @@ byId('restorePrevious').addEventListener('click',()=>{if(model.activeUploads){me
 form.addEventListener('submit',async event=>{
   event.preventDefault();if(model.busy||model.activeUploads)return;
   let config;
-  try{config=normalizeProfile(collect());}catch(error){message(error.message,true);return;}
+  try{config=normalizeProfile(collect());if(!validateBadge()){byId('badge').focus();message(badgeError(config.badge,model.canUseReservedBadges),true);return;}}catch(error){message(error.message,true);return;}
   model.busy=true;form.setAttribute('aria-busy','true');markDirty();message('Publishing your profile…');
   const disabledBefore=[...form.elements].map(control=>[control,control.disabled]);
   for(const [control]of disabledBefore)control.disabled=true;
@@ -265,7 +320,7 @@ form.addEventListener('submit',async event=>{
     const saved=await request('/me',{method:'PUT',body:{revision:model.revision,config}});
     model.previous=model.saved;model.saved=saved.config;model.revision=saved.revision;model.baselineRevision=saved.revision;fill(saved.config);markDirty(false);clearDraft();byId('reloadLatest').hidden=true;message('Published. Your profile is updated.',false,true);await library().then(preview).catch(()=>message('Published. The media list could not refresh; reload it later.',false,true));
   }catch(error){rememberDraft();message(error.message,true);if(error.status===409)byId('reloadLatest').hidden=false;if(error.status===401){const link=element('a','studio-button','Sign in again');link.href='/login/';status.after(link);}}
-  finally{for(const [control,disabled]of disabledBefore)control.disabled=disabled;byId('restorePrevious').disabled=!model.previous;model.busy=false;form.removeAttribute('aria-busy');markDirty(model.dirty);}
+  finally{for(const [control,disabled]of disabledBefore)control.disabled=disabled;byId('restorePrevious').disabled=!model.previous;model.busy=false;form.removeAttribute('aria-busy');updateEffectControls();updateProfileEffectControls();markDirty(model.dirty);}
 });
 byId('logoutButton').addEventListener('click',async()=>{
   if(model.busy){message('Wait for publishing to finish before logging out.',true);return;}
@@ -292,6 +347,7 @@ async function initialize(){
   if(!session()){location.replace('/login/');return;}
   try{
     const current=await request('/me');
+    model.canUseReservedBadges=current.capabilities?.canUseReservedBadges===true;
     model.slug=current.slug;model.saved=normalizeProfile(current.config);model.defaults=normalizeProfile(current.defaults);model.previous=current.previous?normalizeProfile(current.previous):null;model.revision=current.revision;model.baselineRevision=current.revision;
     byId('studioIdentity').textContent=`Editing ${model.saved.name} · Your profile URL stays ascendo.lol/${model.slug}/`;
     byId('viewProfile').href=`/${model.slug}/`;byId('viewProfile').hidden=false;
@@ -303,6 +359,6 @@ async function initialize(){
 byId('reloadLatest').addEventListener('click',async()=>{
   if(model.busy||model.activeUploads)return;
   if(!confirm('Discard this draft and load the latest saved profile?'))return;
-  try{const current=await request('/me');model.saved=normalizeProfile(current.config);model.previous=current.previous;model.revision=current.revision;model.baselineRevision=current.revision;fill(model.saved);markDirty(false);clearDraft();byId('reloadLatest').hidden=true;message('Latest saved profile loaded.');}catch(error){message(error.message,true);}
+  try{const current=await request('/me');model.canUseReservedBadges=current.capabilities?.canUseReservedBadges===true;model.saved=normalizeProfile(current.config);model.previous=current.previous;model.revision=current.revision;model.baselineRevision=current.revision;fill(model.saved);markDirty(false);clearDraft();byId('reloadLatest').hidden=true;message('Latest saved profile loaded.');}catch(error){message(error.message,true);}
 });
 initialize();

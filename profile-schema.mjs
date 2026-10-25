@@ -32,6 +32,59 @@ function number(value, minimum, maximum, label) {
   return value;
 }
 
+function group(value, label, keys) {
+  if (value === undefined) return {};
+  if (!value || typeof value !== 'object' || Array.isArray(value) || Object.keys(value).some(key => !keys.includes(key))) throw new Error(`Check ${label}.`);
+  return value;
+}
+
+function boolean(value, fallback, label) {
+  if (value === undefined) return fallback;
+  if (typeof value !== 'boolean') throw new Error(`Check ${label}.`);
+  return value;
+}
+
+function choice(value, values, fallback, label) {
+  if (value === undefined) return fallback;
+  if (!values.includes(value)) throw new Error(`Choose a supported ${label}.`);
+  return value;
+}
+
+export function normalizeEffects(input, accent) {
+  const cursor = group(input.cursorEffects, 'custom cursor', ['enabled','style','color','size','trail','trailLength','trailSmoothness','clickEffect']);
+  const card = group(input.cardEffects, 'interactive card', ['enabled','tilt','parallax','glow','intensity','speed']);
+  const entrance = group(input.entranceEffects, 'animated entrance', ['enabled','style','direction','duration','distance','zoom','stagger']);
+  const color = cursor.color === undefined ? accent : cursor.color;
+  if (typeof color !== 'string' || !/^#[0-9a-f]{6}$/i.test(color)) throw new Error('Choose a valid cursor color.');
+  const trailLength = number(cursor.trailLength === undefined ? 8 : cursor.trailLength, 4, 12, 'trail length');
+  if (!Number.isInteger(trailLength)) throw new Error('Check trail length.');
+  return {
+    cursorEffects: {
+      enabled: boolean(cursor.enabled, false, 'custom cursor'),
+      style: choice(cursor.style, ['arrow','dot','ring','crosshair'], 'arrow', 'cursor style'),
+      color: color.toLowerCase(), size: number(cursor.size === undefined ? 24 : cursor.size, 12, 40, 'cursor size'),
+      trail: boolean(cursor.trail, false, 'cursor trail'), trailLength,
+      trailSmoothness: number(cursor.trailSmoothness === undefined ? 55 : cursor.trailSmoothness, 0, 100, 'trail smoothness'),
+      clickEffect: choice(cursor.clickEffect, ['none','ripple','sparks'], 'none', 'click effect')
+    },
+    cardEffects: {
+      enabled: boolean(card.enabled, false, 'interactive card'),
+      tilt: boolean(card.tilt, true, 'card tilt'), parallax: boolean(card.parallax, true, 'card parallax'),
+      glow: boolean(card.glow, true, 'card glow'), intensity: number(card.intensity === undefined ? 35 : card.intensity, 0, 100, 'card intensity'),
+      speed: number(card.speed === undefined ? 1 : card.speed, .5, 2, 'card response speed')
+    },
+    entranceEffects: {
+      enabled: boolean(entrance.enabled, false, 'animated entrance'),
+      style: choice(entrance.style, ['fade','slide','zoom','stagger'], 'fade', 'entrance style'),
+      direction: choice(entrance.direction, ['up','down','left','right'], 'up', 'slide direction'),
+      duration: number(entrance.duration === undefined ? 600 : entrance.duration, 250, 1200, 'entrance duration'),
+      distance: number(entrance.distance === undefined ? 16 : entrance.distance, 0, 32, 'entrance distance'),
+      zoom: number(entrance.zoom === undefined ? 4 : entrance.zoom, 0, 8, 'entrance zoom'),
+      stagger: number(entrance.stagger === undefined ? 60 : entrance.stagger, 0, 120, 'stagger gap')
+    }
+  };
+}
+
 export function normalizeProfile(input) {
   if (!input || typeof input !== 'object' || Array.isArray(input)) throw new Error('Invalid profile.');
   if (!EFFECTS.includes(input.effect)) throw new Error('Choose a supported name effect.');
@@ -49,6 +102,7 @@ export function normalizeProfile(input) {
     effect: input.effect,
     effectSpeed: number(input.effectSpeed ?? 100, 50, 200, 'animation speed'),
     effectStrength: number(input.effectStrength ?? 65, 0, 100, 'effect strength'),
+    ...normalizeEffects(input, input.accent),
     avatar: { url: mediaUrl(input.avatar?.url, 'image'), poster: mediaUrl(input.avatar?.poster ?? '', 'image'), x: number(input.avatar?.x, 0, 100, 'avatar crop'), y: number(input.avatar?.y, 0, 100, 'avatar crop') },
     background: { kind: input.background.kind, url: mediaUrl(input.background.url, input.background.kind), mobile: mediaUrl(input.background.mobile ?? '', 'video'), poster: mediaUrl(input.background.poster ?? '', 'image') },
     soundtrack: { title: text(input.soundtrack?.title ?? '', 100, 'song title', true), artist: text(input.soundtrack?.artist ?? '', 140, 'artist', true) },

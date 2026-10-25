@@ -14,10 +14,11 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/styles.css?v=20261025-1">
-<link rel="stylesheet" href="/profile-custom.css?v=20261025-3">
-<link rel="stylesheet" href="/editor.css?v=20261025-3">
+<link rel="stylesheet" href="/profile-custom.css?v=20261025-4">
+<link rel="stylesheet" href="/profile-effects.css?v=20261025-4">
+<link rel="stylesheet" href="/editor.css?v=20261025-4">
 <script src="/app.js?v=20261025-1" defer></script>
-<script type="module" src="/editor.mjs?v=20261025-3"></script>
+<script type="module" src="/editor.mjs?v=20261025-4"></script>
 </head>
 <body class="page page--editor">
 <div class="studio-shell">
@@ -34,7 +35,7 @@
 <div class="studio-controls" id="controlsPanel">
 <section class="studio-section studio-panel"><h2>Identity</h2><div class="studio-fields">
 <label class="studio-label">Display name<input class="studio-input" id="displayName" type="text" maxlength="40" required></label>
-<label class="studio-label">Cosmetic badge<input class="studio-input" id="badge" type="text" maxlength="32" placeholder="Optional"></label>
+<div><label class="studio-label">Cosmetic badge<input class="studio-input" id="badge" type="text" maxlength="32" placeholder="Optional" aria-describedby="badgeError"></label><p class="studio-field-error" id="badgeError" role="status" aria-live="polite"></p></div>
 <div class="full-width"><label class="studio-label full-width">Bio<textarea class="studio-input" id="bio" maxlength="1200" rows="4" placeholder="A few words about you…"></textarea></label><p class="studio-help">Optional. Links use [label](https://example.com). HTML is not supported.</p></div>
 </div></section>
 <section class="studio-section studio-panel"><h2>Style</h2><div class="studio-fields">
@@ -45,6 +46,40 @@
 <label class="studio-label">Animation speed <output id="effectSpeedValue" for="effectSpeed">1.0×</output><input class="studio-input" id="effectSpeed" type="range" min="50" max="200" step="10" value="100" aria-label="Animation speed" aria-describedby="effectHelp"></label>
 <label class="studio-label">Effect strength <output id="effectStrengthValue" for="effectStrength">65%</output><input class="studio-input" id="effectStrength" type="range" min="0" max="100" step="1" value="65" aria-label="Effect strength" aria-describedby="effectHelp"></label>
 <div class="full-width studio-effect-tools"><p class="studio-help" id="effectHelp"></p><button class="studio-button" id="replayEffect" type="button">Replay effect ↻</button></div>
+</div></section>
+<section class="studio-section studio-panel studio-effects" data-profile-effect="cursor">
+<div class="studio-section-heading"><h2>Custom Cursors</h2><label class="studio-switch"><input id="cursorEnabled" type="checkbox" role="switch" aria-label="Enable custom cursors"><span aria-hidden="true"></span></label></div>
+<p class="studio-help">A personal native cursor, with optional traces of light. Your links and text controls keep their familiar cursors.</p>
+<div class="studio-fields">
+<label class="studio-label">Cursor style<select class="studio-input" id="cursorStyle"><option value="arrow">Arrow</option><option value="dot">Dot</option><option value="ring">Ring</option><option value="crosshair">Crosshair</option></select></label>
+<label class="studio-label">Cursor color<input class="studio-input" id="cursorColor" type="color" value="#c19aff"></label>
+<label class="studio-label">Cursor size <output id="cursorSizeValue" for="cursorSize">24px</output><input class="studio-input" id="cursorSize" type="range" min="12" max="40" step="1" value="24"></label>
+<label class="studio-label">Click effect<select class="studio-input" id="cursorClickEffect"><option value="none">None</option><option value="ripple">Ripple</option><option value="sparks">Sparks</option></select></label>
+<label class="studio-check full-width"><input id="cursorTrail" type="checkbox"> Smooth trail</label>
+<label class="studio-label">Trail length <output id="cursorTrailLengthValue" for="cursorTrailLength">8 points</output><input class="studio-input" id="cursorTrailLength" type="range" min="4" max="12" step="1" value="8"></label>
+<label class="studio-label">Trail smoothness <output id="cursorTrailSmoothnessValue" for="cursorTrailSmoothness">55%</output><input class="studio-input" id="cursorTrailSmoothness" type="range" min="0" max="100" step="1" value="55"></label>
+</div></section>
+<section class="studio-section studio-panel studio-effects" data-profile-effect="card">
+<div class="studio-section-heading"><h2>Interactive Cards</h2><label class="studio-switch"><input id="cardEnabled" type="checkbox" role="switch" aria-label="Enable interactive cards"><span aria-hidden="true"></span></label></div>
+<p class="studio-help">A quiet sense of depth that follows your mouse. Keep it subtle or give your card a little more presence.</p>
+<div class="studio-fields">
+<label class="studio-check"><input id="cardTilt" type="checkbox" checked> 3D tilt</label>
+<label class="studio-check"><input id="cardParallax" type="checkbox" checked> Avatar parallax</label>
+<label class="studio-check full-width"><input id="cardGlow" type="checkbox" checked> Accent glow</label>
+<label class="studio-label">Interaction intensity <output id="cardIntensityValue" for="cardIntensity">35%</output><input class="studio-input" id="cardIntensity" type="range" min="0" max="100" step="1" value="35"></label>
+<label class="studio-label">Response speed <output id="cardSpeedValue" for="cardSpeed">1.0×</output><input class="studio-input" id="cardSpeed" type="range" min="0.5" max="2" step="0.1" value="1"></label>
+</div></section>
+<section class="studio-section studio-panel studio-effects" data-profile-effect="entrance">
+<div class="studio-section-heading"><h2>Animated Entrances</h2><label class="studio-switch"><input id="entranceEnabled" type="checkbox" role="switch" aria-label="Enable animated entrances"><span aria-hidden="true"></span></label></div>
+<p class="studio-help">Choose your first impression. Profiles always open immediately; slower settings never hide an already-visible card.</p>
+<div class="studio-fields">
+<label class="studio-label">Entrance style<select class="studio-input" id="entranceStyle"><option value="fade">Fade</option><option value="slide">Slide</option><option value="zoom">Zoom</option><option value="stagger">Staggered reveal</option></select></label>
+<label class="studio-label">Slide direction<select class="studio-input" id="entranceDirection"><option value="up">Up</option><option value="down">Down</option><option value="left">Left</option><option value="right">Right</option></select></label>
+<label class="studio-label">Entrance duration <output id="entranceDurationValue" for="entranceDuration">600ms</output><input class="studio-input" id="entranceDuration" type="range" min="250" max="1200" step="10" value="600"></label>
+<label class="studio-label">Travel distance <output id="entranceDistanceValue" for="entranceDistance">16px</output><input class="studio-input" id="entranceDistance" type="range" min="0" max="32" step="1" value="16"></label>
+<label class="studio-label">Zoom amount <output id="entranceZoomValue" for="entranceZoom">4%</output><input class="studio-input" id="entranceZoom" type="range" min="0" max="8" step="1" value="4"></label>
+<label class="studio-label">Stagger gap <output id="entranceStaggerValue" for="entranceStagger">60ms</output><input class="studio-input" id="entranceStagger" type="range" min="0" max="120" step="10" value="60"></label>
+<div class="full-width studio-effect-tools"><p class="studio-help" id="profileMotionHelp"></p><button class="studio-button" id="replayEntrance" type="button">Replay entrance ↻</button></div>
 </div></section>
 <section class="studio-section studio-panel"><h2>Avatar</h2><div class="studio-fields">
 <div class="full-width"><label class="studio-label">Avatar URL<input class="studio-input" id="avatarUrl" type="url" maxlength="2048" placeholder="https://…"></label><div class="studio-upload" data-upload="avatar"><input type="file" accept="image/jpeg,image/png,image/webp,image/gif" aria-label="Upload avatar url"><progress max="100" value="0" hidden aria-label="Avatar URL upload progress"></progress><button class="studio-button" type="button" data-cancel hidden>Cancel upload</button><span class="studio-help" data-upload-status></span></div></div>

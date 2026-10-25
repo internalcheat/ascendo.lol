@@ -1,6 +1,7 @@
 import { API_URL, PUBLISHABLE_KEY } from './customizer-config.mjs';
-import { normalizeProfile } from './profile-schema.mjs?v=20261025-3';
-import { renderProfile, bindMusic, bindNameEffectVisibility } from './profile-view.mjs?v=20261025-3';
+import { normalizeProfile } from './profile-schema.mjs?v=20261025-4';
+import { renderProfile, bindMusic, bindNameEffectVisibility } from './profile-view.mjs?v=20261025-4';
+import { createProfileEffects } from './profile-effects.mjs?v=20261025-4';
 
 bindNameEffectVisibility();
 
@@ -22,6 +23,7 @@ async function profile(slug, apply) {
 
 const panel=document.querySelector('.page--profile .profile__panel');
 if(panel){
+  const effects=createProfileEffects(panel,{scope:panel.closest('.profile')});
   const video=document.getElementById('musicBackground');
   const update=bindMusic(video,panel);
   let rendered;
@@ -30,6 +32,7 @@ if(panel){
     if(serialized===rendered)return;
     rendered=serialized;
     renderProfile(panel,config);
+    effects.update(config);
     document.body.style.setProperty('--profile-accent',config.accent);
     document.body.style.setProperty('--accent-rgb',[1,3,5].map(offset=>parseInt(config.accent.slice(offset,offset+2),16)).join(','));
     document.title=`${config.name} | Ascendo`;
