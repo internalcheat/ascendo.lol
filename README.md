@@ -68,6 +68,10 @@ Only a selected Flux Lines background loads its local island and component style
 
 ## Private profile studio
 
+The studio organizes the existing editor into **Profile**, **Appearance**, **Backgrounds**, **Effects**, and **Media**. A settings-only search (Ctrl/Cmd+K) opens matching sections across categories and highlights matching field labels; clearing it restores the previous accordion state. Search, category changes, collapsing panels and save-status inspection never create a profile draft or publish changes. Enabled effects expand their controls; turning them off collapses the panel without resetting their stored values. Invalid required fields reveal their category before focus moves there. Desktop uses a category rail, settings column and sticky private preview; tablet uses a horizontal category rail, while phones retain Edit/Preview tabs. The same preview DOM and media are reused.
+
+Three independently floating glass icons replace the wide bottom save bar: **Save status**, **Discard**, and **Save**. Labels expand on desktop hover or keyboard focus, with touch focus support and stable slots that keep neighboring targets stationary. Save status opens the existing previous-version/reset/conflict recovery actions; Escape and outside taps close it. Current saved/unsaved/publishing/conflict state has an accessible label and a small visual indicator. Publishing, ownership, draft recovery, file uploads and backend validation retain their existing behavior. The new editor presentation uses cache version `20261025-10` and adds no animation dependency or continuous rendering loop. Reduced motion disables expansion transitions and popover entrance motion.
+
 - `/login/` accepts a profile's private numeric access code after a Cloudflare Turnstile check.
 - `/customize/` edits only the profile assigned to the authenticated account. Both pages are unlisted and marked `noindex, nofollow`.
 - The studio includes identity, optional linked bio and cosmetic badge, avatar crop/still fallback, accent, card opacity, glow, nine name-effect choices, social-row ordering and link/copy actions, black/image/video backgrounds, and soundtrack title/artist.

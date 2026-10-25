@@ -14,8 +14,9 @@
 <link rel="stylesheet" href="/profile-custom.css?v=20261025-4">
 <link rel="stylesheet" href="/profile-effects.css?v=20261025-6">
 <link rel="stylesheet" href="/editor.css?v=20261025-6">
+<link rel="stylesheet" href="/editor-layout.css?v=20261025-10">
 <script src="/app.js?v=20261025-1" defer></script>
-<script type="module" src="/editor.mjs?v=20261025-9"></script>
+<script type="module" src="/editor.mjs?v=20261025-10"></script>
 <link rel="stylesheet" href="/fonts.css?v=20261025-6">
 <link rel="stylesheet" href="/profile-visual.css?v=20261025-9">
 </head>
@@ -102,7 +103,7 @@
 <section class="studio-section studio-panel"><h2>Your media</h2><p class="studio-help" id="storageUsage"></p><div class="media-library" id="mediaLibrary"></div><p class="studio-help">Current and previous saved media are protected. Unused uploads are cleaned after 24 hours; you can remove unreferenced files here sooner.</p></section>
 </div>
 <aside class="studio-preview" id="previewPanel" aria-label="Private profile preview">
-<div class="preview-toolbar"><span class="studio-kicker">Private canvas</span><button class="studio-button" id="expandPreview" type="button">Expand preview ↗</button></div>
+<div class="preview-toolbar"><span class="studio-kicker">Private preview</span><button class="studio-button" id="expandPreview" type="button">Expand preview ↗</button></div>
 <div class="preview-card"><div class="preview-stage" id="previewStage" aria-hidden="true"><img id="previewPoster" alt=""><video id="previewVideo" playsinline loop preload="none" muted></video></div><section class="profile__panel" id="previewCard"></section></div>
 <p class="preview-caption">Private preview · Nothing changes publicly until you save.</p>
 <button class="studio-button preview-sound" id="previewSound" type="button">Preview video with sound</button>
@@ -110,7 +111,13 @@
 </aside>
 <span id="previewDock" hidden></span>
 </div>
-<div class="studio-savebar"><span class="studio-help" id="saveState">All changes saved</span><button class="studio-button" id="reloadLatest" type="button" hidden>Load latest saved</button><button class="studio-button" id="discardChanges" type="button">Discard</button><button class="studio-button" id="restorePrevious" type="button">Previous version</button><button class="studio-button" id="resetProfile" type="button">Reset</button><button class="studio-button studio-button--primary" id="saveChanges" type="submit">Save changes ↗</button></div>
+<div class="studio-savebar" id="studioActionDock">
+<div class="studio-status-panel studio-panel" id="studioStatusPanel" role="region" aria-label="Save status and recovery" hidden><p class="studio-kicker">Your changes</p><p class="studio-save-state" id="saveState" role="status" aria-live="polite">All changes saved</p><p class="studio-help">Preview changes stay private until you save.</p><div class="studio-recovery-actions"><button class="studio-button" id="reloadLatest" type="button" hidden>Load latest saved</button><button class="studio-button" id="restorePrevious" type="button">Previous version</button><button class="studio-button" id="resetProfile" type="button">Reset profile</button></div></div>
+<div class="studio-floating-actions" role="group" aria-label="Profile save actions">
+<button class="studio-dock-action studio-dock-status" id="studioStatusButton" type="button" aria-label="All changes saved. Show save status and recovery" aria-expanded="false" aria-controls="studioStatusPanel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="m8.5 12 2.2 2.2 4.8-4.8"/></svg><span class="studio-dock-label" id="studioDockStatusLabel">Saved</span><span class="studio-save-dot" aria-hidden="true"></span></button>
+<button class="studio-dock-action" id="discardChanges" type="button" aria-label="Discard unpublished changes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5 4 10l5 5M4 10h9a6 6 0 0 1 6 6v3"/></svg><span class="studio-dock-label">Discard</span></button>
+<button class="studio-dock-action studio-dock-save" id="saveChanges" type="submit" aria-label="Save changes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3h12l4 4v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"/><path d="M7 3v6h10V3M7 21v-8h10v8"/></svg><span class="studio-dock-label">Save</span></button>
+</div></div>
 </form>
 </div>
 </main>
