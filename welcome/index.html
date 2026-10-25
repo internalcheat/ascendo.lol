@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#000000">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self'; connect-src 'self' https://fstdttaxflayhtwhnbih.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'; frame-src 'none'">
+<title>You’re invited | Ascendo</title>
+<link rel="icon" href="/assets/ascendo-icon-32.png?v=20261023-2" sizes="32x32" type="image/png">
+<link rel="shortcut icon" href="/assets/ascendo-icon.ico?v=20261023-2">
+<link rel="stylesheet" href="/fonts.css?v=20261025-11">
+<link rel="stylesheet" href="/welcome.css?v=20261025-13">
+<script type="module" src="/welcome.mjs?v=20261025-13"></script>
+</head>
+<body>
+<header class="welcome-header"><a href="/" aria-label="Ascendo home"><img src="/assets/ascendo-logo.png" width="1300" height="414" alt="Ascendo"></a><button id="invitationLogout" type="button" aria-label="Sign out" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M10 5H5v14h5m4-12 5 5-5 5m-5-5h10"/></svg></button></header>
+<main class="welcome-main">
+<section id="invitationCard" aria-labelledby="welcomeTitle" hidden>
+<h1 id="welcomeTitle">You have been invited<br>to the party.</h1>
+<form id="reserveHandle" novalidate>
+<div class="handle-card">
+<label class="handle-field" for="inviteHandle"><span class="sr-only">Your profile handle</span><span class="handle-prefix" aria-hidden="true">ascendo.lol/</span><input id="inviteHandle" name="handle" placeholder="yourhandle" autocomplete="off" autocapitalize="none" spellcheck="false" minlength="3" maxlength="24" required pattern="[a-zA-Z0-9][a-zA-Z0-9-]{1,22}[a-zA-Z0-9]" aria-describedby="invitationStatus" disabled></label>
+<button class="reserve-button" id="reserveButton" type="submit" disabled><span id="reserveLabel">Reserve</span><span class="reserve-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></span></button>
+</div>
+</form>
+</section>
+<p id="invitationStatus" class="invitation-status" role="status" aria-live="polite">Opening your invitation…</p>
+<noscript><p class="invitation-status">JavaScript is needed to reserve your handle.</p><a class="welcome-login" href="/login/">Return to login</a></noscript>
+</main>
+</body>
+</html>

@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node tests/profile-features.mjs && node tests/studio-regression.mjs",
+    "test": "node tests/profile-features.mjs && node tests/studio-regression.mjs && node tests/invitations.mjs",
     "build:upload": "esbuild upload-source.mjs --bundle --minify --format=esm --target=es2022 --outfile=vendor/upload.mjs",
     "build:flux": "node build-flux.mjs",
     "build:entry-sounds": "node build-entry-sounds.mjs"

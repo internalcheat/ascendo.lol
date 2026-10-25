@@ -372,6 +372,7 @@ async function initialize(){
   if(!session()){location.replace('/login/');return;}
   try{
     const current=await request('/me');
+    if(current.onboarding){location.replace('/welcome/');return;}
     model.canUseReservedBadges=current.capabilities?.canUseReservedBadges===true;
     model.slug=current.slug;model.saved=normalizeProfile(current.config);model.defaults=normalizeProfile(current.defaults);model.previous=current.previous?normalizeProfile(current.previous):null;model.revision=current.revision;model.baselineRevision=current.revision;
     const publicSlug=model.slug==='szikraaaa'?'Szikraaaa':model.slug;

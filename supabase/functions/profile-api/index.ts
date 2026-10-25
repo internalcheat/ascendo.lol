@@ -4,6 +4,7 @@ import { badgeError } from '../../../badge-policy.mjs';
 import { badgeCapabilities } from './badge-authority.mjs';
 import { preserveVisualGroups } from '../../../visual-schema.mjs';
 import { verifyOverlayVideo } from './overlay-video.mjs';
+import { normalizeHandle, createInvitedProfile } from '../../../invitation-policy.mjs';
 
 const url = Deno.env.get('SUPABASE_URL')!;
 const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -27,6 +28,25 @@ async function command(operation: string, payload: any = {}) {
 async function runtime() {
   if (!runtimePromise) runtimePromise = command('runtime').catch(error => { runtimePromise = undefined; throw error; });
   return runtimePromise;
+}
+
+async function invitationCommand(operation: string,payload: any = {}) {
+  const {data,error}=await admin.rpc('profile_invitation_command',{operation,payload});
+  if(error)throw new HttpError(error.message.includes('Invalid handle')?400:error.message.includes('Invitation unavailable')?403:503,error.message.includes('Invalid handle')?'This handle is unavailable.':error.message.includes('Invitation unavailable')?'This invitation is unavailable.':'Could not reserve your handle. Please try again.');
+  return data;
+}
+
+async function activateInvitation(invitation: any,code: string) {
+  if(invitation.owner)return invitation;
+  const password=await hmac(`password:${code}`);
+  let result=await admin.auth.admin.getUserById(invitation.id);
+  if(!result.data?.user){
+    result=await admin.auth.admin.createUser({id:invitation.id,email:invitation.email,password,email_confirm:true});
+    if(result.error)result=await admin.auth.admin.getUserById(invitation.id);
+  }
+  if(!result.data?.user||result.data.user.id!==invitation.id||result.data.user.email!==invitation.email)throw new HttpError(503,'Your invitation could not open. Please try again.');
+  await invitationCommand('activate',{invitation:invitation.id,owner:result.data.user.id});
+  return {...invitation,owner:result.data.user.id};
 }
 
 async function hmac(value: string) {
@@ -175,12 +195,14 @@ async function route(request: Request, path: string) {
     if (!verification?.success || verification.hostname !== 'ascendo.lol' || verification.action !== 'profile-login') throw new HttpError(401, 'Complete the security check and try again.');
     const ip = request.headers.get('cf-connecting-ip') || request.headers.get('x-forwarded-for')?.split(',').at(-1)?.trim() || 'unknown';
     if (!await command('rate', { ip: await hmac(`ip:${ip}`) })) throw new HttpError(429, 'Too many attempts. Please wait 15 minutes.');
-    const credential = await command('lookup', { digest: await hmac(`lookup:${input.code}`) });
+    const lookup=await hmac(`lookup:${input.code}`);
+    let credential = await command('lookup', { digest: lookup });
+    if(!credential){const invitation=await invitationCommand('lookup',{digest:lookup});if(invitation)credential=await activateInvitation(invitation,input.code);}
     if (!credential) throw new HttpError(401, 'Check your code and try again.');
     const auth = createClient(url, Deno.env.get('SUPABASE_ANON_KEY')!, { auth: { persistSession: false, autoRefreshToken: false } });
     const { data, error } = await auth.auth.signInWithPassword({ email: credential.email, password: await hmac(`password:${input.code}`) });
     if (error || !data.session) throw new HttpError(401, 'Check your code and try again.');
-    return { access_token: data.session.access_token, refresh_token: data.session.refresh_token, expires_at: data.session.expires_at };
+    return { access_token: data.session.access_token, refresh_token: data.session.refresh_token, expires_at: data.session.expires_at, onboarding:!credential.slug };
   }
   if (request.method === 'POST' && path === '/session/refresh') {
     const input = await body(request);
@@ -197,7 +219,19 @@ async function route(request: Request, path: string) {
     if(error)throw new HttpError(503,'Could not securely end the session. Please retry.');
     return { signedOut: true };
   }
+  if (request.method === 'GET' && path === '/invitation') return await invitationCommand('status',{owner:user.id});
+  if (request.method === 'POST' && ['/invitation/check','/invitation/claim'].includes(path)) {
+    const input=await body(request);
+    if(!input||typeof input!=='object'||Array.isArray(input))throw new HttpError(400,'Choose a handle.');
+    let handle;try{handle=normalizeHandle(input.handle);}catch(error){throw new HttpError(400,error.message);}
+    const state=await invitationCommand(path.endsWith('/claim')?'claim':'available',{owner:user.id,handle,...(path.endsWith('/claim')?{config:createInvitedProfile(handle)}:{})});
+    if(state.conflict)throw new HttpError(409,'This handle is already taken.');
+    return state;
+  }
   if (request.method === 'GET' && path === '/me') {
+    const {data:pending,error:pendingError}=await admin.rpc('profile_invitation_command',{operation:'status',payload:{owner:user.id}});
+    if(pending?.needsHandle)return {onboarding:true,capabilities:{canUseReservedBadges:false}};
+    if(pendingError)throw new HttpError(403,'No editable profile is assigned to this account.');
     await cleanup(user.id);
     const current = await command('mine', { owner: user.id });
     return { ...current, capabilities: badgeCapabilities(current) };

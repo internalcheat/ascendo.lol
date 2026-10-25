@@ -150,7 +150,7 @@ try{
     let handler, publicCopies=0,saves=0,uploadReads=0;
     const fixtures=new Map(Object.entries(seeds).map(([slug,config])=>[slug,{slug,config:structuredClone(config),defaults:config,previous:null,revision:1}]));
     const fakeClient={auth:{getUser:async token=>({data:{user:{id:token.split('.')[0]}}})},rpc:async(name,{operation,payload})=>{
-      if(operation==='session')return {data:true};
+      if(operation==='session')return {data:true};if(operation==='status')return {data:{needsHandle:false}};
       if(operation==='mine')return {data:fixtures.get(payload.owner)};
       if(operation==='uploads'){uploadReads++;return {data:[]};}
       if(operation==='save'){saves++;const fixture=fixtures.get(payload.owner);fixture.previous=fixture.config;fixture.config=payload.config;fixture.revision++;return {data:{config:fixture.config,revision:fixture.revision}};}
