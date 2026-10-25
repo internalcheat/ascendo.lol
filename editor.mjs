@@ -1,10 +1,10 @@
 import { request, session, storeSession, freshSession } from './editor-api.mjs';
-import { normalizeProfile, ICONS, MAX_IMAGE, MAX_VIDEO } from './profile-schema.mjs?v=20261025-6';
-import { renderProfile, bindMusic, element, replayNameEffect, bindNameEffectVisibility } from './profile-view.mjs?v=20261025-6';
+import { normalizeProfile, ICONS, MAX_IMAGE, MAX_VIDEO } from './profile-schema.mjs?v=20261025-7';
+import { renderProfile, bindMusic, element, replayNameEffect, bindNameEffectVisibility } from './profile-view.mjs?v=20261025-7';
 import { PUBLISHABLE_KEY } from './customizer-config.mjs';
-import { createProfileEffects } from './profile-effects.mjs?v=20261025-6';
+import { createProfileEffects } from './profile-effects.mjs?v=20261025-7';
 import { badgeError } from './badge-policy.mjs?v=20261025-4';
-import { createVisualEditor } from './editor-visual.mjs?v=20261025-6';
+import { createVisualEditor } from './editor-visual.mjs?v=20261025-7';
 
 const byId = id => document.getElementById(id);
 const form = byId('profileForm');
@@ -57,7 +57,7 @@ function collect() {
   const backgroundUrl=kind==='video'?byId('videoUrl').value:kind==='image'?byId('imageUrl').value:'';
   return {
     name:byId('displayName').value,bio:byId('bio').value,badge:byId('badge').value,
-    accent:byId('accent').value,effect:byId('effect').value,glow:Number(byId('glow').value),opacity:Number(byId('opacity').value),
+    colorTheme:byId('colorTheme').value,accent:byId('accent').value,effect:byId('effect').value,glow:Number(byId('glow').value),opacity:Number(byId('opacity').value),
     effectSpeed:Number(byId('effectSpeed').value),effectStrength:Number(byId('effectStrength').value),
     ...visualEditor.collect(),
     ...Object.fromEntries(Object.entries(effectFields).map(([group,fields])=>[group,Object.fromEntries(Object.entries(fields).map(([key,id])=>{
@@ -71,6 +71,7 @@ function collect() {
 }
 function fill(config) {
   config=normalizeProfile(config);
+  byId('colorTheme').value=config.colorTheme;
   model.draft=structuredClone(config);
   visualEditor.fill(config);
   const values={displayName:config.name,bio:config.bio,badge:config.badge,accent:config.accent,effect:config.effect,glow:config.glow,opacity:config.opacity,avatarUrl:config.avatar.url,avatarPoster:config.avatar.poster,avatarX:config.avatar.x,avatarY:config.avatar.y,backgroundKind:config.background.kind,videoUrl:config.background.kind==='video'?config.background.url:'',imageUrl:config.background.kind==='image'?config.background.url:'',backgroundPoster:config.background.poster,songTitle:config.soundtrack.title,songArtist:config.soundtrack.artist};
@@ -127,6 +128,7 @@ function preview() {
 }
 
 function updateEffectControls() {
+  byId('accent').disabled=model.busy||byId('colorTheme').value==='monochrome';
   const effect=byId('effect').value;
   const animated=!['none','glow'].includes(effect);
   byId('effectSpeed').disabled=!animated;

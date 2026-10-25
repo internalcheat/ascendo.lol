@@ -1,7 +1,7 @@
 import { API_URL, PUBLISHABLE_KEY } from './customizer-config.mjs';
-import { normalizeProfile } from './profile-schema.mjs?v=20261025-6';
-import { renderProfile, bindMusic, bindNameEffectVisibility } from './profile-view.mjs?v=20261025-6';
-import { createProfileEffects } from './profile-effects.mjs?v=20261025-6';
+import { normalizeProfile } from './profile-schema.mjs?v=20261025-7';
+import { renderProfile, bindMusic, bindNameEffectVisibility } from './profile-view.mjs?v=20261025-7';
+import { createProfileEffects } from './profile-effects.mjs?v=20261025-7';
 
 bindNameEffectVisibility();
 
@@ -33,8 +33,9 @@ if(panel){
     rendered=serialized;
     renderProfile(panel,config);
     effects.update(config);
-    document.body.style.setProperty('--profile-accent',config.accent);
-    document.body.style.setProperty('--accent-rgb',[1,3,5].map(offset=>parseInt(config.accent.slice(offset,offset+2),16)).join(','));
+    const accent=config.colorTheme==='monochrome'?'#f2f2f2':config.accent;
+    document.body.style.setProperty('--profile-accent',accent);
+    document.body.style.setProperty('--accent-rgb',[1,3,5].map(offset=>parseInt(accent.slice(offset,offset+2),16)).join(','));
     document.title=`${config.name} | Ascendo`;
     video.dataset.backgroundKind=config.background.kind;
     video.dataset.backgroundSrc=config.background.kind==='video'?config.background.url:'';

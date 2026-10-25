@@ -15,6 +15,8 @@ Profiles open immediately. The existing video attempts playback with audio, fall
 
 ## Design and motion
 
+The private studio's **Style → Profile color theme → Black & White** option applies a complete monochrome finish to that profile's card, avatar, background, soundtrack, effects, back button and volume control. Original accent/effect colors and original media remain stored unchanged, so switching to **Original colors** restores them. It previews privately, participates in draft/discard/reset/previous-version handling, and becomes public only on Save changes. Missing `colorTheme` defaults to `original`; the backend accepts only `original` / `monochrome` and preserves the saved value when an older client omits it. It never changes the homepage or another profile. No database migration is needed.
+
 Frosted profile cards, white name glow, and restrained glass highlights share `styles.css`. Homepage entrance animations and 2.5-second floating phrases (0.5-second fade in, 1.5-second drift, 0.5-second fade out) respect reduced-motion preferences. Phrases are decorative, avoid the central controls, are limited to four on desktop and two on mobile, and stop spawning in hidden tabs.
 
 Same-origin navigation uses native cross-document view transitions where available, with a short fade fallback for marked links. Modified clicks and external new-tab links keep standard browser behavior.
