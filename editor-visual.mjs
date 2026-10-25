@@ -1,5 +1,6 @@
-import { FONTS, TEXT_SIZES, LAYOUTS, OVERLAY_PRESETS } from './visual-schema.mjs?v=20261025-7';
-import { element } from './profile-view.mjs?v=20261025-9';
+import { FONTS, TEXT_SIZES, LAYOUTS, OVERLAY_PRESETS } from './visual-schema.mjs?v=20261025-11';
+import { element } from './profile-view.mjs?v=20261025-11';
+import {FONT_GROUPS} from './font-catalog.mjs?v=20261025-11';
 
 export function createVisualEditor({onChange,isBusy}) {
   const byId=id=>document.getElementById(id),host=byId('visualSections');
@@ -13,19 +14,21 @@ export function createVisualEditor({onChange,isBusy}) {
   function toggle(heading,id,label){const wrapper=element('label','studio-switch');const node=input(id,'checkbox',false);node.setAttribute('role','switch');node.setAttribute('aria-label',label);wrapper.append(node,element('span'));wrapper.lastChild.setAttribute('aria-hidden','true');heading.append(wrapper);}
   function button(label,action,className='studio-button'){const node=element('button',className,label);node.type='button';node.addEventListener('click',action);return node;}
   const fonts=section('Fonts','Two faces, one identity. All font files are hosted by Ascendo, not Google.');
-  field(fonts.fields,'Display font',select('displayFont',Object.entries(FONTS)));field(fonts.fields,'Body font',select('bodyFont',Object.entries(FONTS)));
+  function fontSelect(id){const control=element('select','studio-input');control.id=id;for(const [name,choices]of Object.entries(FONT_GROUPS)){const group=element('optgroup');group.label=name;for(const [value,label]of Object.entries(choices)){const option=element('option','',label);option.value=value;group.append(option);}control.append(group);}return control;}
+  field(fonts.fields,'Display font',fontSelect('displayFont'));field(fonts.fields,'Body font',fontSelect('bodyFont'));
   const sizes=section('Text Sizes','Auto keeps the original responsive sizing. Choose a custom size for any part of your card.');
   for(const [id,[min,max,value,label]]of Object.entries(TEXT_SIZES)){
     const group=element('div','size-setting');const heading=element('div','size-setting__heading');heading.append(element('span','',label));field(heading,'Auto',input(`sizeAuto-${id}`,'checkbox',true));group.append(heading);range(group,`size-${id}`,'Custom size',min,max,value);sizes.fields.append(group);
   }
   const layout=section('Card Layout','Same profile, a different composition. Your existing avatar and widgets move with you.');layout.fields.classList.add('layout-options');
-  const descriptions={classic:'The original centered glass card.',crest:'A circular picture above the edge.',portrait:'A tall picture beside your identity.',bento:'Your socials and music as a tile grid.'};
+  const descriptions={classic:'The original centered glass card.',crest:'A circular picture above the edge.',portrait:'A tall picture beside your identity.',bento:'Your socials and widgets as a tile grid.',magazine:'An editorial identity column beside your features.',deck:'A layered card deck with a centered identity.',stack:'Separate glass cards in a focused vertical stack.',wall:'A wide identity header above a wall of tiles.',spine:'A quiet timeline connecting your cards.',collage:'An asymmetric identity and feature collage.',flow:'A centered profile with flowing social pills.',numbers:'A clean numbered sequence of profile panels.'};
   for(const value of LAYOUTS){const wrapper=element('label','layout-option');const radio=input(`layout-${value}`,'radio',value);radio.name='cardLayout';radio.value=value;radio.checked=value==='classic';const thumbnail=element('span','layout-thumbnail');thumbnail.dataset.layout=value;thumbnail.setAttribute('aria-hidden','true');for(const name of ['picture','identity','tile','tile','tile'])thumbnail.append(element('i',`layout-thumbnail__${name}`));wrapper.append(radio,thumbnail,element('strong','',title(value)),element('span','studio-help',descriptions[value]));layout.fields.append(wrapper);}
   const border=section('Electric Border','A fine, living outline. Choose a separate color and the surfaces it follows.');toggle(border.heading,'electricEnabled','Enable electric borders');
   field(border.fields,'Border color',input('electricColor','color','#c19aff'));range(border.fields,'electricIntensity','Intensity',0,100,35);range(border.fields,'electricSpeed','Speed',.5,2,1,.1);
   const targets=element('div','electric-targets full-width');for(const [id,label]of [['electricCard','Main card'],['electricPanels','Panels'],['electricAvatar','Profile picture']])field(targets,label,input(id,'checkbox',true));border.fields.append(targets);
   const overlays=section('Overlays','Layer up to three atmospheres and one uploaded image or video, behind your cards.');toggle(overlays.heading,'overlaysEnabled','Enable page overlays');
   const layerList=element('div','overlay-layers full-width');layerList.id='overlayLayers';overlays.fields.append(layerList);
+  const emptyHint=element('p','studio-help full-width','Choose an effect and select Add layer, or upload custom media. Turning overlays on starts with Snow.');emptyHint.id='overlayEmptyHint';overlays.fields.append(emptyHint);
   const addRow=element('div','overlay-add full-width');const presetSelect=select('overlayPreset',OVERLAY_PRESETS.map(value=>[value,title(value)]));presetSelect.setAttribute('aria-label','New overlay preset');addRow.append(presetSelect,button('+ Add layer',()=>{readLayers();const preset=presetSelect.value;if(layers.length>=3||layers.some(layer=>layer.preset===preset))return;layers.push({preset,enabled:true,opacity:35,density:35,speed:1,colorMode:'original',color:byId('accent').value||'#c19aff'});renderLayers();onChange();}));addRow.lastChild.id='addOverlayLayer';overlays.fields.append(addRow);
   const custom=element('div','overlay-custom full-width');field(custom,'Custom media layer',input('overlayMediaEnabled','checkbox',false));
   const source=element('div','full-width');const url=input('overlayUrl','url','');url.readOnly=true;url.placeholder='Upload a transparent image or MP4';field(source,'Your uploaded overlay',url);
@@ -33,6 +36,7 @@ export function createVisualEditor({onChange,isBusy}) {
   const poster=input('overlayPoster','hidden',''),kind=input('overlayKind','hidden','image');custom.append(poster,kind);
   const mediaFields=element('div','studio-fields');field(mediaFields,'Image / video fit',select('overlayFit',[['contain','Contain'],['cover','Cover']]));range(mediaFields,'overlayMediaOpacity','Media opacity',0,100,35);field(mediaFields,'Remove green screen',input('overlayKeyEnabled','checkbox',false));field(mediaFields,'Key color',input('overlayKeyColor','color','#00ff00'));range(mediaFields,'overlayTolerance','Key tolerance',0,100,25);range(mediaFields,'overlaySoftness','Edge softness',1,50,10);const removeMedia=button('Remove custom media',()=>{byId('overlayUrl').value='';byId('overlayPoster').value='';byId('overlayMediaEnabled').checked=false;onChange();});removeMedia.id='removeOverlayMedia';custom.append(mediaFields,removeMedia);overlays.fields.append(custom);
   const notice=element('p','studio-help full-width');notice.id='visualStatus';notice.setAttribute('role','status');notice.setAttribute('aria-live','polite');overlays.fields.append(notice);
+  byId('overlaysEnabled').addEventListener('input',()=>{if(byId('overlaysEnabled').checked&&!layers.length&&!byId('overlayMediaEnabled').checked){layers.push({preset:'snow',enabled:true,opacity:35,density:35,speed:1,colorMode:'original',color:byId('accent').value||'#c19aff'});renderLayers();}});
 
   function readLayers(){
     for(const row of layerList.children){const layer=layers.find(item=>item.preset===row.dataset.preset);if(!layer)continue;for(const control of row.querySelectorAll('[data-layer-field]'))layer[control.dataset.layerField]=control.type==='checkbox'?control.checked:control.type==='range'?Number(control.value):control.value;}
@@ -44,7 +48,7 @@ export function createVisualEditor({onChange,isBusy}) {
       const enabled=input(`layer-${layer.preset}-enabled`,'checkbox',layer.enabled);enabled.dataset.layerField='enabled';field(heading,'Enabled',enabled);row.append(heading);const fields=element('div','studio-fields');
       for(const [key,label,min,max,step]of [['opacity','Opacity',0,100,1],['density','Density',0,100,1],['speed','Speed',.25,2,.05]]){const control=range(fields,`layer-${layer.preset}-${key}`,label,min,max,layer[key],step);control.dataset.layerField=key;}
       const mode=select(`layer-${layer.preset}-colorMode`,[['original','Original palette'],['accent','Profile accent'],['custom','Custom color']]);mode.value=layer.colorMode;mode.dataset.layerField='colorMode';field(fields,'Color source',mode);const color=input(`layer-${layer.preset}-color`,'color',layer.color);color.dataset.layerField='color';field(fields,'Custom color',color);row.append(fields);
-      const actions=element('div','social-editor__actions');for(const [label,change]of [['Move up',-1],['Move down',1],['Remove',0]]){const action=button(label,()=>{readLayers();if(change===0)layers.splice(index,1);else [layers[index],layers[index+change]]=[layers[index+change],layers[index]];renderLayers();onChange();});action.setAttribute('aria-label',`${label}: ${title(layer.preset)} overlay`);action.dataset.layerAction=String(change);action.disabled=change===-1&&index===0||change===1&&index===layers.length-1;actions.append(action);}row.append(actions);layerList.append(row);
+      const actions=element('div','social-editor__actions');for(const [label,change]of [['Move up',-1],['Move down',1],['Remove',0]]){const action=button(label,()=>{readLayers();if(change===0){layers.splice(index,1);if(!layers.length&&!byId('overlayMediaEnabled').checked)byId('overlaysEnabled').checked=false;}else [layers[index],layers[index+change]]=[layers[index+change],layers[index]];renderLayers();onChange();});action.setAttribute('aria-label',`${label}: ${title(layer.preset)} overlay`);action.dataset.layerAction=String(change);action.disabled=change===-1&&index===0||change===1&&index===layers.length-1;actions.append(action);}row.append(actions);layerList.append(row);
     });updateControls();
   }
   function collect(){
@@ -66,6 +70,7 @@ export function createVisualEditor({onChange,isBusy}) {
   }
   function updateControls(){
     const busy=isBusy(),electric=byId('electricEnabled').checked,overlays=byId('overlaysEnabled').checked,media=byId('overlayMediaEnabled').checked,key=byId('overlayKeyEnabled').checked;
+    emptyHint.hidden=!overlays||layers.length>0||media&&!!byId('overlayUrl').value;
     for(const id of Object.keys(TEXT_SIZES))byId(`size-${id}`).disabled=busy||byId(`sizeAuto-${id}`).checked;
     for(const control of border.fields.querySelectorAll('input,select'))control.disabled=busy||!electric;
     for(const control of custom.querySelectorAll('input,select,button'))if(control.type!=='file'&&!control.hasAttribute('data-cancel'))control.disabled=busy||!overlays||(control.id!=='overlayMediaEnabled'&&control.id!=='overlayUrl'&&!media);

@@ -240,6 +240,7 @@
 
   video.addEventListener('volumechange', syncVolume);
   video.addEventListener('playing', () => {
+    if(video.dataset.entryBlocked==='true'){video.pause();return;}
     document.body.classList.add('has-video');
     if (mediaControls) mediaControls.hidden = false;
     syncVolume();
@@ -261,6 +262,7 @@
   }
   function quietBackground() { return reduceMotion.matches || saveData; }
   async function startBackground(userInitiated = false) {
+    if(video.dataset.entryBlocked==='true'){video.pause();return;}
     const source = backgroundSource();
     const quiet = quietBackground();
     document.body.classList.toggle('media-poster-only', quiet);
@@ -295,7 +297,7 @@
     const generation = sourceGeneration;
     try { await video.play(); }
     catch {
-      if (video.error || generation !== sourceGeneration) return;
+      if (video.error || generation !== sourceGeneration || video.dataset.entryBlocked==='true') return;
       video.muted = true; syncVolume();
       try { await video.play(); } catch { if (generation === sourceGeneration) showToast('Background playback is unavailable'); }
     }

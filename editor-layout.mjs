@@ -1,17 +1,21 @@
-import {element} from './profile-view.mjs?v=20261025-9';
+import {element} from './profile-view.mjs?v=20261025-11';
 
 const categories=[
   {id:'profile',name:'Profile',help:'Your name, picture and the places people can find you.',icon:'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM5 21v-2a7 7 0 0 1 14 0v2'},
   {id:'appearance',name:'Appearance',help:'Color, typography and the shape of your card.',icon:'M4 4h7v7H4zM14 4h6v6h-6zM4 14h6v6H4zM14 13h7v7h-7z'},
   {id:'backgrounds',name:'Backgrounds',help:'Set the scene with a video, image or Flux Lines.',icon:'m3 8 9-5 9 5-9 5-9-5Zm0 5 9 5 9-5M3 18l9 5 9-5'},
+  {id:'widgets',name:'Widgets',help:'Your soundtrack, game settings, kit, details and media players.',icon:'M3 3h8v8H3zM14 3h7v5h-7zM14 11h7v10h-7zM3 14h8v7H3z'},
   {id:'effects',name:'Effects',help:'A little movement, light and atmosphere. Make it your own.',icon:'m12 2 2.8 7.2L22 12l-7.2 2.8L12 22l-2.8-7.2L2 12l7.2-2.8L12 2Z'},
   {id:'media',name:'Media',help:'Manage your uploaded pictures and videos.',icon:'M4 3h16v18H4V3Zm0 13 5-5 4 4 3-3 4 4M8 7h.01'}
 ];
 const definitions=[
   ['identity','Identity','profile','Name, bio and badge'],['avatar','Avatar','profile','Profile picture and crop'],['socials','Social rows','profile','Links and copy buttons'],
-  ['style','Style','appearance','Theme, color and glass'],['fonts','Fonts','appearance','Display and body faces'],['sizes','Text Sizes','appearance','Individual text sizes'],['layout','Card Layout','appearance','Classic, Crest, Portrait, Bento'],
+  ['style','Style','appearance','Theme, color and glass'],['fonts','Fonts','appearance','Display and body faces, gothic and bubbly'],['sizes','Text Sizes','appearance','Individual text sizes'],['layout','Card Layout','appearance','Classic, Crest, Portrait, Bento, Magazine, Deck, Stack, Wall, Spine, Collage, Flow, Numbers'],
   ['backgrounds','Backgrounds & soundtrack','backgrounds','Video, image, music and Flux Lines'],
+  ['enter','Enter Screen','backgrounds','Click to enter, intro text, second line and sounds','enterEnabled'],
+  ['soundtrack','Soundtrack Card','widgets','Optional song card, removable, audio information','soundtrackEnabled'],['gamewidget','Game Settings Widget','widgets','Sensitivity, DPI, resolution, crosshair and game settings','gameWidgetEnabled'],['hardwarewidget','Hardware Widget','widgets','Mouse, keyboard, PC, headset, trackers and hardware','hardwareWidgetEnabled'],['aboutwidget','About Me Widget','widgets','About me, personal details and information','aboutWidgetEnabled'],['embedwidget','Embed Widgets','widgets','Spotify, Apple Music, YouTube, Twitch, playlist and album players','embedsWidgetEnabled'],
   ['name','Name Animation','effects','Glitch, shimmer, typewriter, glow'],['cursor','Custom Cursors','effects','Cursor, trails and click effects','cursorEnabled'],['card','Interactive Cards','effects','Tilt, parallax and dynamic glow','cardEnabled'],['entrance','Animated Entrances','effects','Fade, slide, zoom and stagger','entranceEnabled'],['electric','Electric Border','effects','Moving outlines and light','electricEnabled'],['overlays','Overlays','effects','Snow, rain, petals and custom media','overlaysEnabled'],
+  ['titles','Animated Page Titles','effects','Browser tab title, typewriter, scroll and time on page','titleEnabled'],
   ['media','Your media','media','Upload library and storage']
 ];
 const searchable=value=>value.normalize('NFKD').replace(/\p{M}/gu,'').toLowerCase().trim();
@@ -85,6 +89,13 @@ export function createEditorLayout({isBusy=()=>false,onNavigate=()=>{}}={}){
       case 'sizes':{const custom=[...document.querySelectorAll('[id^="sizeAuto-"]')].filter(control=>!control.checked).length;return custom?`${custom} custom ${custom===1?'size':'sizes'}`:'Auto sizing';}
       case 'layout':return document.querySelector('[name="cardLayout"]:checked')?.value.replace(/^./,letter=>letter.toUpperCase())||'Classic';
       case 'backgrounds':return selected('backgroundKind');
+      case 'enter':return byId('enterSoundEnabled').checked?`Click to enter · ${selected('enterSound')}`:'Click to enter · sound off';
+      case 'soundtrack':return 'Visible with video backgrounds';
+      case 'titles':return `${selected('titleEffect')} · ${byId('titleLines').value.split(/\r?\n/).filter(line=>line.trim()).length} lines`;
+      case 'gamewidget':return byId('widgetGameName').value||'Game settings and crosshair';
+      case 'hardwarewidget':return 'Your kit and hardware';
+      case 'aboutwidget':return byId('widgetAboutText').value?'About text and personal fields':'Personal fields';
+      case 'embedwidget':return `${byId('embedWidgetRows').children.length} players`;
       case 'name':return byId('effect').value==='none'?'Off':`${selected('effect')} · ${(Number(byId('effectSpeed').value)/100).toFixed(1)}×`;
       case 'cursor':return `${selected('cursorStyle')} · ${byId('cursorSize').value}px`;
       case 'card':return `${byId('cardIntensity').value}% intensity · ${byId('cardSpeed').value}×`;
@@ -114,7 +125,7 @@ export function createEditorLayout({isBusy=()=>false,onNavigate=()=>{}}={}){
     if(conflict&&!hadConflict)showStatus(true);hadConflict=conflict;
   }
   const observer=new win.MutationObserver(status);observer.observe(byId('saveState'),{childList:true,subtree:true});observer.observe(form,{attributes:true,attributeFilter:['aria-busy']});observer.observe(byId('reloadLatest'),{attributes:true,attributeFilter:['hidden']});
-  const lists=new win.MutationObserver(refresh);for(const id of ['mediaLibrary','socialRows','overlayLayers'])lists.observe(byId(id),{childList:true});
+  const lists=new win.MutationObserver(refresh);for(const id of ['mediaLibrary','socialRows','overlayLayers','embedWidgetRows'])if(byId(id))lists.observe(byId(id),{childList:true});
   listen(win,'pagehide',event=>{if(event.persisted)return;disposed=true;abort.abort();observer.disconnect();lists.disconnect();});
   document.body.classList.add('studio-organized');refresh();render();status();
   return {refresh,reveal};

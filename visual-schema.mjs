@@ -1,8 +1,13 @@
-export const FONTS = Object.freeze({ 'dm-sans':'DM Sans', inter:'Inter', 'space-grotesk':'Space Grotesk', sora:'Sora', outfit:'Outfit', 'playfair-display':'Playfair Display', cinzel:'Cinzel', 'jetbrains-mono':'JetBrains Mono' });
+import {FONTS} from './font-catalog.mjs?v=20261025-11';
+import {normalizeFeatureSettings,FEATURE_GROUPS} from './feature-schema.mjs?v=20261025-11';
+export {FONTS};
 export const TEXT_SIZES = Object.freeze({ name:[24,72,50,'Display name'], badge:[10,20,10,'Cosmetic badge'], bio:[12,24,14,'Bio and its links'], socialLabel:[10,20,12,'Social platform label'], socialHandle:[12,26,15,'Social handle / link text'], songTitle:[12,24,12,'Soundtrack title'], songArtist:[10,20,10,'Soundtrack artist'], songMeta:[9,16,9,'Soundtrack labels and timing'] });
-export const LAYOUTS = ['classic','crest','portrait','bento'];
+export const LAYOUTS = ['classic','crest','portrait','bento','magazine','deck','stack','wall','spine','collage','flow','numbers'];
+export const TILED_LAYOUTS=['bento','magazine','stack','wall','spine','collage','flow','numbers'];
+export const isTiledLayout=layout=>TILED_LAYOUTS.includes(layout);
+export const layoutWidth=layout=>({portrait:720,bento:960,magazine:1040,deck:760,stack:560,wall:1120,spine:920,collage:1040,flow:760,numbers:900}[layout]||460);
 export const OVERLAY_PRESETS = ['snow','rain','petals','embers','stars','fireflies','dust','bubbles','confetti','sparkles','meteors','matrix','aurora','ripples','fireworks'];
-export const VISUAL_GROUPS = ['colorTheme','typography','cardLayout','electricBorder','overlays'];
+export const VISUAL_GROUPS = ['colorTheme','typography','cardLayout','electricBorder','overlays',...FEATURE_GROUPS];
 export const MEDIA_ORIGIN = 'https://fstdttaxflayhtwhnbih.supabase.co/storage/v1/object/public/profile-media/';
 
 function object(value, keys, label) {
@@ -46,7 +51,8 @@ export function normalizeVisual(input, accent) {
   const layers = overlays.layers === undefined ? [] : overlays.layers;
   if (!Array.isArray(layers) || layers.length > 3) throw new Error('Use up to three built-in overlay layers.');
   const ids = new Set();
-  const normalizedLayers = layers.map(layer=>{
+  const selectedLayers=layers.length===0&&overlays.enabled===true&&media.enabled!==true?[{preset:'snow'}]:layers;
+  const normalizedLayers = selectedLayers.map(layer=>{
     const item = object(layer,['preset','enabled','opacity','density','speed','colorMode','color'],'overlay layer');
     const preset = select(item.preset,'',OVERLAY_PRESETS,'overlay preset');
     if (!preset || ids.has(preset)) throw new Error('Choose distinct overlay presets.');
@@ -58,6 +64,7 @@ export function normalizeVisual(input, accent) {
   if (url && (kind === 'video') !== url.endsWith('.mp4')) throw new Error('Overlay media type does not match the file.');
   if (poster.endsWith('.mp4')) throw new Error('Choose an image for the overlay still fallback.');
   return {
+    ...normalizeFeatureSettings(input),
     colorTheme:select(input.colorTheme,'original',['original','monochrome'],'profile color theme'),
     typography:{ display:select(typography.display,'dm-sans',Object.keys(FONTS),'display font'), body:select(typography.body,'dm-sans',Object.keys(FONTS),'body font'), sizes:Object.fromEntries(Object.entries(TEXT_SIZES).map(([id,[minimum,maximum]])=>[id,sizes[id] === null || sizes[id] === undefined ? null : numeric(sizes[id],null,minimum,maximum,'text size')])) },
     cardLayout:select(input.cardLayout,'classic',LAYOUTS,'card layout'),
