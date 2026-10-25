@@ -1,4 +1,4 @@
-import {element} from './profile-view.mjs?v=20261025-11';
+import {element} from './profile-view.mjs?v=20261025-14';
 
 const categories=[
   {id:'profile',name:'Profile',help:'Your name, picture and the places people can find you.',icon:'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM5 21v-2a7 7 0 0 1 14 0v2'},
@@ -78,7 +78,7 @@ export function createEditorLayout({isBusy=()=>false,onNavigate=()=>{}}={}){
   function reveal(control){const record=records.find(item=>item.node.contains(control));if(!record)return;setSearch('');active=record.category;expanded(record,true);render();onNavigate();}
   listen(form,'invalid',event=>reveal(event.target),{capture:true});
 
-  const selected=id=>byId(id)?.selectedOptions?.[0]?.textContent||'';
+  const selected=id=>byId(id)?.options?.[byId(id).selectedIndex]?.textContent||'';
   function summaryFor(record){
     if(record.master&&!record.master.checked)return 'Off';
     switch(record.id){
