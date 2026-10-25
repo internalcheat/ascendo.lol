@@ -9,13 +9,13 @@ function contour(width,height,radius) {
     let distance=index/count*perimeter,part=0;
     while(part<7&&distance>lengths[part])distance-=lengths[part++];
     const ratio=lengths[part]?distance/lengths[part]:0;
-    let x,y,nx,ny;
-    if(part===0){x=radius+distance;y=0;nx=0;ny=-1;}
-    else if(part===2){x=width;y=radius+distance;nx=1;ny=0;}
-    else if(part===4){x=width-radius-distance;y=height;nx=0;ny=1;}
-    else if(part===6){x=0;y=height-radius-distance;nx=-1;ny=0;}
-    else{const quadrant=(part-1)/2,angle=(-1+quadrant)*Math.PI/2+ratio*Math.PI/2;nx=Math.cos(angle);ny=Math.sin(angle);x=(quadrant===0||quadrant===1?width-radius:radius)+nx*radius;y=(quadrant===0||quadrant===3?radius:height-radius)+ny*radius;}
-    points.push({x:x+5,y:y+5,nx,ny});
+    let positionX,positionY,nx,ny;
+    if(part===0){positionX=radius+distance;positionY=0;nx=0;ny=-1;}
+    else if(part===2){positionX=width;positionY=radius+distance;nx=1;ny=0;}
+    else if(part===4){positionX=width-radius-distance;positionY=height;nx=0;ny=1;}
+    else if(part===6){positionX=0;positionY=height-radius-distance;nx=-1;ny=0;}
+    else{const quadrant=(part-1)/2,angle=(-1+quadrant)*Math.PI/2+ratio*Math.PI/2;nx=Math.cos(angle);ny=Math.sin(angle);positionX=(quadrant===0||quadrant===1?width-radius:radius)+nx*radius;positionY=(quadrant===0||quadrant===3?radius:height-radius)+ny*radius;}
+    points.push({positionX:positionX+5,positionY:positionY+5,nx,ny});
   }
   return points;
 }
@@ -115,7 +115,7 @@ export function createProfileAtmosphere(panel,scope,{clock,preview=false}) {
     for(const record of borders.values()){
       const path=record.points.map((point,index)=>{
         const offset=reduced.matches?0:(Math.sin(index*1.9+time*.009*settings.speed)+Math.sin(index*.73-time*.013*settings.speed))*.5*(mobile.matches?1.5:3)*settings.intensity/100;
-        return `${index?'L':'M'}${(point.x+point.nx*offset).toFixed(2)},${(point.y+point.ny*offset).toFixed(2)}`;
+        return `${index?'L':'M'}${(point.positionX+point.nx*offset).toFixed(2)},${(point.positionY+point.ny*offset).toFixed(2)}`;
       }).join('')+'Z';record.core.setAttribute('d',path);record.glow.setAttribute('d',path);
     }
   }
