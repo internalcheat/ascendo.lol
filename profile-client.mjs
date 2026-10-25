@@ -2,7 +2,7 @@ import { API_URL, PUBLISHABLE_KEY } from './customizer-config.mjs';
 import { normalizeProfile } from './profile-schema.mjs?v=20261025-15';
 import { renderProfile, bindMusic, bindNameEffectVisibility } from './profile-view.mjs?v=20261025-15';
 import { createProfileEffects } from './profile-effects.mjs?v=20261025-14';
-import { createProfileBackground } from './profile-background.mjs?v=20261025-15';
+import { createProfileBackground } from './profile-background.mjs?v=20261026-1';
 import {createProfileAdditions} from './profile-additions.mjs?v=20261025-15';
 import {themePalette,channels} from './profile-palette.mjs?v=20261025-14';
 
