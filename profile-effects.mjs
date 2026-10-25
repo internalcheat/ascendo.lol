@@ -217,7 +217,7 @@ export function createProfileEffects(panel, { scope, preview = false } = {}) {
 
   function update(next, { replayEntrance = false, previewUrls } = {}) {
     const old = config;
-    config = next;
+    config = next.colorTheme === 'monochrome' ? {...next,accent:'#f2f2f2',cursorEffects:{...next.cursorEffects,color:'#f2f2f2'}} : next;
     const width = config.cardLayout === 'bento' ? 960 : config.cardLayout === 'portrait' ? 720 : 460;
     boundary.style.setProperty('--layout-width',`${width}px`); scope.style.setProperty('--layout-width',`${width}px`);
     syncCards();

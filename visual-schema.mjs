@@ -2,7 +2,7 @@ export const FONTS = Object.freeze({ 'dm-sans':'DM Sans', inter:'Inter', 'space-
 export const TEXT_SIZES = Object.freeze({ name:[24,72,50,'Display name'], badge:[10,20,10,'Cosmetic badge'], bio:[12,24,14,'Bio and its links'], socialLabel:[10,20,12,'Social platform label'], socialHandle:[12,26,15,'Social handle / link text'], songTitle:[12,24,12,'Soundtrack title'], songArtist:[10,20,10,'Soundtrack artist'], songMeta:[9,16,9,'Soundtrack labels and timing'] });
 export const LAYOUTS = ['classic','crest','portrait','bento'];
 export const OVERLAY_PRESETS = ['snow','rain','petals','embers','stars','fireflies','dust','bubbles','confetti','sparkles','meteors','matrix','aurora','ripples','fireworks'];
-export const VISUAL_GROUPS = ['typography','cardLayout','electricBorder','overlays'];
+export const VISUAL_GROUPS = ['colorTheme','typography','cardLayout','electricBorder','overlays'];
 export const MEDIA_ORIGIN = 'https://fstdttaxflayhtwhnbih.supabase.co/storage/v1/object/public/profile-media/';
 
 function object(value, keys, label) {
@@ -58,6 +58,7 @@ export function normalizeVisual(input, accent) {
   if (url && (kind === 'video') !== url.endsWith('.mp4')) throw new Error('Overlay media type does not match the file.');
   if (poster.endsWith('.mp4')) throw new Error('Choose an image for the overlay still fallback.');
   return {
+    colorTheme:select(input.colorTheme,'original',['original','monochrome'],'profile color theme'),
     typography:{ display:select(typography.display,'dm-sans',Object.keys(FONTS),'display font'), body:select(typography.body,'dm-sans',Object.keys(FONTS),'body font'), sizes:Object.fromEntries(Object.entries(TEXT_SIZES).map(([id,[minimum,maximum]])=>[id,sizes[id] === null || sizes[id] === undefined ? null : numeric(sizes[id],null,minimum,maximum,'text size')])) },
     cardLayout:select(input.cardLayout,'classic',LAYOUTS,'card layout'),
     electricBorder:{enabled:flag(electric.enabled,false,'electric border'), color:color(electric.color,accent,'electric border'), intensity:numeric(electric.intensity,35,0,100,'electric intensity'), speed:numeric(electric.speed,1,.5,2,'electric speed'), card:flag(electric.card,true,'main card border'), panels:flag(electric.panels,true,'panel borders'), avatar:flag(electric.avatar,true,'avatar border')},

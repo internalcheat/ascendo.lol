@@ -15,9 +15,9 @@
 <link rel="stylesheet" href="/profile-effects.css?v=20261025-6">
 <link rel="stylesheet" href="/editor.css?v=20261025-6">
 <script src="/app.js?v=20261025-1" defer></script>
-<script type="module" src="/editor.mjs?v=20261025-6"></script>
+<script type="module" src="/editor.mjs?v=20261025-7"></script>
 <link rel="stylesheet" href="/fonts.css?v=20261025-6">
-<link rel="stylesheet" href="/profile-visual.css?v=20261025-6">
+<link rel="stylesheet" href="/profile-visual.css?v=20261025-7">
 </head>
 <body class="page page--editor">
 <div class="studio-shell">
@@ -38,6 +38,8 @@
 <div class="full-width"><label class="studio-label full-width">Bio<textarea class="studio-input" id="bio" maxlength="1200" rows="4" placeholder="A few words about you…"></textarea></label><p class="studio-help">Optional. Links use [label](https://example.com). HTML is not supported.</p></div>
 </div></section>
 <section class="studio-section studio-panel"><h2>Style</h2><div class="studio-fields">
+<label class="studio-label full-width">Profile color theme<select class="studio-input" id="colorTheme" aria-describedby="colorThemeHelp"><option value="original">Original colors</option><option value="monochrome">Black &amp; White</option></select></label>
+<p class="studio-help full-width" id="colorThemeHelp">Black &amp; White gives your entire profile a monochrome finish, including photos, background, effects and controls. Your original colors are kept for switching back. Preview here; publish with Save changes.</p>
 <label class="studio-label">Accent color<input class="studio-input" id="accent" type="color" ></label>
 <label class="studio-label">Name effect<select class="studio-input" id="effect" aria-describedby="effectHelp"><option value="none">None</option><option value="glow">Steady glow</option><option value="glitch">Glitch</option><option value="shimmer">Shimmer</option><option value="typewriter">Typewriter</option><option value="pulse">Neon pulse</option><option value="aurora">Aurora</option><option value="wave">Letter wave</option><option value="float">Float</option></select></label>
 <label class="studio-label">Name glow<input class="studio-input" id="glow" type="range" min="0" max="100" step="1"></label>

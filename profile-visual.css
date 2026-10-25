@@ -1,4 +1,9 @@
 .custom-profile { font-family: var(--body-font,'DM Sans',system-ui,sans-serif); }
+.page--profile[data-profile-theme='monochrome'] :is(.video-stage,.profile-effects-boundary,.profile-atmosphere,.profile-cursor-decorations,.back-link,.media-controls,.toast),
+.preview-card[data-profile-theme='monochrome'] > :is(.preview-stage,.profile-effects-boundary,.profile-atmosphere,.profile-cursor-decorations) { filter: grayscale(1); }
+.custom-profile[data-profile-theme='monochrome'] { background-color: rgba(14,14,14,var(--profile-opacity)); }
+.custom-profile[data-profile-theme='monochrome'][data-layout='bento'] { background: none; }
+.custom-profile[data-profile-theme='monochrome'][data-layout='bento'] :is(.profile-identity,.social-link,.now-playing) { background-color: rgba(14,14,14,var(--profile-opacity)); }
 .custom-profile .profile__name { font-family: var(--display-font,'DM Sans',system-ui,sans-serif); font-size: var(--size-name,clamp(32px,6vw,50px)); }
 .custom-profile .profile-badge { font-size: var(--size-badge,10px); }
 .custom-profile .profile__bio { font-size: var(--size-bio,14px); }

@@ -1,5 +1,5 @@
-import { normalizeProfile, safeUrl } from './profile-schema.mjs?v=20261025-6';
-import { FONTS, TEXT_SIZES } from './visual-schema.mjs?v=20261025-6';
+import { normalizeProfile, safeUrl } from './profile-schema.mjs?v=20261025-7';
+import { FONTS, TEXT_SIZES } from './visual-schema.mjs?v=20261025-7';
 
 export function element(tag, className = '', content) {
   const node = document.createElement(tag);
@@ -125,6 +125,9 @@ export function renderProfile(panel, input, options = {}) {
   panel.classList.add('custom-profile');
   panel.dataset.effect = config.effect;
   panel.dataset.layout = config.cardLayout;
+  panel.dataset.profileTheme = config.colorTheme;
+  const themeScope = panel.closest('.preview-card') || panel.closest('.page--profile');
+  if (themeScope) themeScope.dataset.profileTheme = config.colorTheme;
   panel.dataset.hasWidgets = String(config.socials.length > 0 || config.background.kind === 'video');
   panel.style.setProperty('--display-font',`"${FONTS[config.typography.display]}",system-ui,sans-serif`);
   panel.style.setProperty('--body-font',`"${FONTS[config.typography.body]}",system-ui,sans-serif`);
@@ -133,8 +136,9 @@ export function renderProfile(panel, input, options = {}) {
     if (value === null) panel.style.removeProperty(`--size-${id}`);
     else panel.style.setProperty(`--size-${id}`,`${value}px`);
   }
-  const rgb = [1,3,5].map(offset => parseInt(config.accent.slice(offset,offset+2),16)).join(',');
-  panel.style.setProperty('--profile-accent',config.accent);
+  const accent = config.colorTheme === 'monochrome' ? '#f2f2f2' : config.accent;
+  const rgb = [1,3,5].map(offset => parseInt(accent.slice(offset,offset+2),16)).join(',');
+  panel.style.setProperty('--profile-accent',accent);
   panel.style.setProperty('--accent-rgb',rgb);
   panel.style.setProperty('--profile-opacity',String(config.opacity / 100));
   panel.style.setProperty('--name-glow',String(config.glow / 100));
