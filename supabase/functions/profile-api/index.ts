@@ -2,6 +2,8 @@ import { createClient } from 'npm:@supabase/supabase-js@2.118.0';
 import { normalizeProfile, profileMedia, MAX_IMAGE, MAX_VIDEO, OWNER_QUOTA } from '../../../profile-schema.mjs';
 import { badgeError } from '../../../badge-policy.mjs';
 import { badgeCapabilities } from './badge-authority.mjs';
+import { preserveVisualGroups } from '../../../visual-schema.mjs';
+import { verifyOverlayVideo } from './overlay-video.mjs';
 
 const url = Deno.env.get('SUPABASE_URL')!;
 const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -94,10 +96,19 @@ async function cleanup(ownerId: string) {
 async function publishFiles(ownerId: string, config: any) {
   const owned = await command('uploads', { owner: ownerId });
   const mediaPrefix = `${url}/storage/v1/object/public/profile-media/`;
+  const selected = [];
   for (const source of profileMedia(config)) {
     if (!source.startsWith(mediaPrefix)) continue;
     const upload = owned.find((item: any) => publicUrl(item.path) === source);
     if (!upload || !['ready', 'published'].includes(upload.state)) throw new HttpError(400, 'That upload is not ready or does not belong to your profile.');
+    selected.push(upload);
+  }
+  const overlay = selected.find(upload => publicUrl(upload.path) === config.overlays?.media?.url);
+  if(overlay && config.overlays.media.kind === 'video' && overlay.kind !== 'overlayVideo') {
+    const source = overlay.state === 'published' ? publicUrl(overlay.path) : await signedDraft(overlay.path);
+    if(!await verifyOverlayVideo(source,overlay.bytes).catch(()=>false))throw new HttpError(400,'Use an H.264 MP4 for your overlay. Re-export the video with H.264 encoding.');
+  }
+  for (const upload of selected) {
     if (upload.state === 'published') continue;
     const { error } = await admin.storage.from('profile-drafts').copy(upload.path, upload.path, { destinationBucket: 'profile-media' });
     if(error){const existing=await admin.storage.from('profile-media').info(upload.path);if(existing.error||existing.data.size!==upload.bytes||existing.data.contentType!==upload.mime)throw new HttpError(503,'The upload could not be published. Your existing profile is unchanged.');}
@@ -198,9 +209,10 @@ async function route(request: Request, path: string) {
   if (request.method === 'PUT' && path === '/me') {
     const input = await body(request);
     let config;
-    try { config = normalizeProfile(input.config); } catch (error) { throw new HttpError(400, error.message); }
-    if (!Number.isSafeInteger(input.revision) || input.revision < 1) throw new HttpError(400, 'Invalid profile revision.');
     const current = await command('mine', { owner: user.id });
+    if (!input.config || typeof input.config !== 'object' || Array.isArray(input.config)) throw new HttpError(400, 'Invalid profile.');
+    try { config = normalizeProfile(preserveVisualGroups(input.config,current.config)); } catch (error) { throw new HttpError(400, error.message); }
+    if (!Number.isSafeInteger(input.revision) || input.revision < 1) throw new HttpError(400, 'Invalid profile revision.');
     const reservedError = badgeError(config.badge, badgeCapabilities(current).canUseReservedBadges);
     if (reservedError) throw new HttpError(400, reservedError);
     if (current.revision !== input.revision) throw new HttpError(409, 'This profile changed in another tab. Keep your draft, then reload the latest saved version.');
@@ -212,7 +224,8 @@ async function route(request: Request, path: string) {
   if (request.method === 'POST' && path === '/uploads') {
     const input = await body(request);
     const types: Record<string,string> = { 'image/jpeg':'jpg','image/png':'png','image/webp':'webp','image/gif':'gif','video/mp4':'mp4' };
-    if (!['avatar','poster','backgroundImage','video'].includes(input.kind) || !types[input.mime] || (input.kind === 'video') !== (input.mime === 'video/mp4') || !Number.isSafeInteger(input.bytes) || input.bytes <= 0 || input.bytes > (input.kind === 'video' ? MAX_VIDEO : MAX_IMAGE)) throw new HttpError(400, 'Choose an image up to 5 MB or an MP4 up to 50 MB.');
+    const isVideo = ['video','overlayVideo'].includes(input.kind);
+    if (!['avatar','poster','backgroundImage','video','overlayImage','overlayVideo'].includes(input.kind) || !types[input.mime] || isVideo !== (input.mime === 'video/mp4') || !Number.isSafeInteger(input.bytes) || input.bytes <= 0 || input.bytes > (isVideo ? MAX_VIDEO : MAX_IMAGE)) throw new HttpError(400, 'Choose an image up to 5 MB or an MP4 up to 50 MB.');
     await cleanup(user.id);
     const id = crypto.randomUUID();
     const path = `${user.id}/${id}.${types[input.mime]}`;
@@ -241,6 +254,7 @@ async function route(request: Request, path: string) {
     if (metadata.error || metadata.data.size !== upload.bytes || metadata.data.contentType !== upload.mime) throw new HttpError(400, 'Upload size or format did not match.');
     const response = await fetch(preview, { headers: { Range: 'bytes=0-31' }, signal: AbortSignal.timeout(10000) });
     if (!response.ok || !validMagic(new Uint8Array(await response.arrayBuffer()), upload.mime)) throw new HttpError(400, 'This is not a supported image or MP4 file.');
+    if(upload.kind==='overlayVideo'&&!await verifyOverlayVideo(preview,upload.bytes).catch(()=>false))throw new HttpError(400,'Use an H.264 MP4 for your overlay. Re-export the video with H.264 encoding.');
     await command('ready', { owner: user.id, id: upload.id });
     return { id: upload.id, url: publicUrl(upload.path), preview };
   }

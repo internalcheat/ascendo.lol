@@ -6,19 +6,18 @@
 <meta name="theme-color" content="#050307">
 <meta name="robots" content="noindex, nofollow">
 <meta name="referrer" content="no-referrer">
-<meta http-equiv="Content-Security-Policy" content="default-src &#39;self&#39;; script-src &#39;self&#39; https://challenges.cloudflare.com; style-src &#39;self&#39; &#39;unsafe-inline&#39; https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src &#39;self&#39; https: blob: data:; media-src https: blob:; connect-src &#39;self&#39; https://fstdttaxflayhtwhnbih.supabase.co https://fstdttaxflayhtwhnbih.storage.supabase.co https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; object-src &#39;none&#39;; base-uri &#39;self&#39;; form-action &#39;self&#39;">
+<meta http-equiv="Content-Security-Policy" content="default-src &#39;self&#39;; script-src &#39;self&#39; https://challenges.cloudflare.com; style-src &#39;self&#39; &#39;unsafe-inline&#39;; font-src &#39;self&#39;; img-src &#39;self&#39; https: blob: data:; media-src https: blob:; connect-src &#39;self&#39; https://fstdttaxflayhtwhnbih.supabase.co https://fstdttaxflayhtwhnbih.storage.supabase.co https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; object-src &#39;none&#39;; base-uri &#39;self&#39;; form-action &#39;self&#39;">
 <title>Your studio | Ascendo</title>
 <link rel="icon" href="/assets/ascendo-icon-32.png?v=20261023-2" sizes="32x32" type="image/png">
 <link rel="shortcut icon" href="/assets/ascendo-icon.ico?v=20261023-2">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/styles.css?v=20261025-1">
 <link rel="stylesheet" href="/profile-custom.css?v=20261025-4">
-<link rel="stylesheet" href="/profile-effects.css?v=20261025-4">
-<link rel="stylesheet" href="/editor.css?v=20261025-4">
+<link rel="stylesheet" href="/profile-effects.css?v=20261025-6">
+<link rel="stylesheet" href="/editor.css?v=20261025-6">
 <script src="/app.js?v=20261025-1" defer></script>
-<script type="module" src="/editor.mjs?v=20261025-5"></script>
+<script type="module" src="/editor.mjs?v=20261025-6"></script>
+<link rel="stylesheet" href="/fonts.css?v=20261025-6">
+<link rel="stylesheet" href="/profile-visual.css?v=20261025-6">
 </head>
 <body class="page page--editor">
 <div class="studio-shell">
@@ -81,6 +80,7 @@
 <label class="studio-label">Stagger gap <output id="entranceStaggerValue" for="entranceStagger">60ms</output><input class="studio-input" id="entranceStagger" type="range" min="0" max="120" step="10" value="60"></label>
 <div class="full-width studio-effect-tools"><p class="studio-help" id="profileMotionHelp"></p><button class="studio-button" id="replayEntrance" type="button">Replay entrance ↻</button></div>
 </div></section>
+<div class="studio-controls" id="visualSections"></div>
 <section class="studio-section studio-panel"><h2>Avatar</h2><div class="studio-fields">
 <div class="full-width"><label class="studio-label">Avatar URL<input class="studio-input" id="avatarUrl" type="url" maxlength="2048" placeholder="https://…"></label><div class="studio-upload" data-upload="avatar"><input type="file" accept="image/jpeg,image/png,image/webp,image/gif" aria-label="Upload avatar url"><progress max="100" value="0" hidden aria-label="Avatar URL upload progress"></progress><button class="studio-button" type="button" data-cancel hidden>Cancel upload</button><span class="studio-help" data-upload-status></span></div></div>
 <div class="full-width"><label class="studio-label">Still avatar fallback URL<input class="studio-input" id="avatarPoster" type="url" maxlength="2048" placeholder="https://…"></label><div class="studio-upload" data-upload="poster"><input type="file" accept="image/jpeg,image/png,image/webp,image/gif" aria-label="Upload still avatar fallback url"><progress max="100" value="0" hidden aria-label="Still avatar fallback URL upload progress"></progress><button class="studio-button" type="button" data-cancel hidden>Cancel upload</button><span class="studio-help" data-upload-status></span></div></div>
@@ -99,11 +99,13 @@
 <section class="studio-section studio-panel"><h2>Your media</h2><p class="studio-help" id="storageUsage"></p><div class="media-library" id="mediaLibrary"></div><p class="studio-help">Current and previous saved media are protected. Unused uploads are cleaned after 24 hours; you can remove unreferenced files here sooner.</p></section>
 </div>
 <aside class="studio-preview" id="previewPanel" aria-label="Private profile preview">
+<div class="preview-toolbar"><span class="studio-kicker">Private canvas</span><button class="studio-button" id="expandPreview" type="button">Expand preview ↗</button></div>
 <div class="preview-card"><div class="preview-stage" id="previewStage" aria-hidden="true"><img id="previewPoster" alt=""><video id="previewVideo" playsinline loop preload="none" muted></video></div><section class="profile__panel" id="previewCard"></section></div>
 <p class="preview-caption">Private preview · Nothing changes publicly until you save.</p>
 <button class="studio-button preview-sound" id="previewSound" type="button">Preview video with sound</button>
 <p class="studio-help" id="previewHint" role="status"></p>
 </aside>
+<span id="previewDock" hidden></span>
 </div>
 <div class="studio-savebar"><span class="studio-help" id="saveState">All changes saved</span><button class="studio-button" id="reloadLatest" type="button" hidden>Load latest saved</button><button class="studio-button" id="discardChanges" type="button">Discard</button><button class="studio-button" id="restorePrevious" type="button">Previous version</button><button class="studio-button" id="resetProfile" type="button">Reset</button><button class="studio-button studio-button--primary" id="saveChanges" type="submit">Save changes ↗</button></div>
 </form>
@@ -111,5 +113,6 @@
 </main>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+<dialog class="preview-dialog" id="previewDialog" aria-labelledby="previewDialogTitle"><div class="preview-dialog__header"><h2 id="previewDialogTitle">Your profile preview</h2><button class="studio-button" id="closeExpandedPreview" type="button">Close preview</button></div><div id="expandedPreviewSlot"></div></dialog>
 </body>
 </html>

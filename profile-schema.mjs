@@ -1,3 +1,5 @@
+import { normalizeVisual } from './visual-schema.mjs?v=20261025-6';
+
 export const EFFECTS = ['none', 'glow', 'glitch', 'shimmer', 'typewriter', 'pulse', 'aurora', 'wave', 'float'];
 export const ICONS = ['instagram', 'discord', 'youtube', 'tiktok', 'github', 'minecraft', 'twitch', 'x', 'spotify', 'website'];
 export const MAX_VIDEO = 50_000_000;
@@ -103,6 +105,7 @@ export function normalizeProfile(input) {
     effectSpeed: number(input.effectSpeed ?? 100, 50, 200, 'animation speed'),
     effectStrength: number(input.effectStrength ?? 65, 0, 100, 'effect strength'),
     ...normalizeEffects(input, input.accent),
+    ...normalizeVisual(input, input.accent),
     avatar: { url: mediaUrl(input.avatar?.url, 'image'), poster: mediaUrl(input.avatar?.poster ?? '', 'image'), x: number(input.avatar?.x, 0, 100, 'avatar crop'), y: number(input.avatar?.y, 0, 100, 'avatar crop') },
     background: { kind: input.background.kind, url: mediaUrl(input.background.url, input.background.kind), mobile: mediaUrl(input.background.mobile ?? '', 'video'), poster: mediaUrl(input.background.poster ?? '', 'image') },
     soundtrack: { title: text(input.soundtrack?.title ?? '', 100, 'song title', true), artist: text(input.soundtrack?.artist ?? '', 140, 'artist', true) },
@@ -117,5 +120,5 @@ export function normalizeProfile(input) {
 }
 
 export function profileMedia(profile) {
-  return [...new Set([profile.avatar.url, profile.avatar.poster, profile.background.url, profile.background.mobile, profile.background.poster].filter(Boolean))];
+  return [...new Set([profile.avatar.url, profile.avatar.poster, profile.background.url, profile.background.mobile, profile.background.poster, profile.overlays?.media?.url, profile.overlays?.media?.poster].filter(Boolean))];
 }

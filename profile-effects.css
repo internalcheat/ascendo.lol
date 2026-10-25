@@ -18,7 +18,7 @@
 }
 @media (prefers-reduced-motion: reduce), (hover: none), (pointer: coarse) {
   .profile-cursor-decorations { display: none; }
-  .profile-effects-surface { transform: none !important; }
+  .profile-effects-surface, .profile-tile-surface { transform: none !important; }
   .profile-effects-surface .avatar { translate: none !important; }
   .profile-effects-light { display: none; }
 }

@@ -1,4 +1,5 @@
-import { normalizeProfile, safeUrl } from './profile-schema.mjs?v=20261025-4';
+import { normalizeProfile, safeUrl } from './profile-schema.mjs?v=20261025-6';
+import { FONTS, TEXT_SIZES } from './visual-schema.mjs?v=20261025-6';
 
 export function element(tag, className = '', content) {
   const node = document.createElement(tag);
@@ -123,6 +124,14 @@ export function renderProfile(panel, input, options = {}) {
   const resolved = value => options.previewUrls?.get(value) || value;
   panel.classList.add('custom-profile');
   panel.dataset.effect = config.effect;
+  panel.dataset.layout = config.cardLayout;
+  panel.style.setProperty('--display-font',`"${FONTS[config.typography.display]}",system-ui,sans-serif`);
+  panel.style.setProperty('--body-font',`"${FONTS[config.typography.body]}",system-ui,sans-serif`);
+  for (const id of Object.keys(TEXT_SIZES)) {
+    const value = config.typography.sizes[id];
+    if (value === null) panel.style.removeProperty(`--size-${id}`);
+    else panel.style.setProperty(`--size-${id}`,`${value}px`);
+  }
   const rgb = [1,3,5].map(offset => parseInt(config.accent.slice(offset,offset+2),16)).join(',');
   panel.style.setProperty('--profile-accent',config.accent);
   panel.style.setProperty('--accent-rgb',rgb);
@@ -134,7 +143,11 @@ export function renderProfile(panel, input, options = {}) {
   panel.style.setProperty('--effect-cyan',tint([126,232,255]));
   panel.style.setProperty('--effect-duration',`${(effectDurations[config.effect] || 2800) * 100 / config.effectSpeed}ms`);
   panel.style.setProperty('--effect-step',`${-50 * 100 / config.effectSpeed}ms`);
-  const avatar = element('span','avatar avatar--large');
+  const avatarKey = JSON.stringify([config.avatar,resolved(config.avatar.url),resolved(config.avatar.poster)]);
+  const oldAvatar = panel.querySelector('.avatar');
+  const avatar = oldAvatar?.dataset.sourceKey === avatarKey ? oldAvatar : element('span','avatar avatar--large');
+  if (avatar !== oldAvatar) {
+  avatar.dataset.sourceKey = avatarKey;
   const image = element('img');
   image.src = resolved(config.avatar.url);
   image.alt = '';
@@ -149,13 +162,20 @@ export function renderProfile(panel, input, options = {}) {
     image.addEventListener('error',()=>{source.remove(); if(image.src !== resolved(config.avatar.poster)) image.src=resolved(config.avatar.poster);},{once:true});
     avatar.append(picture);
   } else avatar.append(image);
+  }
   const existingName = panel.querySelector('.profile__name');
   const name = existingName?.dataset.displayName === config.name && existingName.dataset.effect === config.effect ? existingName : profileName(config);
-  const nodes = [avatar,name];
+  const identity = panel.querySelector('.profile-identity') || element('div','profile-identity');
+  const summary = panel.querySelector('.profile-summary') || element('div','profile-summary');
+  const widgets = panel.querySelector('.profile-widgets') || element('div','profile-widgets');
+  const nodes = [name];
   if (config.badge) nodes.push(element('span','profile-badge',config.badge));
   if (config.bio) { const bio = element('div','profile__bio'); appendBio(bio,config.bio); nodes.push(bio); }
-  nodes.push(element('div','profile__divider'));
-  const socials = element('nav','social-list');
+  const socialKey = JSON.stringify([config.name,config.socials]);
+  const oldSocials = panel.querySelector('.social-list');
+  const socials = oldSocials?.dataset.sourceKey === socialKey ? oldSocials : element('nav','social-list');
+  if (socials !== oldSocials) {
+  socials.dataset.sourceKey = socialKey;
   socials.setAttribute('aria-label',`${config.name} socials`);
   for (const row of config.socials) {
     const control = element(row.action === 'copy' ? 'button' : 'a','social-link');
@@ -171,15 +191,21 @@ export function renderProfile(panel, input, options = {}) {
     const arrow = icon(row.action === 'copy' ? 'copy' : 'external'); arrow.classList.add('copy-mark');
     control.append(symbol,info,arrow); socials.append(control);
   }
-  nodes.push(socials);
-  if (config.background.kind === 'video') nodes.push(musicCard(config.soundtrack));
+  }
   nodes.forEach((node,index)=>{
-    const current = panel.children[index];
+    const current = summary.children[index];
     if(current === node) return;
     if(current) current.replaceWith(node);
-    else panel.append(node);
+    else summary.append(node);
   });
-  while(panel.children.length > nodes.length) panel.lastElementChild.remove();
+  while(summary.children.length > nodes.length) summary.lastElementChild.remove();
+  if (!identity.contains(avatar) || !identity.contains(summary)) identity.replaceChildren(avatar,summary);
+  const musicKey = JSON.stringify(config.soundtrack);
+  let music = panel.querySelector('.now-playing');
+  if (config.background.kind === 'video' && music?.dataset.sourceKey !== musicKey) { music = musicCard(config.soundtrack); music.dataset.sourceKey = musicKey; }
+  if (config.background.kind !== 'video') music = null;
+  if (widgets.firstElementChild !== socials || widgets.querySelector('.now-playing') !== music) widgets.replaceChildren(...[socials,music].filter(Boolean));
+  if (!panel.contains(identity) || !panel.contains(widgets)) panel.replaceChildren(identity,widgets);
   panel.setAttribute('aria-label',`${config.name} profile`);
   return config;
 }

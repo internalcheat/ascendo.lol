@@ -100,6 +100,42 @@ Authenticated GET `/me` exposes `capabilities.canUseReservedBadges` solely for e
 
 This release uses cache version `20261025-4` for changed entry modules, their dependencies, and affected styles. Verification uses isolated fixtures for enabled-effect save/restore/conflict checks, not automatic production-profile changes. Deploy the backward-compatible Edge Function with the shared schema, badge policy, Unicode module and authority module before updating Pages. Keep the existing native-Auth/session checks and disabled gateway JWT setting intact.
 
+## Typography, layouts and atmosphere
+
+The studio has separate **Fonts**, **Text Sizes**, **Card Layout**, **Electric Border** and **Overlays** sections. All changes remain private until Save changes. Missing JSON groups normalize to the original DM Sans / Auto sizes / Classic card / disabled electric border / disabled overlays. Existing saved effects and profiles are not rewritten. The server preserves omitted visual/effect groups for older clients while still validating explicitly submitted values.
+
+### Self-hosted typography
+
+`fonts.css` defines DM Sans, Inter, Space Grotesk, Sora, Outfit, Playfair Display, Cinzel and JetBrains Mono. Display and body pickers are independent; only faces actually used by the page are fetched. The base interface still uses local DM Sans. Every page, including login, legacy redirect, plugins and 404, uses local font delivery with no Google Fonts stylesheet or preconnection. Editor/login font CSP is restricted to self. Each family has Latin and Latin Extended variable WOFF2 subsets, normal weights 400–700, `font-display: swap`, and system-script/emoji fallbacks. Font loading refreshes effect geometry without replaying names or entrances.
+
+Font binaries come from the pinned official `@fontsource-variable/*@5.3.0` npm packages. Each archive's published SHA-512 integrity was checked before extraction. `assets/fonts/SOURCES.json` records package URLs, byte counts and SHA-256 hashes; individual OFL notices accompany the files. No arbitrary font URL, uploaded font, SVG or CSS is accepted.
+
+Text sizes have an Auto state preserving the original responsive rules and explicit pixel controls: name 24–72; badge 10–20; bio 12–24; social label 10–20; social handle/link 12–26; soundtrack title 12–24; artist 10–20; soundtrack labels/status/time 9–16. Long text wraps; selected custom sizes are not silently shrunk. No separate profile-handle or location field is introduced.
+
+### Four compositions
+
+Classic keeps the original 460px centered glass card. Crest overlaps the circular avatar over its upper edge. Portrait allows 720px and places the existing avatar in a tall rounded frame beside the identity at container widths of 560px or more. Bento allows 960px, placing the identity beside existing social/soundtrack tiles at 760px or more. Tiles use one column below 480px. Container-aware rules work in both the public page and the private pane; unsupported container queries fall back to the stacked layout.
+
+Expand preview moves the existing preview DOM/video into an accessible wide dialog, without creating a second soundtrack or discarding the draft. Escape/Close returns it and restores focus. Avatar and heading nodes survive typography/layout edits. The existing card interaction uses separate stable boundaries for Bento's sibling cards rather than tilting the entire wide grid or stacking nested tilts.
+
+### Electric outlines and layered overlays
+
+Electric Border defaults OFF, with independently selectable main card, social/soundtrack panels and avatar targets. Its initial color matches the accent; intensity defaults to 35% and speed to 1×, adjustable from 0.5–2×. Cached rounded contours receive bounded irregular path movement, not an animated turbulence filter. Reduced motion uses a steady outline. Decorations never intercept input and exclude navigation/volume controls.
+
+The overlay library contains exactly Snow, Rain, Petals, Embers, Stars, Fireflies, Dust, Bubbles, Confetti, Sparkles, Meteors, Matrix, Aurora, Ripples and Fireworks. Up to three distinct, reorderable presets can combine with one uploaded media layer. Each preset retains independent enabled state, opacity, density, speed, and original/accent/custom color. New presets default to 35% opacity/density and 1× speed. The stack defaults OFF. All layers stay above the background but behind the cards; custom media is drawn beneath preset layers.
+
+Custom overlays accept uploaded JPEG/PNG/WebP/GIF up to 5 MB or H.264 MP4 up to 50 MB, within the existing 250 MB owner allowance. They do not accept external URLs, SVG or WebM. Image transparency and generated still-fallback transparency are retained. Contain/Cover, opacity, green key color, tolerance and edge softness are independent. Overlay videos always loop muted and do not bind to the background soundtrack or volume control. The API checks actual AVC sample descriptions for overlay videos rather than treating every MP4 codec as H.264.
+
+Green-screen removal uses a fixed WebGL shader and decoded-video-frame callbacks where available; it performs no CPU pixel reads. Unsupported graphics, lost context, bad media or blocked playback hides the custom layer rather than showing an opaque green rectangle, with an editor status message. Reduced motion disables procedural/video animation and crackling; uploaded still images remain, and animated images use their generated still. Data-saving visitors do not automatically load overlay videos.
+
+Pointer effects, electric borders and procedural overlays share one per-profile frame scheduler. Procedural particles are pooled and capped at 384 desktop / 128 mobile across the whole stack. Rendering reduces resolution, density and frequency on sustained slow draws, and can suspend keying or low-priority layers without changing saved values. Hidden/offscreen pages pause; navigation tears down resources while cached history restoration resumes the suspended controller. The homepage never initializes profile-specific effects.
+
+### Upload compatibility and release checks
+
+The additive upload-kind constraint permits `overlayImage` and `overlayVideo`; existing buckets, MIME restrictions, quotas, RLS, credentials and owner bindings remain unchanged. The same signed/resumable upload flow is reused, but overlay uploads never change avatar/background fields. All selected uploads are ownership-validated before any copy to public storage. Overlay media and stills remain protected in current/previous-version references even when disabled. Unused files retain the existing cleanup rules.
+
+Changed entry modules and styles use cache version `20261025-6`. Deploy the compatible upload constraint and Edge Function before Pages. Validation fixtures cover all four layouts/eight fonts/max text sizes/sixteen socials, legacy-group preservation, format and ownership failures, private save/discard/previous/conflict behavior, overlay caps, and unchanged badge authorization. Also check real desktop/tablet/320–390px rendering, keyboard/focus/Escape, reduced motion, unavailable graphics/media, all fifteen presets, and the absence of Google font requests. These fixtures do not replace browser checks or promise a universal frame rate. Never enable new effects on production profiles for a test.
+
 ### Backend and security
 
 The free Supabase project is `fstdttaxflayhtwhnbih` in Frankfurt. `customizer-config.mjs` contains only its public URL, publishable key, and the public Turnstile site key. Keep `TURNSTILE_SECRET_KEY` in Supabase function secrets, not this repository. Codes are transformed with a server-only Vault pepper into a private lookup digest and a separate native Auth password; plaintext codes are not persisted here. Signup and anonymous sign-in are disabled.
