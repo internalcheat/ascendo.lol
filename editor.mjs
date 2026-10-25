@@ -6,6 +6,7 @@ import { createProfileEffects } from './profile-effects.mjs?v=20261025-7';
 import { badgeError } from './badge-policy.mjs?v=20261025-4';
 import { createVisualEditor } from './editor-visual.mjs?v=20261025-9';
 import { createProfileBackground } from './profile-background.mjs?v=20261025-9';
+import { createEditorLayout } from './editor-layout.mjs?v=20261025-10';
 
 const byId = id => document.getElementById(id);
 const form = byId('profileForm');
@@ -17,6 +18,7 @@ const model = { saved:null, draft:null, previous:null, defaults:null, revision:0
 const previewUrls = new Map();
 const visualEditor = createVisualEditor({onChange:schedulePreview,isBusy:()=>model.busy||model.activeUploads>0});
 const profileEffects = createProfileEffects(panel,{scope:panel.closest('.preview-card'),preview:true});
+const studioLayout=createEditorLayout({isBusy:()=>model.busy||model.activeUploads>0,onNavigate:()=>{if(matchMedia('(max-width: 820px)').matches)byId('editTab').click();}});
 let renderedPreview;
 const effectFields = {
   cursorEffects:{enabled:'cursorEnabled',style:'cursorStyle',color:'cursorColor',size:'cursorSize',trail:'cursorTrail',trailLength:'cursorTrailLength',trailSmoothness:'cursorTrailSmoothness',clickEffect:'cursorClickEffect'},
@@ -128,6 +130,7 @@ function preview() {
     else video.pause();
   }
   updateMusic();
+  studioLayout.refresh();
 }
 
 function updateEffectControls() {
