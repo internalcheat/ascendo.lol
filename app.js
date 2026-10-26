@@ -231,7 +231,7 @@
     refreshDisclosure();
   }
 
-  import('./profile-music.mjs?v=20261026-5').then(({createProfilePlayer})=>{
+  import('./profile-music.mjs?v=20261026-6').then(({createProfilePlayer})=>{
     const player=createProfilePlayer(video,{onState:media=>{
       const percentage=Math.round(media.muted?0:media.volume*100);
       if(volumeControl){volumeControl.max='70';volumeControl.value=String(percentage);volumeControl.style.setProperty('--volume',`${percentage/70*100}%`);volumeControl.setAttribute('aria-valuetext',percentage===0?'Muted':`${percentage} percent`);}

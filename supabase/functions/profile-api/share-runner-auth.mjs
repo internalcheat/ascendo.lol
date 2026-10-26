@@ -14,7 +14,7 @@ export async function verifyShareRunner(request,{health=false,jwks=keys,verify=j
     issuer:ISSUER,audience:RUNNER_AUDIENCE,algorithms:['RS256'],clockTolerance:10,maxTokenAge:'10m',
     requiredClaims:['exp','iat','nbf','jti','repository_id','repository_owner_id','ref','workflow_ref','run_id','run_attempt','event_name']
   }));}catch{throw Object.assign(Error('Runner authentication failed.'),{status:401});}
-  const refs=health?['refs/heads/main','refs/heads/profile-sharing']:['refs/heads/main'];
+  const refs=health?['refs/heads/main','refs/heads/profile-sharing','refs/heads/profile-expression']:['refs/heads/main'];
   if(payload.repository_id!=='1430026719'||payload.repository_owner_id!=='310857377'||payload.repository!==REPOSITORY||
     !refs.includes(payload.ref)||payload.workflow_ref!==WORKFLOW+payload.ref||!['push','schedule','workflow_dispatch'].includes(payload.event_name)||
     !/^[0-9]+$/.test(payload.run_id)||!/^[0-9]+$/.test(payload.run_attempt)||!/^[a-f0-9]{40}$/.test(payload.sha||''))

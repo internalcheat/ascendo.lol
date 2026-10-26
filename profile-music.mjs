@@ -8,7 +8,7 @@ export function createProfilePlayer(video,{preview=false,onState=()=>{}}={}){
   const notify=()=>{onState(current());video.dispatchEvent(new win.Event('ascendo:music-state'));};
   const blocked=()=>doc.documentElement.dataset.profileCapture==='true'||!active||doc.hidden||video.dataset.entryBlocked==='true';
   const pause=media=>{if(!media.paused)media.pause();};
-  function assign(media,source){if((media.getAttribute('src')||'')===source)return;media.pause();if(source)media.src=source;else media.removeAttribute('src');media.load();}
+  function assign(media,source){if((media.getAttribute('src')||'')===source)return;media.pause();try{const origin=new URL(source,win.location.href).origin;if([win.location.origin,'https://ascendo.lol','https://fstdttaxflayhtwhnbih.supabase.co'].includes(origin))media.crossOrigin='anonymous';else media.removeAttribute('crossorigin');}catch{}if(source)media.src=source;else media.removeAttribute('src');media.load();}
   async function play(media,explicit,generation){
     if(!media.getAttribute('src')||blocked()||!media.paused&&!media.ended)return;
     try{await media.play();}catch(error){if(generation!==attempt||destroyed||blocked()||error?.name==='AbortError')return;if(media===video&&error?.name==='NotAllowedError'){media.muted=true;try{await media.play();}catch{}}}finally{if(generation===attempt){if(blocked())pause(media);notify();}}

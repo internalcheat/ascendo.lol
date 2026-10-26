@@ -1,10 +1,11 @@
+import {createProfileExpression} from './profile-expression.mjs?v=20261026-6';
 import { API_URL, PUBLISHABLE_KEY } from './customizer-config.mjs';
-import { normalizeProfile } from './profile-schema.mjs?v=20261026-5';
-import { renderProfile, bindMusic, bindNameEffectVisibility } from './profile-view.mjs?v=20261026-5';
-import { createProfileEffects } from './profile-effects.mjs?v=20261026-5';
+import { normalizeProfile } from './profile-schema.mjs?v=20261026-6';
+import { renderProfile, bindMusic, bindNameEffectVisibility } from './profile-view.mjs?v=20261026-6';
+import { createProfileEffects } from './profile-effects.mjs?v=20261026-6';
 import { createProfileBackground } from './profile-background.mjs?v=20261026-1';
-import {createProfileAdditions} from './profile-additions.mjs?v=20261026-5';
-import {themePalette,channels} from './profile-palette.mjs?v=20261026-5';
+import {createProfileAdditions} from './profile-additions.mjs?v=20261026-6';
+import {themePalette,channels} from './profile-palette.mjs?v=20261026-6';
 
 bindNameEffectVisibility();
 
@@ -32,6 +33,7 @@ if(panel){
   const effects=createProfileEffects(panel,{scope:panel.closest('.profile')});
   const additions=createProfileAdditions(document.body,panel);
   const video=document.getElementById('musicBackground');
+  const expression=createProfileExpression(panel,{scope:panel.closest('.profile'),video});
   const update=bindMusic(video,panel);
   let rendered;
   profile(document.body.dataset.person,(config,revision)=>{
@@ -41,6 +43,7 @@ if(panel){
     rendered=serialized;
     renderProfile(panel,config);
     effects.update(config);
+    expression.update(config);
     background.update(config);
     const palette=themePalette(config),accent=palette.primary;
     document.body.style.setProperty('--profile-accent',accent);

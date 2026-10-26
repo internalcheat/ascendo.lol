@@ -2,7 +2,7 @@ name: Profile sharing
 
 on:
   push:
-    branches: [profile-sharing, main]
+    branches: [profile-sharing, profile-expression, main]
   workflow_dispatch:
   schedule:
     - cron: '2-59/5 * * * *'
@@ -31,6 +31,7 @@ jobs:
       - run: npm ci --ignore-scripts
       - run: npm test
       - run: node scripts/test-profile-capture.mjs
+      - run: node scripts/test-profile-expression.mjs
       - run: node scripts/share-runner.mjs health
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
