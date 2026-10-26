@@ -16,7 +16,7 @@ export function createShareService({admin,command,body,env,background,fetcher=fe
     const failure=html.match(/data-share-capture-error="([a-z_]+)"/)?.[1];if(failure)throw Object.assign(Error('Capture failed'),{code:failure});
     if(!/data-share-capture-state="ready"/.test(html)||!new RegExp(`data-profile-revision="${job.revision}"`).test(html))throw Object.assign(Error('Profile changed'),{code:'profile_changed'});
     const encoded=String(capture.result.screenshot||'').replace(/^data:image\/png;base64,/,''),length=Math.floor(encoded.length*3/4);if(length>SHARE_MAX_BYTES+2)throw Object.assign(Error('Too large'),{code:'too_large'});
-    const decoded=atob(encoded),bytes=Uint8Array.from(decoded,char=>char.charCodeAt(0));let dimensions;try{dimensions=pngDimensions(bytes);}catch{throw Object.assign(Error('Invalid image'),{code:'too_large'});}
+    const decoded=atob(encoded),bytes=new Uint8Array(decoded.length);for(let index=0;index<decoded.length;index++)bytes[index]=decoded.charCodeAt(index);let dimensions;try{dimensions=pngDimensions(bytes);}catch{throw Object.assign(Error('Invalid image'),{code:'too_large'});}
     const current=await command('mine',{owner});if(current.revision!==job.revision)throw Object.assign(Error('Profile changed'),{code:'profile_changed'});
     const result=await storage().upload(job.path,bytes,{contentType:'image/png',cacheControl:'0',upsert:false});if(result.error)throw Error('Could not store image');
     const done=await rpc('finish',{owner,job:job.job,bytes:bytes.length,height:dimensions.height});if(!done.accepted)throw Object.assign(Error('Profile changed'),{code:'profile_changed'});
