@@ -32,13 +32,14 @@ await check('preset API binds native ownership, validates snapshots and never pu
 });
 await check('preset dialog saves the current draft privately, confirms replacement and loads without publishing',async()=>{
  const win=new Window({url:'https://ascendo.lol/customize/',settings:{disableJavaScriptEvaluation:true,disableJavaScriptFileLoading:true,disableCSSFileLoading:true}});win.document.body.innerHTML='<div class="studio-header__actions"></div>';globalThis.document=win.document;
- const draft={...base,bio:'Keep my unpublished changes'},snapshot={...base,bio:'A saved snapshot'},calls=[];let loaded=0,allow=false;
+ const draft={...base,bio:'Keep my unpublished changes'},snapshot={...base,bio:'A saved snapshot'},calls=[];let loaded=0,allow=false,validDraft=true;
  win.confirm=()=>allow;
- const controller=createStudioPresets({getDraft:()=>draft,loadDraft:config=>{loaded++;assert.equal(config.bio,snapshot.bio);},request:async(path,options)=>{calls.push([path,options]);if(options?.method==='POST')return {id:'preset'};if(path==='/presets/preset')return {config:snapshot};return [{id:'preset',name:'My preset'}];}});
+ const controller=createStudioPresets({getDraft:()=>{if(!validDraft)throw Error("Invalid draft");return draft;},loadDraft:config=>{loaded++;assert.equal(config.bio,snapshot.bio);},request:async(path,options)=>{calls.push([path,options]);if(options?.method==='POST')return {id:'preset'};if(path==='/presets/preset')return {config:snapshot};return [{id:'preset',name:'My preset'}];}});
  document.getElementById('profilePresets').focus();document.getElementById('profilePresets').click();await tick();const dialog=document.querySelector('dialog');assert.equal(dialog.open,true);
  const name=dialog.querySelector('input');name.value='My new preset';dialog.querySelector('form').dispatchEvent(new win.Event('submit',{bubbles:true,cancelable:true}));await tick();
  const saved=calls.find(([,v])=>v?.method==='POST');assert.equal(saved[1].body.config.bio,draft.bio);assert.equal(saved[1].body.name,'My new preset');
  const load=[...dialog.querySelectorAll('button')].find(b=>b.textContent==='Load');load.click();await tick();assert.equal(loaded,0);allow=true;load.click();await tick();assert.equal(loaded,1);assert.equal(dialog.open,false);assert.equal(draft.bio,'Keep my unpublished changes');
- assert.ok(calls.every(([path])=>path.startsWith('/presets')));controller.close();await win.happyDOM.close();
+ validDraft=false;document.getElementById('profilePresets').click();await tick();assert.equal(dialog.open,true,'A preset can repair an invalid current draft');assert.ok(calls.every(([path])=>path.startsWith('/presets')));controller.close();await win.happyDOM.close();
 });
 console.log(JSON.stringify({passed:checks.length,checks}));
+

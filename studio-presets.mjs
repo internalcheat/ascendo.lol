@@ -26,7 +26,7 @@ export function createStudioPresets({request,getDraft,loadDraft,isBusy=()=>false
    });load.setAttribute('aria-label',tr('Load preset')+': '+item.name);remove.setAttribute('aria-label',tr('Delete preset')+': '+item.name);actions.append(load,remove);row.append(text,actions);list.append(row);
   }
  }
- async function open(){if(isBusy()||!getDraft())return;returnFocus=doc.activeElement;message('');dialog.showModal();name.focus();await refresh();}
+ async function open(){if(isBusy())return;returnFocus=doc.activeElement;message('');dialog.showModal();name.focus();await refresh();}
  function close(){ticket++;busy=false;dialog.close();returnFocus?.focus({preventScroll:true});}
  form.addEventListener('submit',async event=>{
   event.preventDefault();if(busy||isBusy()||!form.reportValidity())return;let config;try{config=structuredClone(getDraft());}catch(error){message(error.message,true);return;}
@@ -37,3 +37,4 @@ export function createStudioPresets({request,getDraft,loadDraft,isBusy=()=>false
  win.addEventListener('pagehide',event=>{ticket++;if(dialog.open)dialog.close();if(!event.persisted){dialog.remove();trigger.remove();}});
  controls();return {close,refresh:controls};
 }
+
