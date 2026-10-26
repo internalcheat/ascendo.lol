@@ -1,4 +1,8 @@
-export const HU=Object.fromEntries(`Upload an MP3 before saving this music source.|Az MP3 mód mentése előtt tölts fel egy MP3-fájlt.
+export const HU=Object.fromEntries(`Automatic bio color|Automatikus bemutatkozásszín
+Automatic social label color|Automatikus elérhetőségfelirat-szín
+Bio text color|Bemutatkozás színe
+Social label color|Elérhetőségfeliratok színe
+Upload an MP3 before saving this music source.|Az MP3 mód mentése előtt tölts fel egy MP3-fájlt.
 Use a complete HTTPS URL.|Adj meg teljes HTTPS-hivatkozást.
 Use a public HTTPS address without embedded credentials.|Nyilvános HTTPS-címet adj meg, beágyazott belépési adatok nélkül.
 Use a direct MP4 file URL, not a social-media webpage.|Közvetlen MP4-fájl hivatkozását add meg, ne közösségi oldalét.

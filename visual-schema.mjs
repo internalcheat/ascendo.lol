@@ -7,7 +7,7 @@ export const TILED_LAYOUTS=['bento','magazine','stack','wall','spine','collage',
 export const isTiledLayout=layout=>TILED_LAYOUTS.includes(layout);
 export const layoutWidth=layout=>({portrait:720,bento:960,magazine:1040,deck:760,stack:560,wall:1120,spine:920,collage:1040,flow:760,numbers:900}[layout]||460);
 export const OVERLAY_PRESETS = ['snow','rain','petals','embers','stars','fireflies','dust','bubbles','confetti','sparkles','meteors','matrix','aurora','ripples','fireworks'];
-export const VISUAL_GROUPS = ['colorTheme','themeColors','typography','cardLayout','electricBorder','overlays',...FEATURE_GROUPS];
+export const VISUAL_GROUPS = ['colorTheme','themeColors','textColors','typography','cardLayout','electricBorder','overlays',...FEATURE_GROUPS];
 export const MEDIA_ORIGIN = 'https://fstdttaxflayhtwhnbih.supabase.co/storage/v1/object/public/profile-media/';
 
 function object(value, keys, label) {
@@ -43,6 +43,7 @@ function uploaded(value) {
 
 export function normalizeVisual(input, accent) {
   const themeColors=object(input.themeColors,['primary','secondary'],'theme colors');
+  const textColors=object(input.textColors,['bio','socialLabel'],'text colors');
   const typography = object(input.typography,['display','body','sizes'],'typography');
   const sizes = object(typography.sizes,Object.keys(TEXT_SIZES),'text sizes');
   const electric = object(input.electricBorder,['enabled','color','intensity','speed','card','panels','avatar'],'electric border');
@@ -68,6 +69,7 @@ export function normalizeVisual(input, accent) {
     ...normalizeFeatureSettings(input),
     colorTheme:select(input.colorTheme,'original',['original','monochrome','custom'],'profile color theme'),
     themeColors:{primary:color(themeColors.primary,accent,'main theme'),secondary:color(themeColors.secondary,'#8b5cf6','secondary theme')},
+    textColors:Object.fromEntries(['bio','socialLabel'].map(key=>[key,textColors[key]===null||textColors[key]===undefined?null:color(textColors[key],accent,key==='bio'?'bio text':'social label')])),
     typography:{ display:select(typography.display,'dm-sans',Object.keys(FONTS),'display font'), body:select(typography.body,'dm-sans',Object.keys(FONTS),'body font'), sizes:Object.fromEntries(Object.entries(TEXT_SIZES).map(([id,[minimum,maximum]])=>[id,sizes[id] === null || sizes[id] === undefined ? null : numeric(sizes[id],null,minimum,maximum,'text size')])) },
     cardLayout:select(input.cardLayout,'classic',LAYOUTS,'card layout'),
     electricBorder:{enabled:flag(electric.enabled,false,'electric border'), color:color(electric.color,accent,'electric border'), intensity:numeric(electric.intensity,35,0,100,'electric intensity'), speed:numeric(electric.speed,1,.5,2,'electric speed'), card:flag(electric.card,true,'main card border'), panels:flag(electric.panels,true,'panel borders'), avatar:flag(electric.avatar,true,'avatar border')},

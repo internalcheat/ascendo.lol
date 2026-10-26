@@ -14,3 +14,10 @@
 .custom-profile[data-profile-theme='custom'] .profile-widgets::before { background:linear-gradient(90deg,transparent,var(--profile-accent),var(--profile-secondary),transparent); }
 .custom-profile[data-profile-theme='custom'][data-effect='glitch'] .name-text::before { color:var(--profile-secondary); }
 .custom-profile[data-profile-theme='custom'] .copy-mark { color:#d4d0db; }
+.custom-profile .profile__bio { color:var(--bio-text-color,#eee6f6); }
+.custom-profile .profile__bio p + p { color:var(--bio-text-color,#c6bbd3); }
+.custom-profile .profile__bio a { color:inherit; }
+.custom-profile .social-link__platform { color:var(--social-label-color,#c3b7ce); }
+.custom-profile[data-profile-theme='monochrome'] .social-link__platform { color:var(--social-label-color,#bdbdbd); }
+.custom-profile[data-profile-theme='monochrome'] .profile__bio { color:var(--bio-text-color,#eee); }
+.custom-profile[data-profile-theme='monochrome'] .profile__bio p + p { color:var(--bio-text-color,#c6c6c6); }

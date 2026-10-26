@@ -13,10 +13,10 @@ import {createVisualEditor} from '../editor-visual.mjs';
 import {createAdditionalEditor} from '../editor-additions.mjs';
 import {createEditorLayout} from '../editor-layout.mjs';
 import {createStudioControls} from '../studio-controls.mjs';
-import {createStudioLanguage,tr} from '../studio-i18n.mjs?v=20261025-15';
+import {createStudioLanguage,tr} from '../studio-i18n.mjs?v=20261026-3';
 import {createQuickGuide} from '../studio-guide.mjs';
 import {FONTS} from '../font-catalog.mjs';
-import {HU} from '../studio-hu.mjs?v=20261025-15';
+import {HU} from '../studio-hu.mjs?v=20261026-3';
 import {mp3Frames,verifyMp3} from '../supabase/functions/profile-api/audio-file.mjs';
 import {badgeError} from '../badge-policy.mjs';
 import {badgeCapabilities} from '../supabase/functions/profile-api/badge-authority.mjs';
@@ -92,6 +92,22 @@ await check('independent audio handles video muting, entry gates, zero, seventy-
 });
 await check('public reduced-motion poster does not request video until visitor interaction',async()=>{
   const win=environment('internalcheats/index.html');win.matchMedia('(prefers-reduced-motion: reduce)').matches=true;const video=document.querySelector('#musicBackground'),player=createProfilePlayer(video);player.fromDataset();await flush();assert.equal(video.getAttribute('src'),null);player.start(true);await flush();assert.match(video.src,/music-background/);player.destroy();
+});
+await check('MP4 resumes after repeated visibility and focus changes without reloading or losing the chosen volume',async()=>{
+  for(const quiet of ['reduced','saveData','normal']){
+    const win=environment('internalcheats/index.html');if(quiet==='reduced')win.matchMedia('(prefers-reduced-motion: reduce)').matches=true;if(quiet==='saveData')Object.defineProperty(win.navigator,'connection',{value:{saveData:true},configurable:true});
+    const video=document.getElementById('musicBackground');let loads=0;video.load=()=>loads++;Object.defineProperty(video,'readyState',{get:()=>video.getAttribute('src')?3:0,configurable:true});const player=createProfilePlayer(video);player.fromDataset();await player.start(true);player.volume(41);await flush();const initialLoads=loads;video.currentTime=17;
+    for(let round=0;round<4;round++){Object.defineProperty(document,'hidden',{value:true,configurable:true});document.dispatchEvent(new win.Event('visibilitychange'));assert.equal(video.paused,true);Object.defineProperty(document,'hidden',{value:false,configurable:true});document.dispatchEvent(new win.Event('visibilitychange'));await flush();assert.equal(video.paused,false);assert.equal(video.volume,.41);assert.equal(video.currentTime,17);assert.equal(document.body.classList.contains('media-poster-only'),false,quiet+' round '+round);}
+    assert.equal(loads,initialLoads);video.pause();assert.equal(document.body.classList.contains('has-video'),true);win.dispatchEvent(new win.Event('focus'));await flush();assert.equal(video.paused,false);player.destroy();
+  }
+});
+await check('bio and social-label colors validate, retain automatic defaults and survive older-client saves',()=>{
+  assert.deepEqual(base.textColors,{bio:null,socialLabel:null});const saved=normalizeProfile({...base,textColors:{bio:'#12ABCD',socialLabel:'#FFaa22'}});assert.deepEqual(saved.textColors,{bio:'#12abcd',socialLabel:'#ffaa22'});const old=structuredClone(base);delete old.textColors;assert.deepEqual(normalizeProfile(preserveVisualGroups(old,saved)).textColors,saved.textColors);
+  for(const textColors of [{bio:'red'},{socialLabel:'url(x)'},{bio:'#fff'},{bio:42},{script:'bad'},[]])assert.throws(()=>normalizeProfile({...base,textColors}));
+});
+await check('autoplay denial uses a muted fallback, interrupted loads do not mute, and MP3 starts independently',async()=>{
+  for(const errorName of ['NotAllowedError','AbortError']){const win=environment('internalcheats/index.html'),video=document.getElementById('musicBackground');let tries=0;const play=win.HTMLMediaElement.prototype.play;video.play=function(){if(++tries===1)return Promise.reject(new win.DOMException('fixture',errorName));return play.call(this);};const player=createProfilePlayer(video);player.fromDataset();await flush();assert.equal(tries,errorName==='NotAllowedError'?2:1);assert.equal(video.muted,errorName==='NotAllowedError');player.destroy();}
+  const win=environment('internalcheats/index.html'),video=document.getElementById('musicBackground');video.play=()=>new Promise(()=>{});const player=createProfilePlayer(video);player.update({source:'mp3',url:'https://example.com/music.mp3',volume:35},{source:'https://example.com/waiting.mp4'});await flush();assert.equal(player.current().paused,false);assert.equal(player.current().volume,.35);assert.equal(video.muted,true);player.destroy();
 });
 await check('every overlay is directly selectable and keeps independent editable settings across switching and disabling',()=>{
   environment();const editor=createVisualEditor({isBusy:()=>false,onChange(){}});editor.fill(base);assert.equal(document.querySelectorAll('[data-overlay-preset]').length,15);

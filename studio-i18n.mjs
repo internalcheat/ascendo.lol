@@ -1,4 +1,4 @@
-import {HU} from './studio-hu.mjs?v=20261025-15';
+import {HU} from './studio-hu.mjs?v=20261026-3';
 import {STUDIO_COPY} from './studio-copy.mjs?v=20261025-15';
 for(const [source,short]of Object.entries(STUDIO_COPY))HU[short]=HU[source];
 let language='en';

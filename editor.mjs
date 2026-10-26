@@ -1,20 +1,20 @@
 import { request, session, storeSession, freshSession } from './editor-api.mjs';
-import { normalizeProfile, ICONS, MAX_IMAGE, MAX_VIDEO } from './profile-schema.mjs?v=20261025-15';
-import { renderProfile, bindMusic, element, replayNameEffect, bindNameEffectVisibility } from './profile-view.mjs?v=20261025-15';
+import { normalizeProfile, ICONS, MAX_IMAGE, MAX_VIDEO } from './profile-schema.mjs?v=20261026-3';
+import { renderProfile, bindMusic, element, replayNameEffect, bindNameEffectVisibility } from './profile-view.mjs?v=20261026-3';
 import { PUBLISHABLE_KEY } from './customizer-config.mjs';
-import { createProfileEffects } from './profile-effects.mjs?v=20261025-14';
+import { createProfileEffects } from './profile-effects.mjs?v=20261026-2';
 import { badgeError } from './badge-policy.mjs?v=20261025-4';
 import { createVisualEditor } from './editor-visual.mjs?v=20261025-15';
 import { createProfileBackground } from './profile-background.mjs?v=20261026-1';
 import { createEditorLayout } from './editor-layout.mjs?v=20261025-15';
 import {createAdditionalEditor} from './editor-additions.mjs?v=20261025-15';
-import {createProfileAdditions} from './profile-additions.mjs?v=20261025-15';
+import {createProfileAdditions} from './profile-additions.mjs?v=20261026-2';
 import {createStudioControls} from './studio-controls.mjs?v=20261025-15';
-import {applyStudioPalette} from './profile-palette.mjs?v=20261025-14';
+import {applyStudioPalette} from './profile-palette.mjs?v=20261026-3';
 import {BACKGROUNDS} from './background-catalog.mjs?v=20261025-15';
-import {createProfilePlayer} from './profile-music.mjs?v=20261025-15';
-import {createStudioLanguage,tr} from './studio-i18n.mjs?v=20261025-15';
-import {createQuickGuide} from './studio-guide.mjs?v=20261025-15';
+import {createProfilePlayer} from './profile-music.mjs?v=20261026-3';
+import {createStudioLanguage,tr} from './studio-i18n.mjs?v=20261026-3';
+import {createQuickGuide} from './studio-guide.mjs?v=20261026-2';
 
 const byId = id => document.getElementById(id);
 const form = byId('profileForm');
@@ -78,6 +78,7 @@ function collect() {
     name:byId('displayName').value,bio:byId('bio').value,badge:byId('badge').value,
     colorTheme:byId('colorTheme').value,accent:byId('accent').value,effect:byId('effect').value,glow:Number(byId('glow').value),opacity:Number(byId('opacity').value),
     themeColors:{primary:byId('themePrimary').value,secondary:byId('themeSecondary').value},
+    textColors:{bio:byId('bioColorAuto').checked?null:byId('bioColor').value,socialLabel:byId('socialLabelColorAuto').checked?null:byId('socialLabelColor').value},
     effectSpeed:Number(byId('effectSpeed').value),effectStrength:Number(byId('effectStrength').value),
     ...visualEditor.collect(),
     ...additionalEditor.collect(),
@@ -95,6 +96,7 @@ function fill(config) {
   config=normalizeProfile(config);
   byId('colorTheme').value=config.colorTheme;
   byId('themePrimary').value=config.themeColors.primary;byId('themeSecondary').value=config.themeColors.secondary;
+  for(const [id,key,fallback]of [['bioColor','bio','#eee6f6'],['socialLabelColor','socialLabel','#c3b7ce']]){byId(id+'Auto').checked=config.textColors[key]===null;byId(id).value=config.textColors[key]||fallback;}
   studioControls.close();
   model.draft=structuredClone(config);
   visualEditor.fill(config);
@@ -149,17 +151,7 @@ function preview() {
   else posterImage.removeAttribute('src');
   byId('previewSound').hidden=!isVideo&&config.music.source!=='mp3';
   byId('musicVolumeValue').textContent=`${config.music.volume}%`;byId('musicVolume').setAttribute('aria-valuetext',`${config.music.volume}%`);
-  if(!isVideo) { video.pause();video.removeAttribute('src');video.load();video.hidden=true; }
-  else {
-    video.hidden=false;
-    video.poster=poster;
-    if(video.getAttribute('src')!==source) {
-      video.pause();video.muted=true;video.src=source;
-    }
-    const visible=!document.hidden&&(visualEditor.expanded()||!matchMedia('(max-width: 820px)').matches||byId('studioGrid').dataset.tab==='preview');
-    if(visible&&!profileAdditions.isGated()&&!matchMedia('(prefers-reduced-motion: reduce)').matches)video.play().catch(()=>{});
-    else video.pause();
-  }
+  video.hidden=!isVideo;video.poster=poster;
   musicPlayer.update(config.music,{source:isVideo?source:'',resolve:value=>previewUrls.get(value)||value,visible:visualEditor.expanded()||!matchMedia('(max-width: 820px)').matches||byId('studioGrid').dataset.tab==='preview'});
   updateMusic();
   studioLayout.refresh();
@@ -167,7 +159,8 @@ function preview() {
 }
 
 function updateEffectControls() {
-  byId('accent').disabled=model.busy||byId('colorTheme').value!=='original';
+  byId('accent').disabled=model.busy;
+  for(const id of ['bioColor','socialLabelColor'])byId(id).disabled=model.busy||byId(id+'Auto').checked;
   for(const id of ['themePrimary','themeSecondary'])byId(id).disabled=model.busy||byId('colorTheme').value!=='custom';
   const effect=byId('effect').value;
   const animated=!['none','glow'].includes(effect);
@@ -351,6 +344,7 @@ for(const group of document.querySelectorAll('[data-upload]')){
 
 form.addEventListener('input',event=>{
   if(event.target.type==='file')return;
+  if(event.target.id==='accent'&&byId('colorTheme').value!=='original'){if(byId('colorTheme').value==='monochrome'){byId('colorTheme').value='custom';byId('themeSecondary').value='#bdbdbd';}byId('themePrimary').value=byId('accent').value;}
   if(event.target.id==='avatarUrl'&&byId('avatarPoster').value===model.draft?.avatar.poster)byId('avatarPoster').value='';
   schedulePreview();
 });
@@ -385,7 +379,7 @@ function selectTab(tab){
   byId('studioGrid').dataset.tab=tab;
   byId('editTab').setAttribute('aria-selected',String(tab==='edit'));byId('previewTab').setAttribute('aria-selected',String(tab==='preview'));
   byId('editTab').tabIndex=tab==='edit'?0:-1;byId('previewTab').tabIndex=tab==='preview'?0:-1;
-  if(tab==='edit'){video.pause();if(matchMedia('(max-width: 820px)').matches)musicPlayer.setActive(false);}else preview();
+  if(tab==='edit'&&matchMedia('(max-width: 820px)').matches)musicPlayer.setActive(false);else preview();
 }
 for(const [id,tab]of [['editTab','edit'],['previewTab','preview']]){
   byId(id).addEventListener('click',()=>selectTab(tab));

@@ -1,7 +1,7 @@
-import { normalizeProfile, safeUrl } from './profile-schema.mjs?v=20261025-15';
-import { FONTS, TEXT_SIZES, isTiledLayout } from './visual-schema.mjs?v=20261025-15';
-import {renderWidgets} from './profile-widgets.mjs?v=20261025-11';
-import {themePalette,channels} from './profile-palette.mjs?v=20261025-14';
+import { normalizeProfile, safeUrl } from './profile-schema.mjs?v=20261026-3';
+import { FONTS, TEXT_SIZES, isTiledLayout } from './visual-schema.mjs?v=20261026-3';
+import {renderWidgets} from './profile-widgets.mjs?v=20261026-3';
+import {themePalette,channels} from './profile-palette.mjs?v=20261026-3';
 
 export function element(tag, className = '', content) {
   const node = document.createElement(tag);
@@ -129,6 +129,7 @@ export function renderProfile(panel, input, options = {}) {
   panel.dataset.layout = config.cardLayout;
   panel.dataset.tiled=String(isTiledLayout(config.cardLayout));
   panel.dataset.profileTheme = config.colorTheme;
+  for(const [key,variable]of [['bio','--bio-text-color'],['socialLabel','--social-label-color']]){if(config.textColors[key]===null)panel.style.removeProperty(variable);else panel.style.setProperty(variable,config.textColors[key]);}
   const themeScope = panel.closest('.preview-card') || panel.closest('.page--profile');
   if (themeScope) themeScope.dataset.profileTheme = config.colorTheme;
   panel.dataset.soundtrack=String(config.soundtrackCard.enabled);
