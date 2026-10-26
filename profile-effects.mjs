@@ -1,5 +1,5 @@
 import { createProfileClock } from './profile-clock.mjs?v=20261025-6';
-import { createProfileAtmosphere } from './profile-atmosphere.mjs?v=20261025-14';
+import { createProfileAtmosphere } from './profile-atmosphere.mjs?v=20261026-3';
 import {isTiledLayout,layoutWidth} from './visual-schema.mjs?v=20261026-3';
 
 const templates = Object.freeze({
