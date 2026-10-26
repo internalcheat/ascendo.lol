@@ -525,3 +525,16 @@ Personal fields|Egyéni adatok
 Click to enter · sound off|Kattintásos belépés · hang nélkül
 File is used by your current or previous saved profile.|A fájlt a jelenlegi vagy előző mentés használja.
 Could not securely end the session. Please retry.|Nem sikerült lezárni a munkamenetet. Próbáld újra.`.split('\n').map(line=>line.split('|')));
+
+Object.assign(HU,{
+'Presets':'Mentett profilok','Saved presets':'Mentett profilváltozatok','Preset name':'Mentés neve','Save preset':'Profilváltozat mentése','No presets yet.':'Még nincs mentett profilváltozat.','Load':'Betöltés','Delete':'Törlés','Load preset':'Profilváltozat betöltése','Delete preset':'Profilváltozat törlése',
+'Save your current preview. Loading a preset stays private until Save changes.':'Mentsd el a jelenlegi előnézetet. A betöltött változat csak a Változtatások mentése után lesz nyilvános.',
+'Replace your current preview with this preset? Unpublished changes will be replaced.':'Lecseréled az előnézetet erre a mentett változatra? A még nem közzétett módosítások felülíródnak.',
+'Delete this saved preset?':'Törlöd ezt a mentett profilváltozatot?',
+'Preset saved. Your public profile is unchanged.':'A profilváltozat mentve. Nyilvános profilod változatlan.',
+'Preset deleted.':'A mentett profilváltozat törölve.',
+'Preset loaded into your private preview. Save changes to publish.':'A profilváltozat betöltve az előnézetbe. Közzétételhez mentsd a változtatásokat.',
+'Give your preset a name (up to 40 characters).':'Adj nevet a mentésnek (legfeljebb 40 karakter).','A preset with this name already exists.':'Már van mentés ezzel a névvel.','Could not update your presets.':'A mentett profilváltozatok frissítése nem sikerült.','You can save up to 10 presets. Delete one to make room.':'Legfeljebb 10 profilváltozatot menthetsz. Új mentéshez törölj egyet.','Preset not found.':'A mentett profilváltozat nem található.'
+});
+
+HU['This file is used by a saved profile or preset. Remove that reference first.']='Ezt a fájlt mentett profil vagy profilváltozat használja. Először távolítsd el belőle.';

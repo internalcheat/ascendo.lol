@@ -1,5 +1,5 @@
 import {EXPRESSION_HU} from './expression-hu.mjs?v=20261026-6';
-import {HU} from './studio-hu.mjs?v=20261026-6';
+import {HU} from './studio-hu.mjs?v=20261026-8';
 import {STUDIO_COPY} from './studio-copy.mjs?v=20261025-15';
 Object.assign(HU,EXPRESSION_HU);
 for(const [source,short]of Object.entries(STUDIO_COPY))HU[short]=HU[source];
@@ -18,7 +18,7 @@ export function tr(value){
   if((match=text.match(/^(\d+) sections? found$/)))return `${match[1]} találat`;
   if((match=text.match(/^(\d+) (lines|players)$/)))return `${match[1]} ${match[2]==='lines'?'sor':'lejátszó'}`;
   if((match=text.match(/^Uploading (\d+)%$/)))return `Feltöltés: ${match[1]}%`;
-  if((match=text.match(/^([\d.]+) MB \/ 250 MB used\..*$/)))return `${match[1]} MB / 250 MB felhasználva. Az eredeti Ascendo-fájlok nem foglalják a tárhelyedet.`;
+  if((match=text.match(/^([\d.]+) MB \/ (250|500) MB used\..*$/)))return `${match[1]} MB / ${match[2]} MB felhasználva. Az eredeti Ascendo-fájlok nem foglalják a tárhelyedet.`;
   if((match=text.match(/^Check (.*?) \((\d+) characters maximum\)\.$/)))return `Ellenőrizd: ${parts[match[1]]||match[1]} (legfeljebb ${match[2]} karakter).`;
   if((match=text.match(/^Check (.*?)\.$/)))return `Ellenőrizd ezt a beállítást: ${parts[match[1]]||tr(match[1])}.`;
   if((match=text.match(/^Choose a supported (.*?)\.$/)))return `Válassz támogatott beállítást: ${parts[match[1]]||tr(match[1])}.`;
