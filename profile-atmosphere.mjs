@@ -1,7 +1,7 @@
 import { createOverlayParticles } from './overlay-particles.mjs?v=20261025-15';
 import { createChromaKey } from './chroma-key.mjs?v=20261025-6';
-import {isTiledLayout} from './visual-schema.mjs?v=20261026-4';
-import {themePalette} from './profile-palette.mjs?v=20261026-4';
+import {isTiledLayout} from './visual-schema.mjs?v=20261026-5';
+import {themePalette} from './profile-palette.mjs?v=20261026-5';
 
 function contour(width,height,radius) {
   const points=[], arc=Math.PI*radius/2;

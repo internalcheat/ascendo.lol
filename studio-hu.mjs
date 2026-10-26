@@ -4,6 +4,9 @@ Bio text color|Bemutatkozás színe
 Social label color|Elérhetőségfeliratok színe
 Close|Bezárás
 Share|Megosztás
+Queued for rendering…|Képkészítésre vár…
+Queued for rendering. This can take a few minutes; you can close this window.|Képkészítésre vár. Ez néhány percig eltarthat; nyugodtan bezárhatod ezt az ablakot.
+Card generation is temporarily unavailable. Link and QR downloads are ready.|A képkészítés átmenetileg nem érhető el. A link és a QR-kód használható.
 Loading saved profile…|Mentett profil betöltése…
 Your studio session changed. Reopen the studio after preserving your draft.|Megváltozott a szerkesztői munkamenet. A piszkozat megőrzése után nyisd meg újra a szerkesztőt.
 Share your profile|Profilod megosztása
@@ -33,7 +36,6 @@ The generated card is not a valid PNG.|Az elkészült kártya nem érvényes PNG
 This profile is too tall for one image.|Ez a profil túl hosszú egyetlen képhez.
 Card generation failed. Please try again.|Nem sikerült elkészíteni a kártyát. Próbáld újra.
 Could not check card generation.|Nem sikerült lekérni a kártyakészítés állapotát.
-Card generation needs Cloudflare setup. Link and QR downloads are ready.|A kártyakészítéshez még be kell állítani a Cloudflare-t. A link és a QR-kód már használható.
 The free card-generation allowance is used up. Try again tomorrow.|Elfogyott az ingyenes kártyakészítési keret. Próbáld újra holnap.
 Card generation took too long. Please try again.|A kártyakészítés túllépte az időkorlátot. Próbáld újra.
 This profile is too tall or too large for one image.|Ez a profil túl hosszú vagy túl nagy egyetlen képhez.

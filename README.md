@@ -273,46 +273,33 @@ The Accent color picker stays enabled in every theme. In Custom colors it update
 
 Verification covers repeated hide/restore and focus cycles, quiet-mode activation, preserved volume/playhead and source load counts, independent MP3 playback, accent editing in all themes, text-color validation/persistence and the full existing regression suite. CNAME, credentials, media and plugin binaries are unchanged.
 
-## Owner sharing and profile metadata (20261026-4)
+## Owner sharing and profile metadata (20261026-5)
 
-The studio adds an owner-only Share dialog for the canonical profile link, a local
-1024px QR PNG and an optional native desktop screenshot. It reads the latest saved
-profile into a separate snapshot; it never collects, saves, clears or exports the
-editor draft. QR codes use bundled `qrcode@1.5.4`, four-module quiet zones, black
-modules on white, and a restrained saved-theme frame. The dialog supports EN/HU,
-keyboard focus, Escape, reduced motion and independent failure states.
+The owner-only Share dialog copies the canonical link, downloads a local 1024px
+QR code and queues a full desktop profile PNG. Everything uses a separate saved
+snapshot: opening Share never saves, clears or exports an editor draft. EN/HU,
+keyboard focus, Escape and reduced motion are supported.
 
-Screenshot generation uses the authenticated `/share/card` API and a protected
-Cloudflare Browser Run Worker. Only the saved revision is submitted by the editor.
-The server resolves ownership, allows one active job, checks revisions before and
-after capture and caches one private derived PNG per owner/revision/renderer for
-24 hours. Signed downloads last five minutes. The export renders the actual public
-profile at 1280 CSS pixels and 1.5x scale, with complete content and a reserved
-bottom-right address footer; it excludes navigation, volume/cursor controls and
-entry screens. Media stays silent, still fallbacks remain available, finite reveals
-finish, and unavailable embedded players become matching static tiles. Images
-over 16,000px tall or 20 MiB fail instead of cropping. A private 100 MiB derived
-cache, conservative global free-use cap and bounded timeouts protect the service.
-Link copying and QR downloads do not depend on Browser Run being available.
+GitHub Actions renders cards with native Chrome and refreshes static profile HTML.
+No Cloudflare account, Worker, Browser Run, DNS change or additional sign-in is
+required. The existing GitHub Pages source, domain and login protection remain.
+A scheduled workflow checks roughly every five minutes; GitHub can delay it.
+Cards therefore show a clear queued state. Saved names, bios and avatars appear
+in initial HTML after the next successful refresh/build; already-posted Discord
+previews can remain cached independently.
 
-The separate metadata Worker serves the saved display name, plain bio (up to 280
-characters), public avatar/still, canonical URL and image description in initial
-HTML for normal browsers and crawlers alike. It caches metadata for 30 seconds,
-supports newly claimed handles and canonical capitalization, preserves legacy
-redirects/unlisted indexing rules, and leaves assets/downloads at the Pages origin.
-Discord can retain previously generated embeds longer than this metadata cache.
+The existing authenticated API resolves ownership, validates the saved revision
+and queues only that profile. Short-lived GitHub OIDC authorizes the exact main
+workflow; no new long-lived secret is stored. The capture browser receives no
+owner session or workflow credentials. Link and QR downloads do not wait for
+the queue. Captures are silent, 1920px wide and full-height, with an address footer,
+provider fallbacks and strict 16,000px/20 MiB limits. One derived private export per
+owner lasts 24 hours; signed links last five minutes, with a 100 MiB cache ceiling
+and twelve generations per UTC day across the site.
 
-Deployment is deliberately split: compatible private cache/API first, then Worker
-staging, followed by reviewed frontend publication and guided DNS activation.
-The Worker is **not activated by merging source files**. Cloudflare authorization,
-free-plan verification, staging captures and the owner-reviewed DNS comparison
-are required before claiming live screenshot/Discord-preview functionality.
-Complete setup, request-limit fail-open and rollback instructions are in
-[`worker/SETUP.md`](worker/SETUP.md). No credentials belong in the repository.
-
-`npm test` includes independent QR decoding, hostile metadata, SSR routes, saved
-snapshot/draft isolation, forged export requests, concurrent jobs, cache reuse,
-revision races, output limits, provider quota/timeouts and capture-mode silence.
-`tests/profile-sharing.sql` checks the real cache RPC in a transaction that rolls
-back every isolated fixture. Passing these checks is not a claim of physical
-phone tests, Discord message tests or Cloudflare staging before authorization.
+See [SHARING.md](SHARING.md) for deployment, limits, verification and rollback.
+The suite covers QR decoding, safe metadata and static content, signed OIDC,
+owner/revision enforcement, queue isolation, draft preservation, output bounds
+and silent capture preparation. Database tests roll back all fixtures. Native
+screenshot tests run only on GitHub's runner, across twelve layouts and a long
+profile; they do not reload the owner's studio.

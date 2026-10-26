@@ -1,4 +1,4 @@
-export const SHARE_RENDERER='desktop-1';
+export const SHARE_RENDERER='desktop-github-1';
 export const SHARE_BUCKET='profile-shares';
 export const SHARE_MAX_BYTES=20*1024*1024;
 export const SHARE_MAX_HEIGHT=16000;

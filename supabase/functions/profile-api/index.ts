@@ -7,6 +7,7 @@ import { verifyOverlayVideo } from './overlay-video.mjs';
 import { normalizeHandle, createInvitedProfile } from '../../../invitation-policy.mjs';
 import {verifyMp3} from './audio-file.mjs';
 import {createShareService} from './share-service.mjs';
+import {verifyShareRunner} from './share-runner-auth.mjs';
 
 const url = Deno.env.get('SUPABASE_URL')!;
 const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -16,7 +17,7 @@ const encoder = new TextEncoder();
 const headers = { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'no-referrer' };
 let runtimePromise: Promise<any> | undefined;
 let shareService: any;
-function shares(){return shareService??=createShareService({admin,command,body,env:Deno.env,background:(task:Promise<unknown>)=>EdgeRuntime.waitUntil(task)});}
+function shares(){return shareService??=createShareService({admin,command,body});}
 
 class HttpError extends Error {
   constructor(public status: number, message: string) { super(message); }
@@ -219,6 +220,11 @@ async function route(request: Request, path: string) {
     if (error || !data.session) throw new HttpError(401, 'Please sign in again.');
     await owner(new Request(request.url, { headers: { Authorization: `Bearer ${data.session.access_token}` } }));
     return { access_token: data.session.access_token, refresh_token: data.session.refresh_token, expires_at: data.session.expires_at };
+  }
+  if(request.method==='POST'&&/^\/share\/runner\/(health|check|upload|fail)$/.test(path)){
+    const action=path.split('/').pop();
+    try{const identity=await verifyShareRunner(request,{health:action==='health'});return await shares().runner(request,identity,action);}
+    catch(error){throw new HttpError(error.status||503,error.status?error.message:'Could not process the profile export.');}
   }
   const user = await owner(request);
   if(path==='/share/card'){
