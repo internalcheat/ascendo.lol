@@ -1,4 +1,4 @@
-import {tr} from './studio-i18n.mjs?v=20261026-8';
+import {tr} from './studio-i18n.mjs?v=20261026-9';
 export function createStudioPresets({request,getDraft,loadDraft,isBusy=()=>false}){
  const doc=document,win=doc.defaultView,make=(tag,cls,text)=>{const node=doc.createElement(tag);node.className=cls;if(text)node.textContent=tr(text);return node;};
  const button=(label,run)=>{const b=make('button','studio-button',label);b.type='button';b.addEventListener('click',run);return b;};

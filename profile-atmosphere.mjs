@@ -1,26 +1,8 @@
+import {electricContour} from './electric-contour.mjs?v=20261026-9';
 import { createOverlayParticles } from './overlay-particles.mjs?v=20261025-15';
 import { createChromaKey } from './chroma-key.mjs?v=20261025-6';
-import {isTiledLayout} from './visual-schema.mjs?v=20261026-6';
-import {themePalette} from './profile-palette.mjs?v=20261026-6';
-
-function contour(width,height,radius) {
-  const points=[], arc=Math.PI*radius/2;
-  const lengths=[width-2*radius,arc,height-2*radius,arc,width-2*radius,arc,height-2*radius,arc];
-  const perimeter=lengths.reduce((sum,value)=>sum+value,0), count=Math.min(128,Math.max(40,Math.ceil(perimeter/12)));
-  for(let index=0;index<count;index++){
-    let distance=index/count*perimeter,part=0;
-    while(part<7&&distance>lengths[part])distance-=lengths[part++];
-    const ratio=lengths[part]?distance/lengths[part]:0;
-    let positionX,positionY,nx,ny;
-    if(part===0){positionX=radius+distance;positionY=0;nx=0;ny=-1;}
-    else if(part===2){positionX=width;positionY=radius+distance;nx=1;ny=0;}
-    else if(part===4){positionX=width-radius-distance;positionY=height;nx=0;ny=1;}
-    else if(part===6){positionX=0;positionY=height-radius-distance;nx=-1;ny=0;}
-    else{const quadrant=(part-1)/2,angle=(-1+quadrant)*Math.PI/2+ratio*Math.PI/2;nx=Math.cos(angle);ny=Math.sin(angle);positionX=(quadrant===0||quadrant===1?width-radius:radius)+nx*radius;positionY=(quadrant===0||quadrant===3?radius:height-radius)+ny*radius;}
-    points.push({positionX:positionX+5,positionY:positionY+5,nx,ny});
-  }
-  return points;
-}
+import {isTiledLayout} from './visual-schema.mjs?v=20261026-9';
+import {themePalette} from './profile-palette.mjs?v=20261026-9';
 
 export function createProfileAtmosphere(panel,scope,{clock,preview=false}) {
   const doc=panel.ownerDocument,win=doc.defaultView;
@@ -28,6 +10,7 @@ export function createProfileAtmosphere(panel,scope,{clock,preview=false}) {
   const root=doc.createElement('div');root.className='profile-atmosphere';root.setAttribute('aria-hidden','true');root.hidden=true;scope.append(root);
   const canvas=doc.createElement('canvas');canvas.className='profile-overlay-presets';root.append(canvas);
   const borders=new Map();
+  const borderResize=win.ResizeObserver?new win.ResizeObserver(()=>{if(config&&active)geometry();}):null;
   let config,active=true,frame=0,lastDraw=0,quality=1,slow=0,particles,particlesFailed=false,sourceKey='',mediaElement,mediaAbort,keyCanvas,keyer,mediaReady=false,mediaFailed=false,videoCallback=0,sourceDirty=false,previewUrls;
   let width=1,height=1,maxLayers=3;
   const notify=message=>scope.dispatchEvent(new win.CustomEvent('ascendo:visual-status',{bubbles:true,detail:{message}}));
@@ -89,10 +72,10 @@ export function createProfileAtmosphere(panel,scope,{clock,preview=false}) {
   function syncBorders(){
     const settings=config.electricBorder;
     const targets=settings.enabled?[...(settings.card?[isTiledLayout(config.cardLayout)?panel.querySelector('.profile-identity'):panel]:[]),...(settings.panels?[...panel.querySelectorAll('.social-link,.now-playing,.profile-widget')]:[]),...(settings.avatar?[panel.querySelector('.avatar')]:[])].filter(Boolean):[];
-    for(const [target,record]of borders)if(!targets.includes(target)||!target.contains(record.svg)){record.svg.remove();borders.delete(target);}
+    for(const [target,record]of borders)if(!targets.includes(target)||!target.contains(record.svg)){record.svg.remove();target.classList.remove('profile-electric-target');borderResize?.unobserve(target);borders.delete(target);}
     for(const target of targets)if(!borders.has(target)){
       const svg=doc.createElementNS('http://www.w3.org/2000/svg','svg');svg.classList.add('profile-electric');svg.setAttribute('aria-hidden','true');
-      const glow=doc.createElementNS(svg.namespaceURI,'path'),core=doc.createElementNS(svg.namespaceURI,'path');glow.setAttribute('stroke-width','4');glow.setAttribute('opacity','.14');core.setAttribute('stroke-width','1.3');core.setAttribute('opacity','.85');svg.append(glow,core);target.append(svg);borders.set(target,{svg,glow,core,points:[]});
+      const glow=doc.createElementNS(svg.namespaceURI,'path'),core=doc.createElementNS(svg.namespaceURI,'path');glow.setAttribute('stroke-width','4');glow.setAttribute('opacity','.14');core.setAttribute('stroke-width','1.3');core.setAttribute('opacity','.85');svg.append(glow,core);target.classList.add('profile-electric-target');target.append(svg);borderResize?.observe(target);borders.set(target,{svg,glow,core,points:[]});
     }
     for(const record of borders.values()){record.glow.setAttribute('stroke',settings.color);record.core.setAttribute('stroke',settings.color);record.svg.toggleAttribute('hidden',!active);}
   }
@@ -106,9 +89,12 @@ export function createProfileAtmosphere(panel,scope,{clock,preview=false}) {
     if(keyCanvas){const keyScale=Math.min(1,(mobile.matches?640:1280)*quality/Math.max(width,height));const keyWidth=Math.max(1,Math.round(width*keyScale)),keyHeight=Math.max(1,Math.round(height*keyScale));if(keyCanvas.width!==keyWidth||keyCanvas.height!==keyHeight){keyCanvas.width=keyWidth;keyCanvas.height=keyHeight;sourceDirty=true;}}
     for(const [target,record]of borders){
       const targetWidth=target.offsetWidth,targetHeight=target.offsetHeight;if(!targetWidth||!targetHeight)continue;
-      const style=win.getComputedStyle(target),radiusText=style.borderTopLeftRadius;
-      const radius=Math.min(Math.min(targetWidth,targetHeight)/2,radiusText.includes('%')?parseFloat(radiusText)/100*Math.min(targetWidth,targetHeight):parseFloat(radiusText)||0);
-      record.svg.setAttribute('viewBox',`0 0 ${targetWidth+10} ${targetHeight+10}`);record.points=contour(targetWidth,targetHeight,radius);
+      const style=win.getComputedStyle(target);
+      const radii=['borderTopLeftRadius','borderTopRightRadius','borderBottomRightRadius','borderBottomLeftRadius'].map(key=>{const value=style[key];return value.includes('%')?parseFloat(value)/100*Math.min(targetWidth,targetHeight):parseFloat(value)||0;});
+      record.svg.style.width=(targetWidth+10)+'px';record.svg.style.height=(targetHeight+10)+'px';
+      record.svg.style.left=(-5-(parseFloat(style.borderLeftWidth)||0))+'px';record.svg.style.top=(-5-(parseFloat(style.borderTopWidth)||0))+'px';
+      record.svg.style.right=record.svg.style.bottom='auto';
+      record.svg.setAttribute('viewBox',`0 0 ${targetWidth+10} ${targetHeight+10}`);record.points=electricContour(targetWidth,targetHeight,radii);
     }
     if(config){drawBorders(win.performance.now());staticParticles();sourceDirty=true;schedule();}
   }
@@ -153,6 +139,6 @@ export function createProfileAtmosphere(panel,scope,{clock,preview=false}) {
     for(const record of borders.values())record.svg.toggleAttribute('hidden',!active);
     if(config){configureMedia();syncMedia();if(active){staticParticles();schedule();}}
   }
-  function destroy(){if(frame)clock.cancel(frame);releaseMedia();particles?.destroy();for(const record of borders.values())record.svg.remove();borders.clear();root.remove();}
+  function destroy(){if(frame)clock.cancel(frame);releaseMedia();particles?.destroy();for(const [target,record]of borders){record.svg.remove();target.classList.remove('profile-electric-target');}borderResize?.disconnect();borders.clear();root.remove();}
   return {update,geometry,setActive,destroy};
 }

@@ -1,3 +1,4 @@
+import {electricContour} from '../electric-contour.mjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {Window} from 'happy-dom';
@@ -23,6 +24,12 @@ function environment(){
  const panel=win.document.getElementById('previewCard'),video=win.document.getElementById('previewVideo');return {win,panel,video,frames,context};
 }
 try{
+await check('electric contours follow asymmetric card corners, circles and capsule bounds',()=>{
+ for(const [w,h,r]of [[300,200,[6,28,28,28]],[300,200,[40,12,40,12]],[112,112,[56,56,56,56]],[200,60,[100,100,100,100]],[300,200,[0,0,0,0]]]){
+  const points=electricContour(w,h,r);assert.ok(points.length>=40&&points.length<=128);for(const p of points){assert.ok(Number.isFinite(p.positionX)&&Number.isFinite(p.positionY));assert.ok(p.positionX>=4.99&&p.positionX<=w+5.01);assert.ok(p.positionY>=4.99&&p.positionY<=h+5.01);}
+ }
+ const a=electricContour(300,200,[6,28,28,28]),b=electricContour(300,200,[28,28,28,28]);assert.notDeepEqual(a,b);
+});
 await check('six style groups default OFF, validate independently and preserve omitted old-client settings',()=>{
  const baseline=normalizeProfile(seed);for(const key of EXPRESSION_GROUPS)assert.equal(baseline[key].enabled,false);
  const saved=enabled(),legacy={...seed};const result=normalizeProfile(preserveVisualGroups(legacy,saved));for(const key of EXPRESSION_GROUPS)assert.deepEqual(result[key],saved[key]);

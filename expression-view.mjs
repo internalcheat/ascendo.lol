@@ -1,4 +1,4 @@
-import {DETAIL_COLORS} from './expression-schema.mjs?v=20261026-6';
+import {DETAIL_COLORS} from './expression-schema.mjs?v=20261026-9';
 const NS='http://www.w3.org/2000/svg';
 export function applyExpressionStyles(panel,config){
  const style=config.socialStyle;panel.dataset.socialStyle=style.enabled?style.layout:'default';panel.dataset.socialSurface=style.surface;

@@ -1,11 +1,11 @@
-import {createProfileExpression} from './profile-expression.mjs?v=20261026-6';
+import {createProfileExpression} from './profile-expression.mjs?v=20261026-9';
 import { API_URL, PUBLISHABLE_KEY } from './customizer-config.mjs';
-import { normalizeProfile } from './profile-schema.mjs?v=20261026-6';
-import { renderProfile, bindMusic, bindNameEffectVisibility } from './profile-view.mjs?v=20261026-6';
-import { createProfileEffects } from './profile-effects.mjs?v=20261026-6';
+import { normalizeProfile } from './profile-schema.mjs?v=20261026-9';
+import { renderProfile, bindMusic, bindNameEffectVisibility } from './profile-view.mjs?v=20261026-9';
+import { createProfileEffects } from './profile-effects.mjs?v=20261026-9';
 import { createProfileBackground } from './profile-background.mjs?v=20261026-1';
-import {createProfileAdditions} from './profile-additions.mjs?v=20261026-6';
-import {themePalette,channels} from './profile-palette.mjs?v=20261026-6';
+import {createProfileAdditions} from './profile-additions.mjs?v=20261026-9';
+import {themePalette,channels} from './profile-palette.mjs?v=20261026-9';
 
 bindNameEffectVisibility();
 

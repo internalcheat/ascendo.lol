@@ -11,6 +11,23 @@
 .custom-profile[data-social-style=icons] .social-link{width:calc(var(--social-iconSize) + 36px);min-height:calc(var(--social-iconSize) + 36px);padding:0;justify-content:center;flex:0 0 auto}
 .custom-profile[data-social-style=icons] .social-link__symbol{background:transparent;width:var(--social-iconSize);height:var(--social-iconSize)}
 .custom-profile[data-social-style=icons] :is(.social-link__info,.copy-mark){position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip-path:inset(50%)}
+.custom-profile[data-social-style=rows] .social-link,.custom-profile[data-social-style=icons] .social-link{border-radius:var(--social-radius)}
+.custom-profile[data-tiled=true][data-social-style=rows] .social-list{display:contents}
+.custom-profile[data-tiled=true]:is([data-social-style=pills],[data-social-style=icons]) .social-list{grid-column:1/-1;align-self:start;min-width:0}
+.custom-profile[data-social-style=pills] .social-list>.profile-tile-boundary{flex:1 1 160px;height:auto;min-width:0;max-width:100%}
+.custom-profile[data-social-style=icons] .social-list>.profile-tile-boundary{flex:0 0 calc(var(--social-iconSize) + 36px);width:calc(var(--social-iconSize) + 36px);height:calc(var(--social-iconSize) + 36px)}
+.custom-profile[data-social-style=icons] .social-link{height:calc(var(--social-iconSize) + 36px);min-height:calc(var(--social-iconSize) + 36px)}
+.custom-profile[data-social-style=pills] .social-link{height:100%;min-height:60px}
+.custom-profile[data-layout=numbers]:is([data-social-style=pills],[data-social-style=icons]) .social-link::after{display:none}
+.custom-profile[data-social-style=pills] .social-list .profile-effects-light{border-radius:999px}
+.custom-profile:is([data-social-style=rows],[data-social-style=icons]) .social-list .profile-effects-light{border-radius:var(--social-radius)}
+.custom-profile[data-layout=spine]:is([data-social-style=pills],[data-social-style=icons]) .social-list{position:relative}
+.custom-profile[data-layout=spine]:is([data-social-style=pills],[data-social-style=icons]) .social-list .profile-tile-boundary::before{display:none}
+.custom-profile[data-layout=spine]:is([data-social-style=pills],[data-social-style=icons]) .social-list::before{content:"";position:absolute;width:7px;height:7px;border:2px solid #171020;border-radius:50%;background:var(--profile-accent);top:30px;left:-28px;box-shadow:0 0 12px rgba(var(--accent-rgb),.3)}
+.profile-electric-target{position:relative}
+.profile-electric-target.avatar{overflow:visible}
+.profile-electric-target.avatar :is(picture,img){border-radius:inherit;overflow:hidden}
+.custom-profile .profile-electric-target>svg.profile-electric{position:absolute;display:block;max-width:none;max-height:none;min-width:0;min-height:0;flex:none;pointer-events:none;padding:0;margin:0;overflow:visible}
 .custom-profile:where([data-social-style]:not([data-social-style=default]))[data-social-surface=outline] .social-link{background:transparent;border-color:var(--detail-border,var(--profile-accent))}
 .custom-profile:where([data-social-style]:not([data-social-style=default]))[data-social-surface=solid] .social-link{background:var(--detail-socialBackground,#20182e)}
 .custom-profile[data-detail-colors=true][data-color-name] .profile__name{color:var(--detail-name,#f6f1ff)}

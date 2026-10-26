@@ -1,6 +1,6 @@
 import { createProfileClock } from './profile-clock.mjs?v=20261025-6';
-import { createProfileAtmosphere } from './profile-atmosphere.mjs?v=20261026-6';
-import {isTiledLayout,layoutWidth} from './visual-schema.mjs?v=20261026-6';
+import { createProfileAtmosphere } from './profile-atmosphere.mjs?v=20261026-9';
+import {isTiledLayout,layoutWidth} from './visual-schema.mjs?v=20261026-9';
 
 const templates = Object.freeze({
   arrow: '<path d="M5 3v24l6-7 5 11 5-2-5-11 10-1Z"/>',

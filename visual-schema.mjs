@@ -1,4 +1,4 @@
-import {normalizeExpression,EXPRESSION_GROUPS} from './expression-schema.mjs?v=20261026-6';
+import {normalizeExpression,EXPRESSION_GROUPS} from './expression-schema.mjs?v=20261026-9';
 import {FONTS} from './font-catalog.mjs?v=20261025-11';
 import {normalizeFeatureSettings,FEATURE_GROUPS} from './feature-schema.mjs?v=20261025-11';
 export {FONTS};
