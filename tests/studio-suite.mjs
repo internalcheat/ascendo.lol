@@ -25,6 +25,8 @@ const check=async(name,run)=>{await run();checks.push(name);};
 const flush=async()=>{for(let i=0;i<8;i++)await new Promise(resolve=>setTimeout(resolve,0));};
 function environment(file='customize/index.html'){
   const win=new Window({url:'https://ascendo.lol/'+file.replace('index.html',''),settings:{disableJavaScriptEvaluation:true,disableJavaScriptFileLoading:true,disableCSSFileLoading:true,disableIframePageLoading:true}});windows.push(win);win.document.write(read(file));win.document.close();
+  // Playback fixtures are independent of owners' current published backgrounds.
+  if(file==='internalcheats/index.html')Object.assign(win.document.getElementById('musicBackground').dataset,{backgroundKind:'video',backgroundSrc:base.background.url,mobileSrc:base.background.mobile,musicSource:'video',musicSrc:'',musicVolume:'65'});
   const prefs=new Map();win.matchMedia=query=>{if(!prefs.has(query)){const pref=new win.EventTarget();pref.matches=false;prefs.set(query,pref);}return prefs.get(query);};
   Object.defineProperty(win.HTMLMediaElement.prototype,'paused',{get(){return this.__paused!==false;},configurable:true});
   win.HTMLMediaElement.prototype.play=function(){this.__paused=false;this.dispatchEvent(new win.Event('playing'));return Promise.resolve();};win.HTMLMediaElement.prototype.pause=function(){if(this.__paused!==false)return;this.__paused=true;this.dispatchEvent(new win.Event('pause'));};win.HTMLMediaElement.prototype.load=function(){};
