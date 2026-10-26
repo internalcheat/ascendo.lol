@@ -358,3 +358,30 @@ GitHub-native checks inspect narrow profiles, three finish/button/layout
 combinations and real decoded audio from an original local test sound. No
 production effects are enabled for testing. Existing credentials, badge policy,
 media, plugin downloads, CNAME, draft and login remain unchanged.
+
+
+## Saved profile presets and owner media allowance (20261026-8)
+
+The studio's Presets dialog saves up to ten named snapshots per account, including
+the current unpublished preview, content, styles and media references. Loading
+confirms replacement and fills the private preview; only Save changes publishes.
+Presets can be loaded or deleted, support EN/HU, keyboard focus, Escape, reduced
+motion and narrow screens. Names are limited to 40 characters and unique within
+an account. Snapshots never include login credentials or change profile addresses.
+
+Native authenticated owner mapping protects every preset operation. Configurations
+receive the same normalization, badge authority and media ownership checks before
+storage. Private RLS-protected rows and service-only RPCs prevent cross-account
+reads/deletes. Uploaded files referenced by a preset remain protected from cleanup
+and manual deletion; deleting the preset releases that reference. Snapshots reuse
+media rather than duplicating files or publishing uploads.
+
+InternalCheats alone has a 500 MB total media allowance, resolved from its canonical
+private ownership record. Other accounts retain 250 MB. The database reservation
+transaction enforces this distinction, and the editor displays the actual allowance.
+Individual files remain capped at 50 MB, as explicitly chosen to keep hosting free.
+No paid upgrade, bucket privacy change, credential change or profile rewrite occurs.
+
+Verification covers API ownership/badge/media checks, private UI save/load behavior,
+rolled-back database fixtures for limits and media protection, exact owner quota
+boundary checks, and GitHub-native modal checks at 1280px, 390px and 320px.

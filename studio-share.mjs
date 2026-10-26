@@ -1,4 +1,4 @@
-import {tr} from './studio-i18n.mjs?v=20261026-6';
+import {tr} from './studio-i18n.mjs?v=20261026-8';
 import {themePalette} from './profile-palette.mjs?v=20261026-6';
 import {publicProfileUrl,displayProfileUrl,SHARE_MAX_BYTES,pngDimensions} from './share-policy.mjs?v=20261026-6';
 import {BACKEND_URL} from './customizer-config.mjs';

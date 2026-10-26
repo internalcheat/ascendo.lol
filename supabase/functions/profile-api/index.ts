@@ -111,11 +111,12 @@ async function cleanup(ownerId: string) {
   const uploads = await command('uploads', { owner: ownerId });
   for (const upload of uploads) {
     if(upload.state==='published')await admin.storage.from('profile-drafts').remove([upload.path]);
-    if (referenced(profile.config, upload.path) || referenced(profile.previous, upload.path) || Date.now() - Date.parse(upload.created_at) < 86400000) continue;
+    if (referenced(profile.config, upload.path) || referenced(profile.previous, upload.path) || profile.presetMedia?.includes(publicUrl(upload.path)) || Date.now() - Date.parse(upload.created_at) < 86400000) continue;
     const draft = await admin.storage.from('profile-drafts').remove([upload.path]);
     const published = await admin.storage.from('profile-media').remove([upload.path]);
     if (!draft.error && !published.error) await command('forget', { owner: ownerId, id: upload.id });
   }
+  return profile;
 }
 
 async function publishFiles(ownerId: string, config: any) {
@@ -258,7 +259,28 @@ async function route(request: Request, path: string) {
     if(pendingError)throw new HttpError(403,'No editable profile is assigned to this account.');
     await cleanup(user.id);
     const current = await command('mine', { owner: user.id });
-    return { ...current, capabilities: badgeCapabilities(current) };
+    return { ...current, uploadQuota:current.slug==='internalcheats'?500_000_000:OWNER_QUOTA, capabilities: badgeCapabilities(current) };
+  }
+  const presetMatch=path.match(/^\/presets(?:\/([a-f0-9-]{36}))?$/);
+  if(presetMatch){
+    const id=presetMatch[1];let operation=request.method==='GET'?(id?'get':'list'):request.method==='POST'&&!id?'create':request.method==='DELETE'&&id?'delete':'';
+    if(!operation)throw new HttpError(404,'Not found.');
+    let payload:any={owner:user.id,...(id?{id}:{})};
+    if(operation==='create'){
+      const input=await body(request);
+      if(!input||Object.keys(input).some(key=>!['name','config'].includes(key))||typeof input.name!=='string'||!input.name.trim()||input.name.trim().length>40)throw new HttpError(400,'Give your preset a name (up to 40 characters).');
+      let config;try{config=normalizeProfile(input.config);}catch(error){throw new HttpError(400,error.message);}
+      const current=await command('mine',{owner:user.id}),error=badgeError(config.badge,badgeCapabilities(current).canUseReservedBadges);
+      if(error)throw new HttpError(400,error);
+      const owned=await command('uploads',{owner:user.id}),prefix=url+'/storage/v1/object/public/profile-media/';
+      for(const source of profileMedia(config))if(source.startsWith(prefix)&&!owned.some(item=>publicUrl(item.path)===source&&['ready','published'].includes(item.state)))throw new HttpError(400,'That upload is not ready or does not belong to your profile.');
+      payload={...payload,name:input.name.trim(),config,media:profileMedia(config)};
+    }
+    const {data,error}=await admin.rpc('profile_presets_command',{operation,payload});
+    if(error)throw new HttpError(error.code==='23505'?409:503,error.code==='23505'?'A preset with this name already exists.':'Could not update your presets.');
+    if(data?.limit)throw new HttpError(400,'You can save up to 10 presets. Delete one to make room.');
+    if(data===null)throw new HttpError(404,'Preset not found.');
+    return data;
   }
   if (request.method === 'GET' && path === '/uploads') {
     const uploads=await command('uploads',{owner:user.id});
@@ -286,13 +308,13 @@ async function route(request: Request, path: string) {
     const isVideo = ['video','overlayVideo'].includes(input.kind);
     const isAudio=input.kind==='audio';
     if (!['avatar','poster','backgroundImage','video','overlayImage','overlayVideo','audio'].includes(input.kind) || !types[input.mime] || isVideo !== (input.mime === 'video/mp4') || isAudio !== (input.mime==='audio/mpeg') || !Number.isSafeInteger(input.bytes) || input.bytes <= 0 || input.bytes > (isVideo||isAudio ? MAX_VIDEO : MAX_IMAGE)) throw new HttpError(400, 'Choose an image up to 5 MB, or an MP4 / MP3 up to 50 MB.');
-    await cleanup(user.id);
+    const ownedProfile=await cleanup(user.id);
     const id = crypto.randomUUID();
     const path = `${user.id}/${id}.${types[input.mime]}`;
     await command('reserve', { owner: user.id, id, path, bytes: input.bytes, mime: input.mime, kind: input.kind });
     const { data, error } = await admin.storage.from('profile-drafts').createSignedUploadUrl(path);
     if (error) { await command('forget', { owner: user.id, id }); throw new HttpError(503, 'Could not start the upload.'); }
-    return { id, path, token: data.token, endpoint: `${url.replace('.supabase.co','.storage.supabase.co')}/storage/v1/upload/resumable`, quota: OWNER_QUOTA };
+    return { id, path, token: data.token, endpoint: `${url.replace('.supabase.co','.storage.supabase.co')}/storage/v1/upload/resumable`, quota: ownedProfile.slug==='internalcheats'?500_000_000:OWNER_QUOTA };
   }
   const uploadMatch = path.match(/^\/uploads\/([a-f0-9-]{36})(\/complete)?$/);
   if (uploadMatch && ['POST','DELETE'].includes(request.method)) {
@@ -300,7 +322,7 @@ async function route(request: Request, path: string) {
     if (!upload?.id) throw new HttpError(404, 'Upload not found.');
     if (request.method === 'DELETE') {
       const profile = await command('mine', { owner: user.id });
-      if (referenced(profile.config, upload.path) || referenced(profile.previous, upload.path)) throw new HttpError(409, 'This file is used by a saved version. Replace it in the editor first.');
+      if (referenced(profile.config, upload.path) || referenced(profile.previous, upload.path) || profile.presetMedia?.includes(publicUrl(upload.path))) throw new HttpError(409, 'This file is used by a saved profile or preset. Remove that reference first.');
       const draft = await admin.storage.from('profile-drafts').remove([upload.path]);
       const published = await admin.storage.from('profile-media').remove([upload.path]);
       if (draft.error || published.error) throw new HttpError(503, 'Could not remove that file.');

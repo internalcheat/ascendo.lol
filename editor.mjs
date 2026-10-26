@@ -1,3 +1,4 @@
+import {createStudioPresets} from './studio-presets.mjs?v=20261026-8';
 import {createExpressionEditor} from './editor-expression.mjs?v=20261026-6';
 import {createProfileExpression} from './profile-expression.mjs?v=20261026-6';
 import { request, session, storeSession, freshSession } from './editor-api.mjs';
@@ -15,9 +16,9 @@ import {createStudioControls} from './studio-controls.mjs?v=20261025-15';
 import {applyStudioPalette} from './profile-palette.mjs?v=20261026-6';
 import {BACKGROUNDS} from './background-catalog.mjs?v=20261025-15';
 import {createProfilePlayer} from './profile-music.mjs?v=20261026-6';
-import {createStudioLanguage,tr} from './studio-i18n.mjs?v=20261026-6';
-import {createQuickGuide} from './studio-guide.mjs?v=20261026-6';
-import {createStudioShare} from './studio-share.mjs?v=20261026-6';
+import {createStudioLanguage,tr} from './studio-i18n.mjs?v=20261026-8';
+import {createQuickGuide} from './studio-guide.mjs?v=20261026-8';
+import {createStudioShare} from './studio-share.mjs?v=20261026-8';
 
 const byId = id => document.getElementById(id);
 const form = byId('profileForm');
@@ -27,7 +28,7 @@ for(const [id,name]of Object.entries(BACKGROUNDS))if(id!=='flux-lines'){const op
 const musicPlayer=createProfilePlayer(video,{preview:true});
 const panel = byId('previewCard');
 const profileBackground=createProfileBackground(byId('previewStage'),{onStatus:message=>{byId('backgroundPresetStatus').textContent=message;}});
-const model = { saved:null, draft:null, previous:null, defaults:null, revision:0, baselineRevision:0, slug:'', uploads:new Map(), busy:false, activeUploads:0, dirty:false, previewFrame:0, canUseReservedBadges:false };
+const model = { saved:null, draft:null, previous:null, defaults:null, revision:0, baselineRevision:0, slug:'', uploads:new Map(), busy:false, activeUploads:0, dirty:false, previewFrame:0, canUseReservedBadges:false, uploadQuota:250_000_000 };
 const previewUrls = new Map();
 const visualEditor = createVisualEditor({onChange:schedulePreview,isBusy:()=>model.busy||model.activeUploads>0});
 const additionalEditor=createAdditionalEditor({onChange:schedulePreview,isBusy:()=>model.busy||model.activeUploads>0,previewSound:(sound,volume)=>profileAdditions.previewSound(sound,volume),replayEntry:()=>profileAdditions.replayEntry(),replayTitle:()=>profileAdditions.replayTitle()});
@@ -40,6 +41,7 @@ const studioControls=createStudioControls(form);
 const quickGuide=createQuickGuide({layout:studioLayout});
 const studioLanguage=createStudioLanguage({request,onChange:()=>{studioControls.close();studioControls.refresh();}});
 const studioShare=createStudioShare({request,getSaved:()=>model.saved?{slug:model.slug,revision:model.baselineRevision,config:model.saved}:null,isBusy:()=>model.busy||model.activeUploads>0});
+const studioPresets=createStudioPresets({request,getDraft:()=>model.draft?normalizeProfile(collect()):null,loadDraft:config=>{fill(config);schedulePreview();message('Preset loaded into your private preview. Save changes to publish.');},isBusy:()=>!model.saved||model.busy||model.activeUploads>0});
 let renderedPreview;
 const effectFields = {
   cursorEffects:{enabled:'cursorEnabled',style:'cursorStyle',color:'cursorColor',size:'cursorSize',trail:'cursorTrail',trailLength:'cursorTrailLength',trailSmoothness:'cursorTrailSmoothness',clickEffect:'cursorClickEffect'},
@@ -72,7 +74,7 @@ function message(value, error = false, success = false) {
   status.dataset.success=String(success);
 }
 function markDirty(value = true) {
-  studioShare.refresh();
+  studioShare.refresh();studioPresets.refresh();
   model.dirty=value;
   byId('saveState').textContent=value?'Unpublished changes':'All changes saved';
   byId('saveChanges').disabled=model.busy || model.activeUploads>0 || !value || !!badgeError(byId('badge').value,model.canUseReservedBadges);
@@ -272,7 +274,7 @@ async function library() {
       catch(error){message(error.message,true);remove.disabled=false;}
     });row.append(remove);container.append(row);
   }
-  byId('storageUsage').textContent=`${(used/1_000_000).toFixed(1)} MB / 250 MB used. Original Ascendo assets do not count toward your upload allowance.`;
+  byId('storageUsage').textContent=`${(used/1_000_000).toFixed(1)} MB / ${(model.uploadQuota/1_000_000).toFixed(0)} MB used. Original Ascendo assets do not count toward your upload allowance.`;
 }
 
 async function uploadFile(file,kind,group) {
@@ -407,6 +409,7 @@ async function initialize(){
   try{
     const current=await request('/me');
     if(current.onboarding){location.replace('/welcome/');return;}
+    model.uploadQuota=current.uploadQuota||250_000_000;
     model.canUseReservedBadges=current.capabilities?.canUseReservedBadges===true;
     model.slug=current.slug;model.saved=normalizeProfile(current.config);model.defaults=normalizeProfile(current.defaults);model.previous=current.previous?normalizeProfile(current.previous):null;model.revision=current.revision;model.baselineRevision=current.revision;
     studioLanguage.setAccount(current.slug);quickGuide.ready();
