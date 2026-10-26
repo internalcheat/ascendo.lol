@@ -303,3 +303,58 @@ owner/revision enforcement, queue isolation, draft preservation, output bounds
 and silent capture preparation. Database tests roll back all fixtures. Native
 screenshot tests run only on GitHub's runner, across twelve layouts and a long
 profile; they do not reload the owner's studio.
+
+
+## Profile expression controls (20261026-6)
+
+Six optional, profile-specific groups extend the existing saved JSON without a
+schema migration or rewriting current profiles: socialStyle, detailColors,
+richBio, holographic, musicReactive and signature. All default OFF. Omitted groups
+from older clients retain saved values. Save, draft recovery, discard, reset,
+previous-version restore and revision-conflict handling share the existing editor
+workflow. Both EN and HU are supported; only Save changes publishes a preview.
+
+Social buttons offer rows, pills or icons, with glass/outline/solid surfaces,
+spacing, icon sizes and applicable corner settings. Existing link destinations,
+clipboard values and accessible names remain. Icon-only controls retain tooltips
+and complete accessible names. Precise colors add independent name, handle, icon,
+badge text/background, card border/background, social background and bio-link
+colors. Each has Auto. Existing bio/platform-label colors remain available; card
+fill honors opacity and media is never recolored.
+
+Richer bios support bounded emphasis, underline, HTTPS links, quotes, line spacing
+and alignment through a small toolbar. Existing plain bios keep their previous
+rendering until this option is enabled. Formatting builds text and allowed DOM
+nodes, never user-authored HTML or CSS. Metadata strips formatting from the bio.
+
+Holographic foil, pearl and brushed-metal finishes use profile colors and an
+on-demand pointer response on untransformed card boundaries. Surface layers sit
+behind crisp text, never over input targets. Existing tilt/entrance transforms
+remain independent. Reduced motion and touch retain a still finish.
+
+Music visuals offer waveform, equalizer and avatar halo with intensity, smoothing
+and optional color. They analyze actual captured media audio after visitor
+interaction, without rerouting the player's sound, requesting a microphone,
+changing volume or restarting the soundtrack. Trusted public uploads use
+anonymous CORS when first assigned. Unsupported browsers, audio-less files or
+blocked stream capture retain normal playback and a still visual; the editor
+explains that fallback. The implementation follows the media capture and
+[Web Audio](https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/captureStream)
+interfaces. A bounded canvas uses the same on-demand loop as the reflection,
+reduces drawing frequency on slow frames and stops when hidden or offscreen.
+
+Signatures can be drawn (at most twelve strokes and 1,200 numeric points) or typed
+using existing local fonts. Width, stroke, color and writing duration are
+adjustable, with undo, clear and replay. Typed text is the keyboard-accessible
+alternative. Settings accept no uploaded SVG or arbitrary markup. Drawn strokes
+reveal once; reduced motion/capture mode shows the completed signature. Unrelated
+edits do not replay it.
+
+Verification includes strict shared validation, omission/default compatibility,
+safe formatting and URLs, per-profile preview isolation, actual editor
+save/restore/conflict fixtures, exact colors, signature identity retention,
+non-rerouting audio analysis, idle/hidden/reduced-motion cleanup and translations.
+GitHub-native checks inspect narrow profiles, three finish/button/layout
+combinations and real decoded audio from an original local test sound. No
+production effects are enabled for testing. Existing credentials, badge policy,
+media, plugin downloads, CNAME, draft and login remain unchanged.

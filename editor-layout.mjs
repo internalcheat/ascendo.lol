@@ -1,4 +1,4 @@
-import {element} from './profile-view.mjs?v=20261026-5';
+import {element} from './profile-view.mjs?v=20261026-6';
 
 const categories=[
   {id:'profile',name:'Profile',help:'Your name, picture and the places people can find you.',icon:'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM5 21v-2a7 7 0 0 1 14 0v2'},
@@ -9,6 +9,7 @@ const categories=[
   {id:'media',name:'Media',help:'Manage your uploaded pictures and videos.',icon:'M4 3h16v18H4V3Zm0 13 5-5 4 4 3-3 4 4M8 7h.01'}
 ];
 const definitions=[
+  ['socialstyle','Social Button Styles','appearance','Rows, pills, icons, spacing and corners','socialStyleEnabled'],['detailcolors','Precise Colors','appearance','Name, handles, icons, badge and borders','detailColorsEnabled'],['richbio','Richer Bios','profile','Bio formatting and alignment','richBioEnabled'],['holographic','Holographic Finish','effects','Foil, pearl and brushed metal','holographicEnabled'],['reactive','Music-Reactive Visuals','effects','Waveform, equalizer and avatar halo','musicReactiveEnabled'],['signature','Animated Signature','profile','Drawn and typed signatures','signatureEnabled'],
   ['identity','Identity','profile','Name, bio and badge'],['avatar','Avatar','profile','Profile picture and crop'],['socials','Social rows','profile','Links and copy buttons'],
   ['style','Style','appearance','Theme, color and glass'],['fonts','Fonts','appearance','Display and body faces, gothic and bubbly'],['sizes','Text Sizes','appearance','Individual text sizes'],['layout','Card Layout','appearance','Classic, Crest, Portrait, Bento, Magazine, Deck, Stack, Wall, Spine, Collage, Flow, Numbers'],
   ['backgrounds','Backgrounds & soundtrack','backgrounds','Video, image, music and animated presets'],
@@ -87,6 +88,12 @@ export function createEditorLayout({isBusy=()=>false,onNavigate=()=>{}}={}){
       case 'style':return `${selected('colorTheme')} · ${byId('opacity').value}% glass`;
       case 'fonts':return selected('displayFont')===selected('bodyFont')?selected('displayFont'):`${selected('displayFont')} / ${selected('bodyFont')}`;
       case 'sizes':{const custom=[...document.querySelectorAll('[id^="sizeAuto-"]')].filter(control=>!control.checked).length;return custom?`${custom} custom ${custom===1?'size':'sizes'}`:'Auto sizing';}
+      case 'socialstyle':return selected('socialStyleLayout')+' · '+selected('socialStyleSurface');
+      case 'detailcolors':return 'Custom detail colors';
+      case 'richbio':return selected('richBioAlign');
+      case 'holographic':return selected('holographicFinish');
+      case 'reactive':return selected('musicReactiveStyle');
+      case 'signature':return selected('signatureMode');
       case 'layout':return document.querySelector('[name="cardLayout"]:checked')?.value.replace(/^./,letter=>letter.toUpperCase())||'Classic';
       case 'backgrounds':return selected('backgroundKind');
       case 'enter':return byId('enterSoundEnabled').checked?`Click to enter · ${selected('enterSound')}`:'Click to enter · sound off';
@@ -107,7 +114,7 @@ export function createEditorLayout({isBusy=()=>false,onNavigate=()=>{}}={}){
     }
   }
   function refresh(){
-    if(disposed)return;for(const record of records){record.summary.textContent=summaryFor(record);if(record.master){const enabled=record.master.checked;if(enabled!==record.lastEnabled){expanded(record,enabled);record.lastEnabled=enabled;if(beforeSearch)beforeSearch.set(record.id,enabled);}record.node.dataset.effectEnabled=String(enabled);}}
+    if(disposed)return;for(const record of records){record.summary.textContent=summaryFor(record);if(record.master){const enabled=record.master.checked;if(enabled!==record.lastEnabled){expanded(record,enabled||record.id==='richbio');record.lastEnabled=enabled;if(beforeSearch)beforeSearch.set(record.id,enabled);}record.node.dataset.effectEnabled=String(enabled);}}
   }
 
   const dock=byId('studioActionDock'),statusButton=byId('studioStatusButton'),statusPanel=byId('studioStatusPanel');

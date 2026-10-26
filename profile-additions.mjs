@@ -1,5 +1,5 @@
 import {createEntryAudio} from './profile-entry-audio.mjs?v=20261025-11';
-import {suspendWidgetPlayers,resumeWidgetPlayers} from './profile-widgets.mjs?v=20261026-5';
+import {suspendWidgetPlayers,resumeWidgetPlayers} from './profile-widgets.mjs?v=20261026-6';
 
 export function createProfileAdditions(scope,panel,{preview=false}={}){
   const doc=scope.ownerDocument,win=doc.defaultView,reduced=win.matchMedia('(prefers-reduced-motion: reduce)'),audio=createEntryAudio(win),abort=new win.AbortController();

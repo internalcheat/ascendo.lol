@@ -1,7 +1,9 @@
-import { normalizeProfile, safeUrl } from './profile-schema.mjs?v=20261026-5';
-import { FONTS, TEXT_SIZES, isTiledLayout } from './visual-schema.mjs?v=20261026-5';
-import {renderWidgets} from './profile-widgets.mjs?v=20261026-5';
-import {themePalette,channels} from './profile-palette.mjs?v=20261026-5';
+import {appendRichBio} from './rich-bio.mjs?v=20261026-6';
+import {applyExpressionStyles} from './expression-view.mjs?v=20261026-6';
+import { normalizeProfile, safeUrl } from './profile-schema.mjs?v=20261026-6';
+import { FONTS, TEXT_SIZES, isTiledLayout } from './visual-schema.mjs?v=20261026-6';
+import {renderWidgets} from './profile-widgets.mjs?v=20261026-6';
+import {themePalette,channels} from './profile-palette.mjs?v=20261026-6';
 
 export function element(tag, className = '', content) {
   const node = document.createElement(tag);
@@ -180,7 +182,7 @@ export function renderProfile(panel, input, options = {}) {
   const widgets = panel.querySelector('.profile-widgets') || element('div','profile-widgets');
   const nodes = [name];
   if (config.badge) nodes.push(element('span','profile-badge',config.badge));
-  if (config.bio) { const bio = element('div','profile__bio'); appendBio(bio,config.bio); nodes.push(bio); }
+  if (config.bio) { const bio = element('div','profile__bio'); if(config.richBio.enabled)appendRichBio(bio,config.bio,config.richBio,safeUrl);else appendBio(bio,config.bio); nodes.push(bio); }
   const socialKey = JSON.stringify([config.name,config.socials]);
   const oldSocials = panel.querySelector('.social-list');
   const socials = oldSocials?.dataset.sourceKey === socialKey ? oldSocials : element('nav','social-list');
@@ -196,13 +198,14 @@ export function renderProfile(panel, input, options = {}) {
       control.href = row.value; control.target='_blank'; control.rel='noopener noreferrer';
       control.setAttribute('aria-label',`Open ${row.label}: ${row.handle} (opens in a new tab)`);
     }
-    const symbol = element('span','social-link__symbol'); symbol.append(icon(row.icon));
+    const symbol = element('span','social-link__symbol'); symbol.append(icon(row.icon));const localMark={discord:'discord.svg',github:'github.svg',minecraft:'minecraft-creeper.svg',youtube:'youtube.svg',tiktok:'tiktok.svg'}[row.icon];if(localMark)symbol.dataset.localMark='true';if(localMark)symbol.style.setProperty('--social-mark','url(/assets/'+localMark+')');
     const info = element('span','social-link__info'); info.append(element('span','social-link__platform',row.label),element('span','social-link__handle',row.handle));
     const arrow = icon(row.action === 'copy' ? 'copy' : 'external'); arrow.classList.add('copy-mark');
     control.append(symbol,info,arrow); socials.append(control);
   }
   }
   socials.hidden=config.socials.length===0;
+  const keptSignature=summary.querySelector('.profile-signature');if(keptSignature)nodes.push(keptSignature);
   nodes.forEach((node,index)=>{
     const current = summary.children[index];
     if(current === node) return;
@@ -222,6 +225,7 @@ export function renderProfile(panel, input, options = {}) {
   panel.dataset.hasWidgets=String(config.socials.length>0||!!music||extra.length>0);
   [identity,...socials.querySelectorAll('.social-link'),music,...extra].filter(Boolean).forEach((node,index)=>{node.dataset.layoutIndex=String(index+1).padStart(2,'0');});
   if (!panel.contains(identity) || !panel.contains(widgets)) panel.replaceChildren(identity,widgets);
+  applyExpressionStyles(panel,config);
   panel.setAttribute('aria-label',`${config.name} profile`);
   return config;
 }

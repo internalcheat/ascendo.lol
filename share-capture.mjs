@@ -1,4 +1,4 @@
-import {displayProfileUrl,SHARE_MAX_HEIGHT,profileSlug} from './share-policy.mjs?v=20261026-5';
+import {displayProfileUrl,SHARE_MAX_HEIGHT,profileSlug} from './share-policy.mjs?v=20261026-6';
 const root=document.documentElement;
 export async function prepareCapture(doc=document,win=window){
   const html=doc.documentElement;if(html.dataset.profileCapture!=='true')return;
@@ -11,7 +11,7 @@ export async function prepareCapture(doc=document,win=window){
     const slug=doc.body.dataset.person;if(!profileSlug('/'+slug))throw Error('profile_changed');
     for(const video of doc.querySelectorAll('video'))video.preload='none';
     for(const frame of doc.querySelectorAll('iframe'))frame.loading='eager';
-    if(doc.fonts){const requested=typeof doc.fonts.load==='function'?[...doc.querySelectorAll('.profile__name,.profile__bio,.social-link__platform,.social-link__handle')].map(node=>{const style=win.getComputedStyle(node);return doc.fonts.load(`${style.fontWeight||400} ${style.fontSize||'16px'} ${style.fontFamily||'sans-serif'}`,node.textContent||'Ascendo').catch(()=>[]);}):[];await Promise.race([Promise.all([doc.fonts.ready,...requested]),new Promise(resolve=>win.setTimeout(resolve,4000))]);}
+    if(doc.fonts){const requested=typeof doc.fonts.load==='function'?[...doc.querySelectorAll('.profile__name,.profile__bio,.social-link__platform,.social-link__handle,.profile-signature__text')].map(node=>{const style=win.getComputedStyle(node);return doc.fonts.load(`${style.fontWeight||400} ${style.fontSize||'16px'} ${style.fontFamily||'sans-serif'}`,node.textContent||'Ascendo').catch(()=>[]);}):[];await Promise.race([Promise.all([doc.fonts.ready,...requested]),new Promise(resolve=>win.setTimeout(resolve,4000))]);}
     await Promise.race([Promise.all([...doc.querySelectorAll('.profile img')].map(image=>image.decode?.().catch(()=>{})||Promise.resolve())),new Promise(resolve=>win.setTimeout(resolve,3000))]);
     const preset=doc.querySelector('.profile-background-preset');if(preset&&!preset.hidden){try{await wait(()=>preset.classList.contains('is-ready')||!preset.querySelector('.profile-background-preset__canvas')?.children.length&&Date.now()-start>6500,8000);}catch{}}
     const pendingEmbeds=()=>[...doc.querySelectorAll('.profile-widget iframe')].some(frame=>!frame.dataset.embedReady);

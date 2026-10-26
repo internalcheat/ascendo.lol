@@ -1,4 +1,4 @@
-import { normalizeVisual } from './visual-schema.mjs?v=20261026-5';
+import { normalizeVisual } from './visual-schema.mjs?v=20261026-6';
 import {BACKGROUNDS} from './background-presets.mjs?v=20261025-15';
 
 export const EFFECTS = ['none', 'glow', 'glitch', 'shimmer', 'typewriter', 'pulse', 'aurora', 'wave', 'float'];

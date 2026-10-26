@@ -1,21 +1,23 @@
+import {createExpressionEditor} from './editor-expression.mjs?v=20261026-6';
+import {createProfileExpression} from './profile-expression.mjs?v=20261026-6';
 import { request, session, storeSession, freshSession } from './editor-api.mjs';
-import { normalizeProfile, ICONS, MAX_IMAGE, MAX_VIDEO } from './profile-schema.mjs?v=20261026-5';
-import { renderProfile, bindMusic, element, replayNameEffect, bindNameEffectVisibility } from './profile-view.mjs?v=20261026-5';
+import { normalizeProfile, ICONS, MAX_IMAGE, MAX_VIDEO } from './profile-schema.mjs?v=20261026-6';
+import { renderProfile, bindMusic, element, replayNameEffect, bindNameEffectVisibility } from './profile-view.mjs?v=20261026-6';
 import { PUBLISHABLE_KEY } from './customizer-config.mjs';
-import { createProfileEffects } from './profile-effects.mjs?v=20261026-5';
+import { createProfileEffects } from './profile-effects.mjs?v=20261026-6';
 import { badgeError } from './badge-policy.mjs?v=20261025-4';
-import { createVisualEditor } from './editor-visual.mjs?v=20261026-5';
+import { createVisualEditor } from './editor-visual.mjs?v=20261026-6';
 import { createProfileBackground } from './profile-background.mjs?v=20261026-1';
-import { createEditorLayout } from './editor-layout.mjs?v=20261026-5';
-import {createAdditionalEditor} from './editor-additions.mjs?v=20261026-5';
-import {createProfileAdditions} from './profile-additions.mjs?v=20261026-5';
+import { createEditorLayout } from './editor-layout.mjs?v=20261026-6';
+import {createAdditionalEditor} from './editor-additions.mjs?v=20261026-6';
+import {createProfileAdditions} from './profile-additions.mjs?v=20261026-6';
 import {createStudioControls} from './studio-controls.mjs?v=20261025-15';
-import {applyStudioPalette} from './profile-palette.mjs?v=20261026-5';
+import {applyStudioPalette} from './profile-palette.mjs?v=20261026-6';
 import {BACKGROUNDS} from './background-catalog.mjs?v=20261025-15';
-import {createProfilePlayer} from './profile-music.mjs?v=20261026-5';
-import {createStudioLanguage,tr} from './studio-i18n.mjs?v=20261026-5';
-import {createQuickGuide} from './studio-guide.mjs?v=20261026-5';
-import {createStudioShare} from './studio-share.mjs?v=20261026-5';
+import {createProfilePlayer} from './profile-music.mjs?v=20261026-6';
+import {createStudioLanguage,tr} from './studio-i18n.mjs?v=20261026-6';
+import {createQuickGuide} from './studio-guide.mjs?v=20261026-6';
+import {createStudioShare} from './studio-share.mjs?v=20261026-6';
 
 const byId = id => document.getElementById(id);
 const form = byId('profileForm');
@@ -31,6 +33,8 @@ const visualEditor = createVisualEditor({onChange:schedulePreview,isBusy:()=>mod
 const additionalEditor=createAdditionalEditor({onChange:schedulePreview,isBusy:()=>model.busy||model.activeUploads>0,previewSound:(sound,volume)=>profileAdditions.previewSound(sound,volume),replayEntry:()=>profileAdditions.replayEntry(),replayTitle:()=>profileAdditions.replayTitle()});
 const profileEffects = createProfileEffects(panel,{scope:panel.closest('.preview-card'),preview:true});
 const profileAdditions=createProfileAdditions(panel.closest('.preview-card'),panel,{preview:true});
+const profileExpression=createProfileExpression(panel,{scope:panel.closest('.preview-card'),video,onStatus:value=>{const status=document.getElementById('musicReactiveStatus');if(status)status.textContent=value;}});
+const expressionEditor=createExpressionEditor({onChange:schedulePreview,isBusy:()=>model.busy||model.activeUploads>0,replaySignature:()=>profileExpression.replaySignature()});
 const studioLayout=createEditorLayout({isBusy:()=>model.busy||model.activeUploads>0,onNavigate:()=>{if(matchMedia('(max-width: 820px)').matches)byId('editTab').click();}});
 const studioControls=createStudioControls(form);
 const quickGuide=createQuickGuide({layout:studioLayout});
@@ -85,6 +89,7 @@ function collect() {
     effectSpeed:Number(byId('effectSpeed').value),effectStrength:Number(byId('effectStrength').value),
     ...visualEditor.collect(),
     ...additionalEditor.collect(),
+    ...expressionEditor.collect(),
     ...Object.fromEntries(Object.entries(effectFields).map(([group,fields])=>[group,Object.fromEntries(Object.entries(fields).map(([key,id])=>{
       const control=byId(id);
       return [key,control.type==='checkbox'?control.checked:control.type==='range'?Number(control.value):control.value];
@@ -104,6 +109,7 @@ function fill(config) {
   model.draft=structuredClone(config);
   visualEditor.fill(config);
   additionalEditor.fill(config);
+  expressionEditor.fill(config);
   const values={displayName:config.name,bio:config.bio,badge:config.badge,accent:config.accent,effect:config.effect,glow:config.glow,opacity:config.opacity,avatarUrl:config.avatar.url,avatarPoster:config.avatar.poster,avatarX:config.avatar.x,avatarY:config.avatar.y,backgroundKind:config.background.kind,videoUrl:config.background.kind==='video'?config.background.url:'',imageUrl:config.background.kind==='image'?config.background.url:'',backgroundPoster:config.background.poster,songTitle:config.soundtrack.title,songArtist:config.soundtrack.artist};
   for(const [id,value]of Object.entries(values)) byId(id).value=value;
   if(config.background.kind==='preset'&&config.background.preset!=='flux-lines')byId('backgroundKind').value=`preset:${config.background.preset}`;
@@ -137,12 +143,14 @@ function preview() {
   const contentKey=JSON.stringify({...config,cursorEffects:undefined,cardEffects:undefined,entranceEffects:undefined,electricBorder:undefined,overlays:undefined,previewUrls:[...previewUrls]});
   if(contentKey!==renderedPreview){renderProfile(panel,config,{previewUrls});renderedPreview=contentKey;}
   profileEffects.update(config,{previewUrls});
+  profileExpression.update(config);
   profileBackground.update(config);
   profileAdditions.update(config);
   updateEffectControls();
   updateProfileEffectControls();
   visualEditor.updateControls();
   additionalEditor.updateControls();
+  expressionEditor.updateControls();
   validateBadge();
   const source=previewUrls.get(config.background.url)||config.background.url;
   const poster=previewUrls.get(config.background.poster)||config.background.poster;
@@ -369,7 +377,7 @@ form.addEventListener('submit',async event=>{
     const saved=await request('/me',{method:'PUT',body:{revision:model.revision,config}});
     model.previous=model.saved;model.saved=saved.config;model.revision=saved.revision;model.baselineRevision=saved.revision;fill(saved.config);markDirty(false);clearDraft();byId('reloadLatest').hidden=true;message('Published. Your profile is updated.',false,true);await library().then(preview).catch(()=>message('Published. The media list could not refresh; reload it later.',false,true));
   }catch(error){rememberDraft();message(error.message,true);if(error.status===409)byId('reloadLatest').hidden=false;if(error.status===401){const link=element('a','studio-button','Sign in again');link.href='/login/';status.after(link);}}
-  finally{for(const [control,disabled]of disabledBefore)control.disabled=disabled;byId('restorePrevious').disabled=!model.previous;model.busy=false;form.removeAttribute('aria-busy');updateEffectControls();updateProfileEffectControls();visualEditor.updateControls();additionalEditor.updateControls();markDirty(model.dirty);}
+  finally{for(const [control,disabled]of disabledBefore)control.disabled=disabled;byId('restorePrevious').disabled=!model.previous;model.busy=false;form.removeAttribute('aria-busy');updateEffectControls();updateProfileEffectControls();visualEditor.updateControls();additionalEditor.updateControls();expressionEditor.updateControls();markDirty(model.dirty);}
 });
 byId('logoutButton').addEventListener('click',async()=>{
   if(model.busy){message('Wait for publishing to finish before logging out.',true);return;}
