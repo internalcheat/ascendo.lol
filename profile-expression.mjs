@@ -45,7 +45,7 @@ export function createProfileExpression(panel,{scope=panel,video,onStatus=()=>{}
  }
  function draw(live=false){
   if(!ctx||!config)return;
-  canvas.dataset.reactiveState=live&&analyser?'live':'still';
+  const state=live&&analyser?'live':'still';if(canvas.dataset.reactiveState!==state)canvas.dataset.reactiveState=state;
   const {width:w,height:h}=size,options=config.musicReactive;ctx.clearRect(0,0,w,h);ctx.strokeStyle=ctx.fillStyle=paintColor;ctx.lineWidth=1.5;
   const amount=live&&analyser?options.intensity/100*(current()?.volume||0)/.7:0;
   if(amount){analyser.getByteFrequencyData(frequency);analyser.getByteTimeDomainData(wave);}

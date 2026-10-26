@@ -35,6 +35,7 @@ await check('rich bios safely format links, emphasis, underline and quotes while
  const {panel}=environment();renderProfile(panel,enabled());assert.ok(panel.querySelector('.profile__bio strong'));assert.ok(panel.querySelector('.profile__bio em'));assert.ok(panel.querySelector('.profile__bio u'));assert.ok(panel.querySelector('blockquote'));assert.equal(panel.querySelector('.profile__bio a').rel,'noopener noreferrer');
  renderProfile(panel,{...enabled(),bio:'<img src=x onerror=alert(1)> [bad](javascript:alert) **safe**'});assert.equal(panel.querySelector('.profile__bio img'),null);assert.equal(panel.querySelector('.profile__bio a'),null);
  renderProfile(panel,{...enabled(),richBio:{enabled:false},bio:'**unchanged**'});assert.equal(panel.querySelector('.profile__bio strong'),null);assert.equal(panel.querySelector('.profile__bio').textContent,'**unchanged**');
+ renderProfile(panel,{...enabled(),bio:'***bold and italic***'});assert.equal(panel.querySelector('.profile__bio strong em').textContent,'bold and italic');
  assert.equal(plainBio('**Hello** __world__\n> [friend](https://ascendo.lol/)'),'Hello world friend');
 });
 await check('social actions, local masks, independent colors and signatures survive rendering and return to Auto cleanly',()=>{
