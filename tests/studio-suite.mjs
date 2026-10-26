@@ -13,10 +13,10 @@ import {createVisualEditor} from '../editor-visual.mjs';
 import {createAdditionalEditor} from '../editor-additions.mjs';
 import {createEditorLayout} from '../editor-layout.mjs';
 import {createStudioControls} from '../studio-controls.mjs';
-import {createStudioLanguage,tr} from '../studio-i18n.mjs?v=20261026-3';
+import {createStudioLanguage,tr} from '../studio-i18n.mjs?v=20261026-5';
 import {createQuickGuide} from '../studio-guide.mjs';
 import {FONTS} from '../font-catalog.mjs';
-import {HU} from '../studio-hu.mjs?v=20261026-3';
+import {HU} from '../studio-hu.mjs?v=20261026-5';
 import {mp3Frames,verifyMp3} from '../supabase/functions/profile-api/audio-file.mjs';
 import {badgeError} from '../badge-policy.mjs';
 import {badgeCapabilities} from '../supabase/functions/profile-api/badge-authority.mjs';
@@ -25,6 +25,8 @@ const check=async(name,run)=>{await run();checks.push(name);};
 const flush=async()=>{for(let i=0;i<8;i++)await new Promise(resolve=>setTimeout(resolve,0));};
 function environment(file='customize/index.html'){
   const win=new Window({url:'https://ascendo.lol/'+file.replace('index.html',''),settings:{disableJavaScriptEvaluation:true,disableJavaScriptFileLoading:true,disableCSSFileLoading:true,disableIframePageLoading:true}});windows.push(win);win.document.write(read(file));win.document.close();
+  // Playback fixtures are independent of owners' current published backgrounds.
+  if(file==='internalcheats/index.html')Object.assign(win.document.getElementById('musicBackground').dataset,{backgroundKind:'video',backgroundSrc:base.background.url,mobileSrc:base.background.mobile,musicSource:'video',musicSrc:'',musicVolume:'65'});
   const prefs=new Map();win.matchMedia=query=>{if(!prefs.has(query)){const pref=new win.EventTarget();pref.matches=false;prefs.set(query,pref);}return prefs.get(query);};
   Object.defineProperty(win.HTMLMediaElement.prototype,'paused',{get(){return this.__paused!==false;},configurable:true});
   win.HTMLMediaElement.prototype.play=function(){this.__paused=false;this.dispatchEvent(new win.Event('playing'));return Promise.resolve();};win.HTMLMediaElement.prototype.pause=function(){if(this.__paused!==false)return;this.__paused=true;this.dispatchEvent(new win.Event('pause'));};win.HTMLMediaElement.prototype.load=function(){};

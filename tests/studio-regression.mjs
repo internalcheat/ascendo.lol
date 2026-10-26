@@ -47,7 +47,7 @@ try{
     assert.equal(config.background.preset,'flux-lines');assert.equal(normalizeProfile(seeds.internalcheats).background.kind,'video');
     for(const preset of ['',undefined,'Flux Lines','https://example.com','<script>'])assert.throws(()=>normalizeProfile({...config,background:{...config.background,preset}}));
     const friend=normalizeProfile(JSON.parse(read('supabase/szikraaaa-profile.json')));assert.equal(friend.name,'Szikraaaa');assert.equal(friend.background.preset,'flux-lines');assert.equal(friend.socials.length,0);assert.equal(friend.bio,'');assert.equal(friend.badge,'');assert.equal(friend.cursorEffects.enabled,false);assert.equal(friend.cardEffects.enabled,false);assert.equal(friend.electricBorder.enabled,false);
-    const window=environment('Szikraaaa/index.html');assert.equal(window.document.body.dataset.person,'szikraaaa');assert.equal(window.document.querySelector('[rel=canonical]').href,'https://ascendo.lol/Szikraaaa/');assert.equal(window.document.getElementById('musicBackground').dataset.backgroundKind,'preset');assert.doesNotMatch(read('index.html'),/Szikraaaa|szikraaaa/);
+    const window=environment('Szikraaaa/index.html');assert.equal(window.document.body.dataset.person,'szikraaaa');assert.equal(window.document.querySelector('[rel=canonical]').href,'https://ascendo.lol/Szikraaaa/');assert.equal(window.document.getElementById('musicBackground').dataset.backgroundKind,JSON.parse(window.document.getElementById('profileBootstrap').textContent).config.background.kind);assert.doesNotMatch(read('index.html'),/Szikraaaa|szikraaaa/);
   });
   await check('Flux Lines controller is opt-in, reduced-motion safe and cleans up pending selection',async()=>{
     const window=environment('Szikraaaa/index.html',true);globalThis.document=window.document;const {createProfileBackground}=await import('../profile-background.mjs');
@@ -287,6 +287,7 @@ try{
   await check('public player supports mobile selection, quiet posters and dynamic copy rows',async()=>{
     for(const reduced of [false,true]){
       const window=environment('internalcheats/index.html',reduced);let copied='';Object.defineProperty(window.navigator,'clipboard',{value:{writeText:async value=>{copied=value;}}});window.isSecureContext=true;
+      Object.assign(window.document.querySelector('video').dataset,{backgroundKind:'video',backgroundSrc:seeds.internalcheats.background.url,mobileSrc:seeds.internalcheats.background.mobile,musicSource:'video',musicSrc:'',musicVolume:'65'});
       vm.runInContext(await appBundle(),window);await flush();
       const video=window.document.querySelector('video');
       if(reduced)assert.equal(video.getAttribute('src'),null);else assert.match(video.src,/music-background.mp4/);
@@ -294,7 +295,7 @@ try{
       if(!reduced){video.dataset.backgroundKind='black';video.dispatchEvent(new window.Event('ascendo:background'));assert.equal(video.getAttribute('src'),null);video.dataset.backgroundKind='video';video.dispatchEvent(new window.Event('ascendo:background'));assert.match(video.src,/music-background.mp4/);}
       window.document.dispatchEvent(new window.Event('visibilitychange'));window.dispatchEvent(new window.Event('pagehide'));
     }
-    const mobile=environment();mobile.matchMedia('(max-width: 820px), (pointer: coarse)').matches=true;vm.runInContext(await appBundle(),mobile);await flush();assert.match(mobile.document.querySelector('video').src,/music-background-mobile.mp4/);
+    const mobile=environment();Object.assign(mobile.document.querySelector('video').dataset,{backgroundKind:'video',backgroundSrc:seeds.internalcheats.background.url,mobileSrc:seeds.internalcheats.background.mobile,musicSource:'video',musicSrc:'',musicVolume:'65'});mobile.matchMedia('(max-width: 820px), (pointer: coarse)').matches=true;vm.runInContext(await appBundle(),mobile);await flush();assert.match(mobile.document.querySelector('video').src,/music-background-mobile.mp4/);
   });
   await check('Easter egg requires five activations and cleans up without overlaps',async()=>{
     const window=environment('index.html');const running=[];window.Element.prototype.animate=function(frames,options){let resolve;const animation={frames,options,finished:new Promise(done=>{resolve=done;}),cancel(){}};animation.resolve=resolve;running.push(animation);return animation;};

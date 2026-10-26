@@ -272,3 +272,34 @@ Profile playback now resumes after tab visibility, focus and back/forward restor
 The Accent color picker stays enabled in every theme. In Custom colors it updates Main color; editing it in Black & White switches to Custom colors with the selected accent and neutral secondary. The studio reflects the actual accent. Optional textColors stores independent bio/socialLabel hex colors; null retains automatic styling. Auto toggles, private preview, save/discard/previous versions and old-client preservation use the existing settings workflow. Both bio paragraphs and links share the selected bio color; social platform captions use the label color. Media stays unchanged. Strict shared validation rejects extra fields or CSS. No production profile settings are rewritten.
 
 Verification covers repeated hide/restore and focus cycles, quiet-mode activation, preserved volume/playhead and source load counts, independent MP3 playback, accent editing in all themes, text-color validation/persistence and the full existing regression suite. CNAME, credentials, media and plugin binaries are unchanged.
+
+## Owner sharing and profile metadata (20261026-5)
+
+The owner-only Share dialog copies the canonical link, downloads a local 1024px
+QR code and queues a full desktop profile PNG. Everything uses a separate saved
+snapshot: opening Share never saves, clears or exports an editor draft. EN/HU,
+keyboard focus, Escape and reduced motion are supported.
+
+GitHub Actions renders cards with native Chrome and refreshes static profile HTML.
+No Cloudflare account, Worker, Browser Run, DNS change or additional sign-in is
+required. The existing GitHub Pages source, domain and login protection remain.
+A scheduled workflow checks roughly every five minutes; GitHub can delay it.
+Cards therefore show a clear queued state. Saved names, bios and avatars appear
+in initial HTML after the next successful refresh/build; already-posted Discord
+previews can remain cached independently.
+
+The existing authenticated API resolves ownership, validates the saved revision
+and queues only that profile. Short-lived GitHub OIDC authorizes the exact main
+workflow; no new long-lived secret is stored. The capture browser receives no
+owner session or workflow credentials. Link and QR downloads do not wait for
+the queue. Captures are silent, 1920px wide and full-height, with an address footer,
+provider fallbacks and strict 16,000px/20 MiB limits. One derived private export per
+owner lasts 24 hours; signed links last five minutes, with a 100 MiB cache ceiling
+and twelve generations per UTC day across the site.
+
+See [SHARING.md](SHARING.md) for deployment, limits, verification and rollback.
+The suite covers QR decoding, safe metadata and static content, signed OIDC,
+owner/revision enforcement, queue isolation, draft preservation, output bounds
+and silent capture preparation. Database tests roll back all fixtures. Native
+screenshot tests run only on GitHub's runner, across twelve layouts and a long
+profile; they do not reload the owner's studio.

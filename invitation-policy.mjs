@@ -1,4 +1,4 @@
-import {normalizeProfile} from './profile-schema.mjs?v=20261026-3';
+import {normalizeProfile} from './profile-schema.mjs?v=20261026-5';
 
 import {normalizeHandle} from './handle-policy.mjs?v=20261025-13';
 export {normalizeHandle,RESERVED_HANDLES} from './handle-policy.mjs?v=20261025-13';

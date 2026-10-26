@@ -1,20 +1,21 @@
 import { request, session, storeSession, freshSession } from './editor-api.mjs';
-import { normalizeProfile, ICONS, MAX_IMAGE, MAX_VIDEO } from './profile-schema.mjs?v=20261026-3';
-import { renderProfile, bindMusic, element, replayNameEffect, bindNameEffectVisibility } from './profile-view.mjs?v=20261026-3';
+import { normalizeProfile, ICONS, MAX_IMAGE, MAX_VIDEO } from './profile-schema.mjs?v=20261026-5';
+import { renderProfile, bindMusic, element, replayNameEffect, bindNameEffectVisibility } from './profile-view.mjs?v=20261026-5';
 import { PUBLISHABLE_KEY } from './customizer-config.mjs';
-import { createProfileEffects } from './profile-effects.mjs?v=20261026-3';
+import { createProfileEffects } from './profile-effects.mjs?v=20261026-5';
 import { badgeError } from './badge-policy.mjs?v=20261025-4';
-import { createVisualEditor } from './editor-visual.mjs?v=20261026-3';
+import { createVisualEditor } from './editor-visual.mjs?v=20261026-5';
 import { createProfileBackground } from './profile-background.mjs?v=20261026-1';
-import { createEditorLayout } from './editor-layout.mjs?v=20261026-3';
-import {createAdditionalEditor} from './editor-additions.mjs?v=20261026-3';
-import {createProfileAdditions} from './profile-additions.mjs?v=20261026-3';
+import { createEditorLayout } from './editor-layout.mjs?v=20261026-5';
+import {createAdditionalEditor} from './editor-additions.mjs?v=20261026-5';
+import {createProfileAdditions} from './profile-additions.mjs?v=20261026-5';
 import {createStudioControls} from './studio-controls.mjs?v=20261025-15';
-import {applyStudioPalette} from './profile-palette.mjs?v=20261026-3';
+import {applyStudioPalette} from './profile-palette.mjs?v=20261026-5';
 import {BACKGROUNDS} from './background-catalog.mjs?v=20261025-15';
-import {createProfilePlayer} from './profile-music.mjs?v=20261026-3';
-import {createStudioLanguage,tr} from './studio-i18n.mjs?v=20261026-3';
-import {createQuickGuide} from './studio-guide.mjs?v=20261026-3';
+import {createProfilePlayer} from './profile-music.mjs?v=20261026-5';
+import {createStudioLanguage,tr} from './studio-i18n.mjs?v=20261026-5';
+import {createQuickGuide} from './studio-guide.mjs?v=20261026-5';
+import {createStudioShare} from './studio-share.mjs?v=20261026-5';
 
 const byId = id => document.getElementById(id);
 const form = byId('profileForm');
@@ -34,6 +35,7 @@ const studioLayout=createEditorLayout({isBusy:()=>model.busy||model.activeUpload
 const studioControls=createStudioControls(form);
 const quickGuide=createQuickGuide({layout:studioLayout});
 const studioLanguage=createStudioLanguage({request,onChange:()=>{studioControls.close();studioControls.refresh();}});
+const studioShare=createStudioShare({request,getSaved:()=>model.saved?{slug:model.slug,revision:model.baselineRevision,config:model.saved}:null,isBusy:()=>model.busy||model.activeUploads>0});
 let renderedPreview;
 const effectFields = {
   cursorEffects:{enabled:'cursorEnabled',style:'cursorStyle',color:'cursorColor',size:'cursorSize',trail:'cursorTrail',trailLength:'cursorTrailLength',trailSmoothness:'cursorTrailSmoothness',clickEffect:'cursorClickEffect'},
@@ -66,6 +68,7 @@ function message(value, error = false, success = false) {
   status.dataset.success=String(success);
 }
 function markDirty(value = true) {
+  studioShare.refresh();
   model.dirty=value;
   byId('saveState').textContent=value?'Unpublished changes':'All changes saved';
   byId('saveChanges').disabled=model.busy || model.activeUploads>0 || !value || !!badgeError(byId('badge').value,model.canUseReservedBadges);
