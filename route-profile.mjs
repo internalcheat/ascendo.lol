@@ -28,7 +28,7 @@ export async function resolveProfileRoute(){
   if(location.pathname!==`/${slug}/`)history.replaceState(history.state,'',`/${slug}/${location.search}${location.hash}`);
   try{localStorage.setItem(`ascendo-profile-v1:${slug}`,JSON.stringify(config));}catch{}
   document.dispatchEvent(new Event('ascendo:profile-ready'));
-  await import('./profile-client.mjs?v=20261026-1');
+  await import('./profile-client.mjs?v=20261026-3');
   return true;
 }
 if(document.body.classList.contains('page--notfound'))resolveProfileRoute();

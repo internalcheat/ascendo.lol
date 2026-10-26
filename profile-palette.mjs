@@ -9,6 +9,6 @@ function luminance(color){const rgb=channels(color).map(value=>{const channel=va
 export function readableAccent(color){const base=luminance('#100d16'),rgb=channels(color);let result=color;for(let step=0;step<=20;step++){result='#'+rgb.map(value=>Math.round(value+(255-value)*step/20).toString(16).padStart(2,'0')).join('');if((luminance(result)+.05)/(base+.05)>=4.5)break;}return result;}
 export function applyStudioPalette(root,profile){
   const palette=themePalette(profile);root.dataset.studioTheme=profile.colorTheme||'original';
-  const primary=profile.colorTheme==='original'?'#c19aff':palette.primary,secondary=profile.colorTheme==='original'?'#8b5cf6':palette.secondary;
+  const primary=palette.primary,secondary=palette.secondary;
   root.style.setProperty('--studio-primary',primary);root.style.setProperty('--studio-secondary',secondary);root.style.setProperty('--studio-primary-rgb',channels(primary).join(','));root.style.setProperty('--studio-secondary-rgb',channels(secondary).join(','));root.style.setProperty('--studio-focus',readableAccent(primary));
 }

@@ -12,15 +12,15 @@
 <link rel="shortcut icon" href="/assets/ascendo-icon.ico?v=20261023-2">
 <link rel="stylesheet" href="/styles.css?v=20261025-1">
 <link rel="stylesheet" href="/profile-custom.css?v=20261025-4">
-<link rel="stylesheet" href="/profile-effects.css?v=20261025-6">
-<link rel="stylesheet" href="/editor.css?v=20261025-6">
-<link rel="stylesheet" href="/editor-layout.css?v=20261025-15">
-<script src="/app.js?v=20261025-15" defer></script>
-<script type="module" src="/editor.mjs?v=20261026-1"></script>
+<link rel="stylesheet" href="/profile-effects.css?v=20261026-3">
+<link rel="stylesheet" href="/editor.css?v=20261026-3">
+<link rel="stylesheet" href="/editor-layout.css?v=20261026-3">
+<script src="/app.js?v=20261026-3" defer></script>
+<script type="module" src="/editor.mjs?v=20261026-3"></script>
 <link rel="stylesheet" href="/fonts.css?v=20261025-11">
-<link rel="stylesheet" href="/profile-visual.css?v=20261026-1">
-<link rel="stylesheet" href="/profile-additions.css?v=20261025-12">
-<link rel="stylesheet" href="/profile-palette.css?v=20261025-14">
+<link rel="stylesheet" href="/profile-visual.css?v=20261026-3">
+<link rel="stylesheet" href="/profile-additions.css?v=20261026-3">
+<link rel="stylesheet" href="/profile-palette.css?v=20261026-3">
 <link rel="stylesheet" href="/studio-controls.css?v=20261025-14">
 </head>
 <body class="page page--editor">
@@ -47,6 +47,8 @@
 <label class="studio-label">Main color<input class="studio-input" id="themePrimary" type="color" value="#c19aff"></label>
 <label class="studio-label">Secondary color<input class="studio-input" id="themeSecondary" type="color" value="#8b5cf6"></label>
 <label class="studio-label">Accent color<input class="studio-input" id="accent" type="color" ></label>
+<div><label class="studio-check"><input id="bioColorAuto" type="checkbox" checked> Automatic bio color</label><label class="studio-label">Bio text color<input class="studio-input" id="bioColor" type="color" value="#eee6f6" disabled></label></div>
+<div><label class="studio-check"><input id="socialLabelColorAuto" type="checkbox" checked> Automatic social label color</label><label class="studio-label">Social label color<input class="studio-input" id="socialLabelColor" type="color" value="#c3b7ce" disabled></label></div>
 <label class="studio-label">Name effect<select class="studio-input" id="effect" aria-describedby="effectHelp"><option value="none">None</option><option value="glow">Steady glow</option><option value="glitch">Glitch</option><option value="shimmer">Shimmer</option><option value="typewriter">Typewriter</option><option value="pulse">Neon pulse</option><option value="aurora">Aurora</option><option value="wave">Letter wave</option><option value="float">Float</option></select></label>
 <label class="studio-label">Name glow<input class="studio-input" id="glow" type="range" min="0" max="100" step="1"></label>
 <label class="studio-label">Card opacity<input class="studio-input" id="opacity" type="range" min="25" max="95" step="1"></label>
