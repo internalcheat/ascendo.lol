@@ -1,5 +1,5 @@
-import { FONTS, TEXT_SIZES, LAYOUTS, OVERLAY_PRESETS } from './visual-schema.mjs?v=20261026-3';
-import { element } from './profile-view.mjs?v=20261026-3';
+import { FONTS, TEXT_SIZES, LAYOUTS, OVERLAY_PRESETS } from './visual-schema.mjs?v=20261026-4';
+import { element } from './profile-view.mjs?v=20261026-4';
 import {FONT_GROUPS} from './font-catalog.mjs?v=20261025-11';
 
 export function createVisualEditor({onChange,isBusy}) {

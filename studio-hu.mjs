@@ -2,6 +2,46 @@ export const HU=Object.fromEntries(`Automatic bio color|Automatikus bemutatkozá
 Automatic social label color|Automatikus elérhetőségfelirat-szín
 Bio text color|Bemutatkozás színe
 Social label color|Elérhetőségfeliratok színe
+Close|Bezárás
+Share|Megosztás
+Loading saved profile…|Mentett profil betöltése…
+Your studio session changed. Reopen the studio after preserving your draft.|Megváltozott a szerkesztői munkamenet. A piszkozat megőrzése után nyisd meg újra a szerkesztőt.
+Share your profile|Profilod megosztása
+Uses your saved public profile. Your draft stays private.|A mentett, nyilvános profilodat használja. A piszkozatod privát marad.
+Public profile link|Nyilvános profilhivatkozás
+Copy link|Link másolása
+Profile link copied.|Profillink másolva.
+Select and copy your profile link.|Jelöld ki és másold ki a profilhivatkozást.
+QR code|QR-kód
+Profile QR code|Profil QR-kódja
+Download QR|QR-kód letöltése
+Profile card|Profilkártya
+Your saved profile card|Mentett profilkártyád
+Generate card|Kártya készítése
+Generating card…|Kártya készítése…
+Download PNG|PNG letöltése
+Your card is ready.|A kártyád elkészült.
+Profile card downloaded.|Profilkártya letöltve.
+Generating your saved profile. This can take a moment.|A mentett profilod képe készül. Ez eltarthat egy kis ideig.
+Your saved profile changed. Generate a new card.|A mentett profilod megváltozott. Készíts új kártyát.
+Could not generate the QR code. Please try again.|Nem sikerült elkészíteni a QR-kódot. Próbáld újra.
+Image downloads are unavailable in this browser.|Ez a böngésző nem támogatja a képletöltést.
+The card download could not be verified.|A kártya letöltési címét nem sikerült ellenőrizni.
+The card download expired. Open Share again to refresh it.|A letöltési link lejárt. Nyisd meg újra a Megosztás ablakot.
+This profile image is too large.|Ez a profilkép-export túl nagy.
+The generated card is not a valid PNG.|Az elkészült kártya nem érvényes PNG-kép.
+This profile is too tall for one image.|Ez a profil túl hosszú egyetlen képhez.
+Card generation failed. Please try again.|Nem sikerült elkészíteni a kártyát. Próbáld újra.
+Could not check card generation.|Nem sikerült lekérni a kártyakészítés állapotát.
+Card generation needs Cloudflare setup. Link and QR downloads are ready.|A kártyakészítéshez még be kell állítani a Cloudflare-t. A link és a QR-kód már használható.
+The free card-generation allowance is used up. Try again tomorrow.|Elfogyott az ingyenes kártyakészítési keret. Próbáld újra holnap.
+Card generation took too long. Please try again.|A kártyakészítés túllépte az időkorlátot. Próbáld újra.
+This profile is too tall or too large for one image.|Ez a profil túl hosszú vagy túl nagy egyetlen képhez.
+Card generation is busy. Try again in a moment.|A kártyakészítő foglalt. Próbáld újra kicsit később.
+Wait a moment before generating another card.|Várj egy kicsit az újabb kártya készítése előtt.
+Could not prepare your profile card.|Nem sikerült előkészíteni a profilkártyádat.
+Could not download your profile card.|Nem sikerült letölteni a profilkártyádat.
+Choose the saved profile version.|Válaszd a mentett profilverziót.
 Upload an MP3 before saving this music source.|Az MP3 mód mentése előtt tölts fel egy MP3-fájlt.
 Use a complete HTTPS URL.|Adj meg teljes HTTPS-hivatkozást.
 Use a public HTTPS address without embedded credentials.|Nyilvános HTTPS-címet adj meg, beágyazott belépési adatok nélkül.

@@ -6,6 +6,7 @@ import { preserveVisualGroups } from '../../../visual-schema.mjs';
 import { verifyOverlayVideo } from './overlay-video.mjs';
 import { normalizeHandle, createInvitedProfile } from '../../../invitation-policy.mjs';
 import {verifyMp3} from './audio-file.mjs';
+import {createShareService} from './share-service.mjs';
 
 const url = Deno.env.get('SUPABASE_URL')!;
 const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -14,6 +15,8 @@ const site = 'https://ascendo.lol';
 const encoder = new TextEncoder();
 const headers = { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'no-referrer' };
 let runtimePromise: Promise<any> | undefined;
+let shareService: any;
+function shares(){return shareService??=createShareService({admin,command,body,env:Deno.env,background:(task:Promise<unknown>)=>EdgeRuntime.waitUntil(task)});}
 
 class HttpError extends Error {
   constructor(public status: number, message: string) { super(message); }
@@ -157,6 +160,7 @@ async function route(request: Request, path: string) {
     const {data,error}=await admin.rpc('editor_cleanup_owners');
     if(error)throw new HttpError(503,'Cleanup unavailable.');
     for(const ownerId of data)await cleanup(ownerId);
+    await shares().cleanup();
     return {cleaned:true};
   }
   if (request.method === 'GET' && path === '/status') {
@@ -217,6 +221,10 @@ async function route(request: Request, path: string) {
     return { access_token: data.session.access_token, refresh_token: data.session.refresh_token, expires_at: data.session.expires_at };
   }
   const user = await owner(request);
+  if(path==='/share/card'){
+    try{const result=await shares().route(request,user);return new Response(JSON.stringify(result),{status:request.method==='POST'&&result.state==='pending'?202:200,headers});}
+    catch(error){throw new HttpError(error.status||503,error.status?error.message:'Could not prepare your profile card.');}
+  }
   if (request.method === 'DELETE' && path === '/session') {
     const {error}=await admin.auth.admin.signOut(user.token, 'local');
     if(error)throw new HttpError(503,'Could not securely end the session. Please retry.');
@@ -319,6 +327,7 @@ Deno.serve(async request => {
   try {
     const path = new URL(request.url).pathname.replace(/^\/profile-api/, '') || '/';
     const data = await route(request, path);
+    if(data instanceof Response)return new Response(data.body,{status:data.status,headers:{...headers,...Object.fromEntries(data.headers),...cors}});
     return new Response(JSON.stringify(data), { status: 200, headers: { ...headers, ...cors } });
   } catch (error) {
     if(!(error instanceof HttpError))console.error('profile_unexpected_error',error?.name||'Unknown');

@@ -1,7 +1,7 @@
 import { createOverlayParticles } from './overlay-particles.mjs?v=20261025-15';
 import { createChromaKey } from './chroma-key.mjs?v=20261025-6';
-import {isTiledLayout} from './visual-schema.mjs?v=20261026-3';
-import {themePalette} from './profile-palette.mjs?v=20261026-3';
+import {isTiledLayout} from './visual-schema.mjs?v=20261026-4';
+import {themePalette} from './profile-palette.mjs?v=20261026-4';
 
 function contour(width,height,radius) {
   const points=[], arc=Math.PI*radius/2;
@@ -97,7 +97,7 @@ export function createProfileAtmosphere(panel,scope,{clock,preview=false}) {
     for(const record of borders.values()){record.glow.setAttribute('stroke',settings.color);record.core.setAttribute('stroke',settings.color);record.svg.toggleAttribute('hidden',!active);}
   }
   function geometry(){
-    width=preview?scope.clientWidth:win.innerWidth;height=preview?scope.clientHeight:win.innerHeight;
+    const capture=doc.documentElement.dataset.profileCapture==='true';width=preview||capture?scope.clientWidth:win.innerWidth;height=preview||capture?scope.clientHeight:win.innerHeight;
     width=Math.max(1,width||1);height=Math.max(1,height||1);
     const ratio=Math.min(mobile.matches?1:1.5,win.devicePixelRatio||1)*quality;
     const maximum=mobile.matches?960:1920,scale=Math.min(ratio,maximum/Math.max(width,height));

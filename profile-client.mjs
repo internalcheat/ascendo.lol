@@ -1,26 +1,28 @@
 import { API_URL, PUBLISHABLE_KEY } from './customizer-config.mjs';
-import { normalizeProfile } from './profile-schema.mjs?v=20261026-3';
-import { renderProfile, bindMusic, bindNameEffectVisibility } from './profile-view.mjs?v=20261026-3';
-import { createProfileEffects } from './profile-effects.mjs?v=20261026-3';
+import { normalizeProfile } from './profile-schema.mjs?v=20261026-4';
+import { renderProfile, bindMusic, bindNameEffectVisibility } from './profile-view.mjs?v=20261026-4';
+import { createProfileEffects } from './profile-effects.mjs?v=20261026-4';
 import { createProfileBackground } from './profile-background.mjs?v=20261026-1';
-import {createProfileAdditions} from './profile-additions.mjs?v=20261026-3';
-import {themePalette,channels} from './profile-palette.mjs?v=20261026-3';
+import {createProfileAdditions} from './profile-additions.mjs?v=20261026-4';
+import {themePalette,channels} from './profile-palette.mjs?v=20261026-4';
 
 bindNameEffectVisibility();
 
 async function profile(slug, apply) {
   const cacheKey=`ascendo-profile-v1:${slug}`;
+  let bootstrapped=false;
+  try{const initial=JSON.parse(document.getElementById('profileBootstrap')?.textContent||'null');if(initial?.slug===slug&&Number.isSafeInteger(initial.revision)&&initial.revision>0){apply(normalizeProfile(initial.config),initial.revision);bootstrapped=true;}}catch{}
   try {
     const cached=JSON.parse(localStorage.getItem(cacheKey)||'null');
-    if(cached)apply(normalizeProfile(cached));
+    if(cached&&!bootstrapped)apply(normalizeProfile(cached.config||cached),cached.revision);
   }catch{}
   try {
     const response=await fetch(`${API_URL}/public/${encodeURIComponent(slug)}`,{headers:{apikey:PUBLISHABLE_KEY},credentials:'omit',cache:'no-store',referrerPolicy:'no-referrer',signal:AbortSignal.timeout(5000)});
     if(!response.ok)return;
     const result=await response.json();
     const config=normalizeProfile(result.config);
-    apply(config);
-    try{localStorage.setItem(cacheKey,JSON.stringify(config));}catch{}
+    apply(config,result.revision);
+    try{localStorage.setItem(cacheKey,JSON.stringify({config,revision:result.revision}));}catch{}
   }catch{}
 }
 
@@ -32,7 +34,8 @@ if(panel){
   const video=document.getElementById('musicBackground');
   const update=bindMusic(video,panel);
   let rendered;
-  profile(document.body.dataset.person,config=>{
+  profile(document.body.dataset.person,(config,revision)=>{
+    if(Number.isSafeInteger(revision)&&revision>0)document.body.dataset.profileRevision=String(revision);
     const serialized=JSON.stringify(config);
     if(serialized===rendered)return;
     rendered=serialized;

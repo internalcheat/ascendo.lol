@@ -1,5 +1,5 @@
 import {createEntryAudio} from './profile-entry-audio.mjs?v=20261025-11';
-import {suspendWidgetPlayers,resumeWidgetPlayers} from './profile-widgets.mjs?v=20261026-3';
+import {suspendWidgetPlayers,resumeWidgetPlayers} from './profile-widgets.mjs?v=20261026-4';
 
 export function createProfileAdditions(scope,panel,{preview=false}={}){
   const doc=scope.ownerDocument,win=doc.defaultView,reduced=win.matchMedia('(prefers-reduced-motion: reduce)'),audio=createEntryAudio(win),abort=new win.AbortController();
@@ -46,6 +46,7 @@ export function createProfileAdditions(scope,panel,{preview=false}={}){
   enterButton.addEventListener('click',()=>enter(),{signal:abort.signal});
   gate.addEventListener('keydown',event=>{if(event.key==='Escape'&&!preview){event.preventDefault();enter({quiet:true});}if(event.key==='Tab'&&!preview){event.preventDefault();enterButton.focus();}},{signal:abort.signal});
   function update(next){
+    if(doc.documentElement.dataset.profileCapture==='true')next={...next,enterScreen:{...next.enterScreen,enabled:false},pageTitle:{...next.pageTitle,enabled:false}};
     const previous=config;config=next;const key=JSON.stringify(next.enterScreen);
     first.textContent=next.enterScreen.title||'Click to enter';second.textContent=next.enterScreen.subtitle;second.hidden=!next.enterScreen.subtitle;gate.style.setProperty('--entry-display-font',panel.style.getPropertyValue('--display-font'));gate.style.setProperty('--entry-body-font',panel.style.getPropertyValue('--body-font'));
     if(!next.enterScreen.enabled){const wasGated=!entered;entered=true;gate.hidden=true;scope.classList.remove('profile-entry-active');releaseInert();if(wasGated){audio.stop();resumeWidgetPlayers(panel);}if(video){video.dataset.entryBlocked='false';if(wasGated&&!preview)video.dispatchEvent(new win.Event('ascendo:background'));}}

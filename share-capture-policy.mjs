@@ -1,0 +1,7 @@
+import {publicProfileUrl} from './share-policy.mjs';
+const allowedHosts=['ascendo.lol','fstdttaxflayhtwhnbih.supabase.co','open.spotify.com','embed-cdn.spotifycdn.com','i.scdn.co','image-cdn-fa.spotifycdn.com','embed.music.apple.com','is1-ssl.mzstatic.com','is2-ssl.mzstatic.com','is3-ssl.mzstatic.com','is4-ssl.mzstatic.com','is5-ssl.mzstatic.com','www.youtube-nocookie.com','i.ytimg.com','s.ytimg.com','player.twitch.tv','static.twitchcdn.net'];
+export function captureOptions(slug,revision,origin='https://ascendo.lol'){
+  const base=new URL(origin);if(base.protocol!=='https:'||base.username||base.password||base.port||base.pathname!=='/'||!(base.hostname==='ascendo.lol'||/^[a-z0-9-]+\.[a-z0-9-]+\.workers\.dev$/.test(base.hostname)))throw Error('Invalid capture origin');
+  const url=new URL(publicProfileUrl(slug));url.host=base.host;url.searchParams.set('__ascendo_capture','1');url.searchParams.set('__ascendo_revision',String(revision));
+  return {url:url.href,formats:['content','screenshot'],viewport:{width:1280,height:720,deviceScaleFactor:1.5},gotoOptions:{waitUntil:'domcontentloaded',timeout:15000},actionTimeout:35000,waitForSelector:{selector:'[data-share-capture-state="ready"],[data-share-capture-state="failed"]',timeout:20000},screenshotOptions:{type:'png',fullPage:true,captureBeyondViewport:true},rejectResourceTypes:['media','websocket','eventsource','ping'],allowRequestPattern:[`^https://(?:${[...new Set([...allowedHosts,base.hostname])].map(host=>host.replaceAll('.','\\.')).join('|')})(?:/|$)`]};
+}

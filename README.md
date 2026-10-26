@@ -272,3 +272,47 @@ Profile playback now resumes after tab visibility, focus and back/forward restor
 The Accent color picker stays enabled in every theme. In Custom colors it updates Main color; editing it in Black & White switches to Custom colors with the selected accent and neutral secondary. The studio reflects the actual accent. Optional textColors stores independent bio/socialLabel hex colors; null retains automatic styling. Auto toggles, private preview, save/discard/previous versions and old-client preservation use the existing settings workflow. Both bio paragraphs and links share the selected bio color; social platform captions use the label color. Media stays unchanged. Strict shared validation rejects extra fields or CSS. No production profile settings are rewritten.
 
 Verification covers repeated hide/restore and focus cycles, quiet-mode activation, preserved volume/playhead and source load counts, independent MP3 playback, accent editing in all themes, text-color validation/persistence and the full existing regression suite. CNAME, credentials, media and plugin binaries are unchanged.
+
+## Owner sharing and profile metadata (20261026-4)
+
+The studio adds an owner-only Share dialog for the canonical profile link, a local
+1024px QR PNG and an optional native desktop screenshot. It reads the latest saved
+profile into a separate snapshot; it never collects, saves, clears or exports the
+editor draft. QR codes use bundled `qrcode@1.5.4`, four-module quiet zones, black
+modules on white, and a restrained saved-theme frame. The dialog supports EN/HU,
+keyboard focus, Escape, reduced motion and independent failure states.
+
+Screenshot generation uses the authenticated `/share/card` API and a protected
+Cloudflare Browser Run Worker. Only the saved revision is submitted by the editor.
+The server resolves ownership, allows one active job, checks revisions before and
+after capture and caches one private derived PNG per owner/revision/renderer for
+24 hours. Signed downloads last five minutes. The export renders the actual public
+profile at 1280 CSS pixels and 1.5x scale, with complete content and a reserved
+bottom-right address footer; it excludes navigation, volume/cursor controls and
+entry screens. Media stays silent, still fallbacks remain available, finite reveals
+finish, and unavailable embedded players become matching static tiles. Images
+over 16,000px tall or 20 MiB fail instead of cropping. A private 100 MiB derived
+cache, conservative global free-use cap and bounded timeouts protect the service.
+Link copying and QR downloads do not depend on Browser Run being available.
+
+The separate metadata Worker serves the saved display name, plain bio (up to 280
+characters), public avatar/still, canonical URL and image description in initial
+HTML for normal browsers and crawlers alike. It caches metadata for 30 seconds,
+supports newly claimed handles and canonical capitalization, preserves legacy
+redirects/unlisted indexing rules, and leaves assets/downloads at the Pages origin.
+Discord can retain previously generated embeds longer than this metadata cache.
+
+Deployment is deliberately split: compatible private cache/API first, then Worker
+staging, followed by reviewed frontend publication and guided DNS activation.
+The Worker is **not activated by merging source files**. Cloudflare authorization,
+free-plan verification, staging captures and the owner-reviewed DNS comparison
+are required before claiming live screenshot/Discord-preview functionality.
+Complete setup, request-limit fail-open and rollback instructions are in
+[`worker/SETUP.md`](worker/SETUP.md). No credentials belong in the repository.
+
+`npm test` includes independent QR decoding, hostile metadata, SSR routes, saved
+snapshot/draft isolation, forged export requests, concurrent jobs, cache reuse,
+revision races, output limits, provider quota/timeouts and capture-mode silence.
+`tests/profile-sharing.sql` checks the real cache RPC in a transaction that rolls
+back every isolated fixture. Passing these checks is not a claim of physical
+phone tests, Discord message tests or Cloudflare staging before authorization.

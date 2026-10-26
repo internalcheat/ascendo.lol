@@ -1,7 +1,7 @@
-import { normalizeProfile, safeUrl } from './profile-schema.mjs?v=20261026-3';
-import { FONTS, TEXT_SIZES, isTiledLayout } from './visual-schema.mjs?v=20261026-3';
-import {renderWidgets} from './profile-widgets.mjs?v=20261026-3';
-import {themePalette,channels} from './profile-palette.mjs?v=20261026-3';
+import { normalizeProfile, safeUrl } from './profile-schema.mjs?v=20261026-4';
+import { FONTS, TEXT_SIZES, isTiledLayout } from './visual-schema.mjs?v=20261026-4';
+import {renderWidgets} from './profile-widgets.mjs?v=20261026-4';
+import {themePalette,channels} from './profile-palette.mjs?v=20261026-4';
 
 export function element(tag, className = '', content) {
   const node = document.createElement(tag);

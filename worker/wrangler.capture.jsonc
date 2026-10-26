@@ -1,0 +1,14 @@
+{
+  "name": "ascendo-profile-capture",
+  "main": "capture.mjs",
+  "compatibility_date": "2026-10-26",
+  "workers_dev": true,
+  "browser": {"binding": "BROWSER"},
+  "vars": {"FREE_PLAN_CONFIRMED": "false"},
+  "env": {"staging": {
+    "name": "ascendo-profile-capture-staging",
+    "workers_dev": true,
+    "browser": {"binding": "BROWSER"},
+    "vars": {"FREE_PLAN_CONFIRMED": "false"}
+  }}
+}
