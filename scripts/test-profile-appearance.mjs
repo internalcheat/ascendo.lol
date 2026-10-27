@@ -72,7 +72,10 @@ try{
   await page.waitForFunction(()=>document.getElementById('studio-section-cursor').dataset.expanded==='true');
   await page.evaluate(()=>{for(const id of ['cursorEnabled','cursorTrail']){const input=document.getElementById(id);input.checked=true;input.dispatchEvent(new Event('input',{bubbles:true}));}const click=document.getElementById('cursorClickEffect');click.value='ripple';click.dispatchEvent(new Event('change',{bubbles:true}));});
   await page.waitForFunction(()=>!document.querySelector('.cursor-choice').disabled);
-  await page.click('[data-cursor-style=ring]');await page.keyboard.press('ArrowRight');assert.equal(await page.$eval('#cursorStyle',node=>node.value),'crosshair');
+  await page.waitForFunction(()=>[...document.querySelectorAll('.studio-section')].every(node=>node.getAnimations().length===0));
+  await page.$eval('[data-cursor-style=ring]',node=>node.scrollIntoView({block:'center',behavior:'instant'}));
+  await page.evaluate(()=>new Promise((resolve,reject)=>{let previous='',stable=0,frames=0;function tick(){const node=document.querySelector('[data-cursor-style=ring]'),r=node.getBoundingClientRect(),now=[r.left,r.top,r.width,r.height,scrollY].map(n=>Math.round(n*10)).join();stable=now===previous?stable+1:0;previous=now;if(stable>=8&&node.contains(document.elementFromPoint(r.left+r.width/2,r.top+r.height/2)))resolve();else if(++frames>180)reject(Error('Cursor choice did not settle into an uncovered position'));else requestAnimationFrame(tick);}requestAnimationFrame(tick);}));
+  await page.click('[data-cursor-style=ring]');await page.waitForFunction(()=>document.getElementById('cursorStyle').value==='ring');await page.focus('[data-cursor-style=ring]');await page.keyboard.press('ArrowRight');assert.equal(await page.$eval('#cursorStyle',node=>node.value),'crosshair');
   await page.waitForFunction(()=>[...document.querySelectorAll('.cursor-choice img[src]')].every(node=>node.complete&&node.naturalWidth));
   if(width===1280){
    await page.$eval('#cursorTestArea',node=>node.scrollIntoView({block:'center',behavior:'instant'}));
