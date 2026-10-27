@@ -1,4 +1,5 @@
-import {normalizeExpression,EXPRESSION_GROUPS} from './expression-schema.mjs?v=20261026-9';
+import {normalizeAppearance,normalizeBorderStyle,APPEARANCE_GROUPS} from './appearance-schema.mjs?v=20261027-1';
+import {normalizeExpression,EXPRESSION_GROUPS} from './expression-schema.mjs?v=20261027-1';
 import {FONTS} from './font-catalog.mjs?v=20261025-11';
 import {normalizeFeatureSettings,FEATURE_GROUPS} from './feature-schema.mjs?v=20261025-11';
 export {FONTS};
@@ -8,7 +9,7 @@ export const TILED_LAYOUTS=['bento','magazine','stack','wall','spine','collage',
 export const isTiledLayout=layout=>TILED_LAYOUTS.includes(layout);
 export const layoutWidth=layout=>({portrait:720,bento:960,magazine:1040,deck:760,stack:560,wall:1120,spine:920,collage:1040,flow:760,numbers:900}[layout]||460);
 export const OVERLAY_PRESETS = ['snow','rain','petals','embers','stars','fireflies','dust','bubbles','confetti','sparkles','meteors','matrix','aurora','ripples','fireworks'];
-export const VISUAL_GROUPS = ['colorTheme','themeColors','textColors','typography','cardLayout','electricBorder','overlays',...FEATURE_GROUPS,...EXPRESSION_GROUPS];
+export const VISUAL_GROUPS = ['colorTheme','themeColors','textColors','typography','cardLayout','electricBorder','overlays',...FEATURE_GROUPS,...EXPRESSION_GROUPS,...APPEARANCE_GROUPS];
 export const MEDIA_ORIGIN = 'https://fstdttaxflayhtwhnbih.supabase.co/storage/v1/object/public/profile-media/';
 
 function object(value, keys, label) {
@@ -47,7 +48,7 @@ export function normalizeVisual(input, accent) {
   const textColors=object(input.textColors,['bio','socialLabel'],'text colors');
   const typography = object(input.typography,['display','body','sizes'],'typography');
   const sizes = object(typography.sizes,Object.keys(TEXT_SIZES),'text sizes');
-  const electric = object(input.electricBorder,['enabled','color','intensity','speed','card','panels','avatar'],'electric border');
+  const electric = object(input.electricBorder,['enabled','color','intensity','speed','card','panels','avatar','style','secondary','width','glow','reactive'],'electric border');
   const overlays = object(input.overlays,['enabled','layers','media'],'overlays');
   const media = object(overlays.media,['enabled','kind','url','poster','fit','opacity','key'],'overlay media');
   const key = object(media.key,['enabled','color','tolerance','softness'],'green-screen removal');
@@ -69,12 +70,13 @@ export function normalizeVisual(input, accent) {
   return {
     ...normalizeFeatureSettings(input),
     ...normalizeExpression(input),
+    ...normalizeAppearance(input,accent),
     colorTheme:select(input.colorTheme,'original',['original','monochrome','custom'],'profile color theme'),
     themeColors:{primary:color(themeColors.primary,accent,'main theme'),secondary:color(themeColors.secondary,'#8b5cf6','secondary theme')},
     textColors:Object.fromEntries(['bio','socialLabel'].map(key=>[key,textColors[key]===null||textColors[key]===undefined?null:color(textColors[key],accent,key==='bio'?'bio text':'social label')])),
     typography:{ display:select(typography.display,'dm-sans',Object.keys(FONTS),'display font'), body:select(typography.body,'dm-sans',Object.keys(FONTS),'body font'), sizes:Object.fromEntries(Object.entries(TEXT_SIZES).map(([id,[minimum,maximum]])=>[id,sizes[id] === null || sizes[id] === undefined ? null : numeric(sizes[id],null,minimum,maximum,'text size')])) },
     cardLayout:select(input.cardLayout,'classic',LAYOUTS,'card layout'),
-    electricBorder:{enabled:flag(electric.enabled,false,'electric border'), color:color(electric.color,accent,'electric border'), intensity:numeric(electric.intensity,35,0,100,'electric intensity'), speed:numeric(electric.speed,1,.5,2,'electric speed'), card:flag(electric.card,true,'main card border'), panels:flag(electric.panels,true,'panel borders'), avatar:flag(electric.avatar,true,'avatar border')},
+    electricBorder:{...normalizeBorderStyle(electric,accent),enabled:flag(electric.enabled,false,'electric border'), color:color(electric.color,accent,'electric border'), intensity:numeric(electric.intensity,35,0,100,'electric intensity'), speed:numeric(electric.speed,1,.5,2,'electric speed'), card:flag(electric.card,true,'main card border'), panels:flag(electric.panels,true,'panel borders'), avatar:flag(electric.avatar,true,'avatar border')},
     overlays:{enabled:flag(overlays.enabled,false,'overlays'), layers:normalizedLayers, media:{ enabled:flag(media.enabled,false,'custom overlay'), kind,url,poster,fit:select(media.fit,'contain',['contain','cover'],'overlay fit'),opacity:numeric(media.opacity,35,0,100,'media opacity'), key:{enabled:flag(key.enabled,false,'green-screen removal'),color:color(key.color,'#00ff00','key'),tolerance:numeric(key.tolerance,25,0,100,'key tolerance'),softness:numeric(key.softness,10,1,50,'key softness')} }}
   };
 }
@@ -82,5 +84,6 @@ export function normalizeVisual(input, accent) {
 export function preserveVisualGroups(submitted, current) {
   const result = { ...submitted };
   for (const group of [...VISUAL_GROUPS,'cursorEffects','cardEffects','entranceEffects','music']) if (!Object.hasOwn(result,group) && Object.hasOwn(current,group)) result[group] = current[group];
+  if(result.electricBorder&&typeof result.electricBorder==='object'&&!Array.isArray(result.electricBorder)&&current.electricBorder){for(const key of ['style','secondary','width','glow','reactive'])if(!Object.hasOwn(result.electricBorder,key)&&Object.hasOwn(current.electricBorder,key))result.electricBorder={...result.electricBorder,[key]:current.electricBorder[key]};}
   return result;
 }

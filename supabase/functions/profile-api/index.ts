@@ -269,8 +269,9 @@ async function route(request: Request, path: string) {
     if(operation==='create'){
       const input=await body(request);
       if(!input||Object.keys(input).some(key=>!['name','config'].includes(key))||typeof input.name!=='string'||!input.name.trim()||input.name.trim().length>40)throw new HttpError(400,'Give your preset a name (up to 40 characters).');
-      let config;try{config=normalizeProfile(input.config);}catch(error){throw new HttpError(400,error.message);}
-      const current=await command('mine',{owner:user.id}),error=badgeError(config.badge,badgeCapabilities(current).canUseReservedBadges);
+      const current=await command('mine',{owner:user.id});
+      let config;try{config=normalizeProfile(preserveVisualGroups(input.config,current.config));}catch(error){throw new HttpError(400,error.message);}
+      const error=badgeError(config.badge,badgeCapabilities(current).canUseReservedBadges);
       if(error)throw new HttpError(400,error);
       const owned=await command('uploads',{owner:user.id}),prefix=url+'/storage/v1/object/public/profile-media/';
       for(const source of profileMedia(config))if(source.startsWith(prefix)&&!owned.some(item=>publicUrl(item.path)===source&&['ready','published'].includes(item.state)))throw new HttpError(400,'That upload is not ready or does not belong to your profile.');

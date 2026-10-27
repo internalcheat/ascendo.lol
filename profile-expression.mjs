@@ -17,7 +17,8 @@ export function createProfileExpression(panel,{scope=panel,video,onStatus=()=>{}
   audioContext?.close?.().catch(()=>{});audioContext=null;
  }
  function current(){return video?.profileMusicPlayer?.current()||video;}
- function canDraw(){const media=current();return config?.musicReactive.enabled&&active()&&!reduced.matches&&!capture()&&!win.navigator.connection?.saveData&&media&&media.readyState>=2&&!media.paused&&!media.muted&&media.volume>0;}
+ const needsAudio=()=>config?.musicReactive.enabled||config?.electricBorder.enabled&&config.electricBorder.reactive;
+ function canDraw(){const media=current();return needsAudio()&&active()&&!reduced.matches&&!capture()&&!win.navigator.connection?.saveData&&media&&media.readyState>=2&&!media.paused&&!media.muted&&media.volume>0;}
  async function analysis(){
   const media=current();if(!canDraw()||!gesture)return;
   const mediaSource=media.currentSrc||media.getAttribute('src')||'';if(unsupportedSource===mediaSource&&mediaSource)return;
@@ -73,7 +74,7 @@ export function createProfileExpression(panel,{scope=panel,video,onStatus=()=>{}
    moving||=Math.abs(r.tx-r.x)+Math.abs(r.ty-r.y)>.05;
   }
   const live=canDraw()&&analyser&&audioContext?.state==='running';
-  if(live&&time-lastDraw>=(limited?66:33)){draw(true);lastDraw=time;}
+  if(live&&time-lastDraw>=(limited?66:33)){draw(true);if(config.electricBorder.reactive){analyser.getByteFrequencyData(frequency);let total=0;for(let i=0;i<frequency.length;i++)total+=frequency[i];panel.dispatchEvent(new win.CustomEvent('ascendo:music-energy',{detail:{energy:total/frequency.length/255*Math.min(1,(current()?.volume||0)/.7)}}));}lastDraw=time;}
   if(moving||live)frame=win.requestAnimationFrame(tick);
  }
  function wake(){if(!frame&&active()&&!reduced.matches&&!capture())frame=win.requestAnimationFrame(tick);}
@@ -83,7 +84,7 @@ export function createProfileExpression(panel,{scope=panel,video,onStatus=()=>{}
   for(const node of targets){let r=surfaces.get(node);if(!r){const layer=doc.createElement('span');layer.className='holo-finish';layer.setAttribute('aria-hidden','true');node.append(layer);node.classList.add('holo-surface');r={layer,x:50,y:50,tx:50,ty:50};surfaces.set(node,r);}r.layer.dataset.finish=config.holographic.finish;r.layer.style.setProperty('--holo-intensity',String(config.holographic.intensity/100));}
  }
  function syncCanvas(){
-  if(!config.musicReactive.enabled){canvas?.remove();canvas=null;ctx=null;cleanupAudio();notify('');return;}
+  if(!config.musicReactive.enabled){canvas?.remove();canvas=null;ctx=null;if(!needsAudio())cleanupAudio();notify('');return;}
   if(!canvas){canvas=doc.createElement('canvas');canvas.className='profile-music-visual';canvas.setAttribute('aria-hidden','true');try{ctx=canvas.getContext('2d');}catch{}}
   canvas.dataset.style=config.musicReactive.style;
   const target=config.musicReactive.style==='halo'?panel.querySelector('.avatar'):panel.querySelector('.profile-summary');
@@ -100,7 +101,7 @@ export function createProfileExpression(panel,{scope=panel,video,onStatus=()=>{}
  function sync(){
   if(!config)return;if(!active()){stop();audioContext?.suspend?.().catch(()=>{});return;}
   if(reduced.matches||capture()){stop();cleanupAudio();for(const r of surfaces.values()){r.tx=r.ty=r.x=r.y=50;r.layer.style.setProperty('--holo-x','50%');r.layer.style.setProperty('--holo-y','50%');}for(const a of signatureAnimation)a.finish?.();}
-  if(dirty)geometry();if(!canDraw()||!analyser)draw(false);if(canDraw())analysis();else if(!config.musicReactive.enabled)cleanupAudio();wake();
+  if(dirty)geometry();if(!canDraw()||!analyser)draw(false);if(canDraw())analysis();else if(!needsAudio())cleanupAudio();if(!canDraw())panel.dispatchEvent(new win.CustomEvent('ascendo:music-energy',{detail:{energy:0}}));wake();
  }
  listen(scope,'pointermove',event=>{if(!config?.holographic.enabled||!fine.matches||reduced.matches||limited||event.pointerType==='touch')return;if(dirty)geometry();for(const r of surfaces.values()){const b=r.bounds;if(!b?.width)continue;const within=event.clientX>=b.left&&event.clientX<=b.right&&event.clientY>=b.top&&event.clientY<=b.bottom;r.tx=within?Math.max(0,Math.min(100,(event.clientX-b.left)/b.width*100)):50;r.ty=within?Math.max(0,Math.min(100,(event.clientY-b.top)/b.height*100)):50;}wake();});
  listen(scope,'pointerleave',()=>{for(const r of surfaces.values())r.tx=r.ty=50;wake();});

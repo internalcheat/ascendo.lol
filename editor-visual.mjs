@@ -1,5 +1,5 @@
-import { FONTS, TEXT_SIZES, LAYOUTS, OVERLAY_PRESETS } from './visual-schema.mjs?v=20261026-9';
-import { element } from './profile-view.mjs?v=20261026-9';
+import { FONTS, TEXT_SIZES, LAYOUTS, OVERLAY_PRESETS } from './visual-schema.mjs?v=20261027-1';
+import { element } from './profile-view.mjs?v=20261027-1';
 import {FONT_GROUPS} from './font-catalog.mjs?v=20261025-11';
 
 export function createVisualEditor({onChange,isBusy}) {
@@ -10,7 +10,7 @@ export function createVisualEditor({onChange,isBusy}) {
   function input(id,type,value){const node=element('input',type==='checkbox'?'':'studio-input');node.id=id;node.type=type;if(type==='checkbox')node.checked=!!value;else node.value=value??'';return node;}
   function field(parent,label,control,wide=false){const wrapper=element('label',`${control.type==='checkbox'?'studio-check':'studio-label'}${wide?' full-width':''}`);if(control.type==='checkbox')wrapper.append(control,document.createTextNode(' '+label));else wrapper.append(document.createTextNode(label),control);parent.append(wrapper);return wrapper;}
   function select(id,choices){const node=element('select','studio-input');node.id=id;for(const [value,label]of choices){const option=element('option','',label);option.value=value;node.append(option);}return node;}
-  function range(parent,id,label,min,max,value,step=1){const node=input(id,'range',value);Object.assign(node,{min,max,step});const wrapper=field(parent,label,node);const output=element('output');output.id=id+'Value';output.htmlFor=id;wrapper.insertBefore(output,node);return node;}
+  function range(parent,id,label,min,max,value,step=1){const node=input(id,'range',value);Object.assign(node,{min,max,step});node.value=value;const wrapper=field(parent,label,node);const output=element('output');output.id=id+'Value';output.htmlFor=id;wrapper.insertBefore(output,node);return node;}
   function toggle(heading,id,label){const wrapper=element('label','studio-switch');const node=input(id,'checkbox',false);node.setAttribute('role','switch');node.setAttribute('aria-label',label);wrapper.append(node,element('span'));wrapper.lastChild.setAttribute('aria-hidden','true');heading.append(wrapper);}
   function button(label,action,className='studio-button'){const node=element('button',className,label);node.type='button';node.addEventListener('click',action);return node;}
   const fonts=section('Fonts','Two faces, one identity. All font files are hosted by Ascendo, not Google.');

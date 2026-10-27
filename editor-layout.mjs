@@ -1,4 +1,4 @@
-import {element} from './profile-view.mjs?v=20261026-9';
+import {element} from './profile-view.mjs?v=20261027-1';
 
 const categories=[
   {id:'profile',name:'Profile',help:'Your name, picture and the places people can find you.',icon:'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM5 21v-2a7 7 0 0 1 14 0v2'},
@@ -9,6 +9,7 @@ const categories=[
   {id:'media',name:'Media',help:'Manage your uploaded pictures and videos.',icon:'M4 3h16v18H4V3Zm0 13 5-5 4 4 3-3 4 4M8 7h.01'}
 ];
 const definitions=[
+  ['backgroundlook','Background Appearance','backgrounds','Blur, darkness, saturation, tint, vignette and focal point','backgroundLookEnabled'],['glass','Card Glass','appearance','Glass blur, transparency, corners, shadow and edge highlight','glassEnabled'],['avatarframe','Avatar Frame','appearance','Rotating dashes, two-color ring and soft halo','avatarFrameEnabled'],
   ['socialstyle','Social Button Styles','appearance','Rows, pills, icons, spacing and corners','socialStyleEnabled'],['detailcolors','Precise Colors','appearance','Name, handles, icons, badge and borders','detailColorsEnabled'],['richbio','Richer Bios','profile','Bio formatting and alignment','richBioEnabled'],['holographic','Holographic Finish','effects','Foil, pearl and brushed metal','holographicEnabled'],['reactive','Music-Reactive Visuals','effects','Waveform, equalizer and avatar halo','musicReactiveEnabled'],['signature','Animated Signature','profile','Drawn and typed signatures','signatureEnabled'],
   ['identity','Identity','profile','Name, bio and badge'],['avatar','Avatar','profile','Profile picture and crop'],['socials','Social rows','profile','Links and copy buttons'],
   ['style','Style','appearance','Theme, color and glass'],['fonts','Fonts','appearance','Display and body faces, gothic and bubbly'],['sizes','Text Sizes','appearance','Individual text sizes'],['layout','Card Layout','appearance','Classic, Crest, Portrait, Bento, Magazine, Deck, Stack, Wall, Spine, Collage, Flow, Numbers'],

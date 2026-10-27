@@ -1,8 +1,10 @@
-import {electricContour} from './electric-contour.mjs?v=20261026-9';
+import {electricPaths} from './electric-styles.mjs?v=20261027-1';
+import {createAvatarFrames} from './avatar-frames.mjs?v=20261027-1';
+import {electricContour} from './electric-contour.mjs?v=20261027-1';
 import { createOverlayParticles } from './overlay-particles.mjs?v=20261025-15';
 import { createChromaKey } from './chroma-key.mjs?v=20261025-6';
-import {isTiledLayout} from './visual-schema.mjs?v=20261026-9';
-import {themePalette} from './profile-palette.mjs?v=20261026-9';
+import {isTiledLayout} from './visual-schema.mjs?v=20261027-1';
+import {themePalette} from './profile-palette.mjs?v=20261027-1';
 
 export function createProfileAtmosphere(panel,scope,{clock,preview=false}) {
   const doc=panel.ownerDocument,win=doc.defaultView;
@@ -10,6 +12,8 @@ export function createProfileAtmosphere(panel,scope,{clock,preview=false}) {
   const root=doc.createElement('div');root.className='profile-atmosphere';root.setAttribute('aria-hidden','true');root.hidden=true;scope.append(root);
   const canvas=doc.createElement('canvas');canvas.className='profile-overlay-presets';root.append(canvas);
   const borders=new Map();
+  const avatarFrames=createAvatarFrames(panel,{reduced,onResize:()=>schedule()});
+  let musicEnergy=0;const receiveEnergy=event=>{musicEnergy=Math.max(0,Math.min(1,Number(event.detail?.energy)||0));};panel.addEventListener('ascendo:music-energy',receiveEnergy);
   const borderResize=win.ResizeObserver?new win.ResizeObserver(()=>{if(config&&active)geometry();}):null;
   let config,active=true,frame=0,lastDraw=0,quality=1,slow=0,particles,particlesFailed=false,sourceKey='',mediaElement,mediaAbort,keyCanvas,keyer,mediaReady=false,mediaFailed=false,videoCallback=0,sourceDirty=false,previewUrls;
   let width=1,height=1,maxLayers=3;
@@ -20,7 +24,7 @@ export function createProfileAtmosphere(panel,scope,{clock,preview=false}) {
   const wantedParticles=()=>!!config?.overlays.enabled&&!particlesFailed&&!reduced.matches&&activeLayers().length>0;
   const electricAnimated=()=>!!config?.electricBorder.enabled&&config.electricBorder.intensity>0&&!reduced.matches;
   function staticParticles(){if(!reduced.matches||!active||doc.hidden||!config?.overlays.enabled||particlesFailed||!activeLayers().length)return;try{particles ||= createOverlayParticles(canvas);particles.draw(activeLayers(),0,themePalette(config).primary,mobile.matches?128:384);}catch(error){particlesFailed=true;notify(error.message);}}
-  const needsFrames=()=>wantedParticles()||electricAnimated()||(keyer&&mediaReady&&!mediaFailed&&(sourceDirty||mediaElement?.tagName==='VIDEO'&&!mediaElement.requestVideoFrameCallback));
+  const needsFrames=()=>wantedParticles()||electricAnimated()||avatarFrames.animated||(keyer&&mediaReady&&!mediaFailed&&(sourceDirty||mediaElement?.tagName==='VIDEO'&&!mediaElement.requestVideoFrameCallback));
   function schedule(){if(!frame&&active&&!doc.hidden&&needsFrames())frame=clock.request(draw);}
   function cancelVideoCallback(){if(videoCallback&&mediaElement?.cancelVideoFrameCallback)mediaElement.cancelVideoFrameCallback(videoCallback);videoCallback=0;}
   function videoFrames(){
@@ -75,9 +79,9 @@ export function createProfileAtmosphere(panel,scope,{clock,preview=false}) {
     for(const [target,record]of borders)if(!targets.includes(target)||!target.contains(record.svg)){record.svg.remove();target.classList.remove('profile-electric-target');borderResize?.unobserve(target);borders.delete(target);}
     for(const target of targets)if(!borders.has(target)){
       const svg=doc.createElementNS('http://www.w3.org/2000/svg','svg');svg.classList.add('profile-electric');svg.setAttribute('aria-hidden','true');
-      const glow=doc.createElementNS(svg.namespaceURI,'path'),core=doc.createElementNS(svg.namespaceURI,'path');glow.setAttribute('stroke-width','4');glow.setAttribute('opacity','.14');core.setAttribute('stroke-width','1.3');core.setAttribute('opacity','.85');svg.append(glow,core);target.classList.add('profile-electric-target');target.append(svg);borderResize?.observe(target);borders.set(target,{svg,glow,core,points:[]});
+      const glow=doc.createElementNS(svg.namespaceURI,'path'),core=doc.createElementNS(svg.namespaceURI,'path');glow.setAttribute('stroke-width','4');glow.setAttribute('opacity','.14');core.setAttribute('stroke-width','1.3');core.setAttribute('opacity','.85');const secondary=doc.createElementNS(svg.namespaceURI,'path');secondary.setAttribute('fill','none');svg.append(glow,secondary,core);target.classList.add('profile-electric-target');target.append(svg);borderResize?.observe(target);borders.set(target,{svg,glow,core,secondary,points:[]});
     }
-    for(const record of borders.values()){record.glow.setAttribute('stroke',settings.color);record.core.setAttribute('stroke',settings.color);record.svg.toggleAttribute('hidden',!active);}
+    for(const record of borders.values()){record.glow.setAttribute('stroke',settings.color);record.core.setAttribute('stroke',settings.color);record.secondary.setAttribute('stroke',settings.style==='dual'?settings.secondary:settings.color);record.core.setAttribute('stroke-width',String(settings.width));record.secondary.setAttribute('stroke-width',String(settings.style==='orbit'?settings.width+1:settings.width));record.glow.setAttribute('stroke-width',String(settings.width+2.7));record.glow.setAttribute('opacity',String(settings.glow/100));record.svg.toggleAttribute('hidden',!active);}
   }
   function geometry(){
     const capture=doc.documentElement.dataset.profileCapture==='true';width=preview||capture?scope.clientWidth:win.innerWidth;height=preview||capture?scope.clientHeight:win.innerHeight;
@@ -96,16 +100,20 @@ export function createProfileAtmosphere(panel,scope,{clock,preview=false}) {
       record.svg.style.right=record.svg.style.bottom='auto';
       record.svg.setAttribute('viewBox',`0 0 ${targetWidth+10} ${targetHeight+10}`);record.points=electricContour(targetWidth,targetHeight,radii);
     }
+    avatarFrames.geometry();
     if(config){drawBorders(win.performance.now());staticParticles();sourceDirty=true;schedule();}
   }
   function drawBorders(time){
     if(!config?.electricBorder.enabled)return;
     const settings=config.electricBorder;
     for(const record of borders.values()){
-      const path=record.points.map((point,index)=>{
-        const offset=reduced.matches?0:(Math.sin(index*1.9+time*.009*settings.speed)+Math.sin(index*.73-time*.013*settings.speed))*.5*(mobile.matches?1.5:3)*settings.intensity/100;
-        return `${index?'L':'M'}${(point.positionX+point.nx*offset).toFixed(2)},${(point.positionY+point.ny*offset).toFixed(2)}`;
-      }).join('')+'Z';record.core.setAttribute('d',path);record.glow.setAttribute('d',path);
+      const energy=settings.reactive?musicEnergy:0;
+      const paths=electricPaths(record.points,{...settings,intensity:Math.min(100,settings.intensity*(1+energy*.4))},time,{reduced:reduced.matches,mobile:mobile.matches});
+      record.core.setAttribute('d',paths.primary);record.glow.setAttribute('d',paths.primary);record.secondary.setAttribute('d',paths.secondary);
+      record.core.setAttribute('stroke-dasharray',paths.dash);record.glow.setAttribute('stroke-dasharray',paths.dash);
+      record.core.setAttribute('stroke-dashoffset',String(paths.offset));record.glow.setAttribute('stroke-dashoffset',String(paths.offset));
+      record.core.setAttribute('stroke-width',String(settings.width*(1+energy*.3)));
+      record.glow.setAttribute('opacity',String(Math.min(.7,settings.glow/100*(1+energy*.7))));
     }
   }
   function draw(time){
@@ -113,7 +121,7 @@ export function createProfileAtmosphere(panel,scope,{clock,preview=false}) {
     const interval=quality<=.25?1000/15:mobile.matches||quality<1?1000/30:1000/60;
     if(time-lastDraw>=interval-1){
       const started=win.performance.now();lastDraw=time;
-      drawBorders(time);
+      drawBorders(time);avatarFrames.draw(time);
       if(wantedParticles()){
         try{particles ||= createOverlayParticles(canvas);particles.draw(activeLayers(),time,themePalette(config).primary,Math.floor((mobile.matches?128:384)*quality));}catch(error){particlesFailed=true;notify(error.message);}
       }else particles?.clear();
@@ -123,22 +131,22 @@ export function createProfileAtmosphere(panel,scope,{clock,preview=false}) {
       slow=win.performance.now()-started>8?slow+1:Math.max(0,slow-1);
       if(slow>=12){slow=0;if(quality>.25){quality*=.5;geometry();notify('Preview quality was reduced to keep this device responsive. Saved settings are unchanged.');}else if(keyer&&!mediaFailed)failMedia('The green-screen layer was stopped to protect responsiveness.');else if(maxLayers>1){maxLayers--;notify('A decorative layer was suspended to keep this device responsive. Saved settings are unchanged.');}}
     }
-    if(wantedParticles()||electricAnimated()||(keyer&&mediaElement?.tagName==='VIDEO'&&mediaReady&&!mediaFailed&&!mediaElement.requestVideoFrameCallback))schedule();
+    if(wantedParticles()||electricAnimated()||avatarFrames.animated||(keyer&&mediaElement?.tagName==='VIDEO'&&mediaReady&&!mediaFailed&&!mediaElement.requestVideoFrameCallback))schedule();
     else if(sourceDirty&&keyer&&mediaReady&&!mediaFailed)schedule();
   }
   function update(next,options={}){
     if(particlesFailed&&next.overlays.enabled&&(!config?.overlays.enabled||JSON.stringify(config?.overlays.layers)!==JSON.stringify(next.overlays.layers))){particles?.destroy();particles=undefined;particlesFailed=false;}
     config=next;previewUrls=options.previewUrls;
     root.hidden=!config.overlays.enabled;
-    syncBorders();configureMedia();geometry();drawBorders(win.performance.now());
+    syncBorders();avatarFrames.update(config,active);configureMedia();geometry();drawBorders(win.performance.now());
     if(!wantedParticles()&&!(reduced.matches&&config.overlays.enabled&&activeLayers().length))particles?.clear();if(frame&&!needsFrames()){clock.cancel(frame);frame=0;}schedule();
   }
   function setActive(value){
-    active=value;
+    active=value;avatarFrames.setActive(value);
     if(!active){if(frame)clock.cancel(frame);frame=0;lastDraw=0;}
     for(const record of borders.values())record.svg.toggleAttribute('hidden',!active);
     if(config){configureMedia();syncMedia();if(active){staticParticles();schedule();}}
   }
-  function destroy(){if(frame)clock.cancel(frame);releaseMedia();particles?.destroy();for(const [target,record]of borders){record.svg.remove();target.classList.remove('profile-electric-target');}borderResize?.disconnect();borders.clear();root.remove();}
+  function destroy(){if(frame)clock.cancel(frame);releaseMedia();particles?.destroy();for(const [target,record]of borders){record.svg.remove();target.classList.remove('profile-electric-target');}borderResize?.disconnect();borders.clear();avatarFrames.destroy();panel.removeEventListener('ascendo:music-energy',receiveEnergy);root.remove();}
   return {update,geometry,setActive,destroy};
 }

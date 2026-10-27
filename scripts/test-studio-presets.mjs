@@ -11,7 +11,7 @@ try{
   await page.click('#profilePresets');await page.type('dialog input','My saved profile');await page.click('dialog button[type=submit]');await page.waitForFunction(()=>document.querySelector('.studio-presets__row'));
   await page.screenshot({path:'test-results/capture/presets-'+width+'.png',fullPage:true});
   const overflow=await page.evaluate(()=>document.querySelector('dialog').scrollWidth>document.querySelector('dialog').clientWidth+1);assert.equal(overflow,false,'Preset dialog overflows at '+width+'px');
-  await page.click('.studio-presets__actions button:first-child');await page.waitForFunction(()=>!document.querySelector('dialog').open);
+  await page.click('.studio-presets__row .studio-presets__actions button:first-child');await page.click('.studio-presets__confirm button:last-child');await page.waitForFunction(()=>!document.querySelector('dialog').open);
   const state=await page.evaluate(()=>({loaded:window.presetFixture.loaded.bio,privateOnly:window.presetFixture.calls.every(c=>c.path.startsWith('/presets')),focus:document.activeElement.id}));
   assert.equal(state.loaded,'Unpublished current draft');assert.equal(state.privateOnly,true);assert.equal(state.focus,'profilePresets');results.push({width,...state});
   await page.click('#profilePresets');await page.keyboard.press('Escape');assert.equal(await page.$eval('dialog',d=>d.open),false);

@@ -406,3 +406,41 @@ The browser regression matrix checks all twelve layouts, default/row/pill/icon
 styles and desktop/tablet/320px widths, including electric alignment, dimensions,
 interaction wrappers, cleanup and live crackling. Isolated fixtures never publish
 settings to a real profile.
+
+
+### Profile appearance and complete presets (20261027-1)
+
+Background Appearance adds optional blur (0–24px), darkness (0–80%), saturation
+(0–150%), tint, vignette and a two-axis focal point. It affects only the backdrop;
+avatars and audio keep their original colors, brightness and playback. Card Glass
+adds independent blur, corner, shadow and edge controls; existing card opacity
+remains available. Avatar Frame offers rotating dashes, two-color rings and a soft
+halo following the picture's actual shape. All new groups default OFF and old
+records are not rewritten. Additional controls live under Advanced.
+
+Electric Border retains its original Lightning default, adding Plasma, Orbit,
+Dual-tone and Circuit styles, thickness, glow, second color and optional music
+reaction. Border and avatar decoration share the existing on-demand scheduler,
+stop when hidden/offscreen, and remain steady with reduced motion. Music reaction
+observes captured audio without rerouting it or altering volume/playback.
+
+Presets store the full normalized configuration, including canonical media URLs,
+posters, crop positions, MP3 selection and volume, every style group, widgets and
+social actions. Saving reads the record back and compares every normalized setting
+before confirming success. Loading refreshes private upload preview links, rebuilds
+the avatar and refreshes the video/audio source, including retry state. Mobile
+loading opens Preview. Loading stays private until Save changes; neither opening
+nor closing Presets saves, publishes or resets playback. Confirmation is inside
+the glass dialog so it works where browser-native confirmation dialogs are blocked.
+
+The gallery shows quiet miniature previews from the stored configurations, fetched
+only while open with at most two concurrent requests. Preview media is resolved
+through the current account's upload library. No players are created for gallery
+embeds. Observers are released when the gallery closes. Existing preset records,
+media references, quotas, authentication, badge authority and CNAME are preserved.
+
+Checks include full-field round trips, forced media refresh, every border style,
+all layout surfaces, old-client preservation, bounded input validation, independent
+audio analysis, Hungarian labels, responsive rendering, reduced motion and native
+browser save/load cycles with deliberately expired private media links. Real owner
+sessions and unpublished drafts are never used by the test fixtures.

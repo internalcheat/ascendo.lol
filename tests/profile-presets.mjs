@@ -34,12 +34,22 @@ await check('preset dialog saves the current draft privately, confirms replaceme
  const win=new Window({url:'https://ascendo.lol/customize/',settings:{disableJavaScriptEvaluation:true,disableJavaScriptFileLoading:true,disableCSSFileLoading:true}});win.document.body.innerHTML='<div class="studio-header__actions"></div>';globalThis.document=win.document;
  const draft={...base,bio:'Keep my unpublished changes'},snapshot={...base,bio:'A saved snapshot'},calls=[];let loaded=0,allow=false,validDraft=true;
  win.confirm=()=>allow;
- const controller=createStudioPresets({getDraft:()=>{if(!validDraft)throw Error("Invalid draft");return draft;},loadDraft:config=>{loaded++;assert.equal(config.bio,snapshot.bio);},request:async(path,options)=>{calls.push([path,options]);if(options?.method==='POST')return {id:'preset'};if(path==='/presets/preset')return {config:snapshot};return [{id:'preset',name:'My preset'}];}});
+ const controller=createStudioPresets({getDraft:()=>{if(!validDraft)throw Error("Invalid draft");return draft;},loadDraft:config=>{loaded++;assert.equal(config.bio,snapshot.bio);},request:async(path,options)=>{calls.push([path,options]);if(options?.method==='POST')return {id:'created'};if(path==='/presets/created')return {config:draft};if(path==='/presets/preset')return {config:snapshot};return [{id:'preset',name:'My preset'}];}});
  document.getElementById('profilePresets').focus();document.getElementById('profilePresets').click();await tick();const dialog=document.querySelector('dialog');assert.equal(dialog.open,true);
  const name=dialog.querySelector('input');name.value='My new preset';dialog.querySelector('form').dispatchEvent(new win.Event('submit',{bubbles:true,cancelable:true}));await tick();
  const saved=calls.find(([,v])=>v?.method==='POST');assert.equal(saved[1].body.config.bio,draft.bio);assert.equal(saved[1].body.name,'My new preset');
- const load=[...dialog.querySelectorAll('button')].find(b=>b.textContent==='Load');load.click();await tick();assert.equal(loaded,0);allow=true;load.click();await tick();assert.equal(loaded,1);assert.equal(dialog.open,false);assert.equal(draft.bio,'Keep my unpublished changes');
+ const load=[...dialog.querySelectorAll('button')].find(b=>b.textContent==='Load');load.click();await tick();assert.equal(loaded,0);dialog.querySelector('.studio-presets__confirm button:last-child').click();await tick();assert.equal(loaded,1);assert.equal(dialog.open,false);assert.equal(draft.bio,'Keep my unpublished changes');
  validDraft=false;document.getElementById('profilePresets').click();await tick();assert.equal(dialog.open,true,'A preset can repair an invalid current draft');assert.ok(calls.every(([path])=>path.startsWith('/presets')));controller.close();await win.happyDOM.close();
+});
+await check('preset saving verifies restored media and removes only an incomplete newly created snapshot',async()=>{
+ const win=new Window({url:'https://ascendo.lol/customize/',settings:{disableJavaScriptEvaluation:true,disableJavaScriptFileLoading:true,disableCSSFileLoading:true}});globalThis.document=win.document;document.body.innerHTML='<div class="studio-header__actions"></div>';
+ const draft=normalizeProfile({...base,avatar:{...base.avatar,url:'https://ascendo.lol/assets/k3rlsen-avatar.png'},background:{kind:'video',url:'https://ascendo.lol/assets/mypfp.mp4',poster:'https://ascendo.lol/assets/mypfp-poster.jpg'}});let item,corrupt=true;const deleted=[],calls=[];
+ const controller=createStudioPresets({getDraft:()=>draft,loadDraft(){throw Error('Must not load during save');},request:async(path,options)=>{
+  calls.push([path,options?.method||'GET']);if(options?.method==='POST'){item={id:'new-snapshot',name:options.body.name,config:corrupt?{...options.body.config,avatar:base.avatar,background:base.background}:options.body.config};return {id:item.id};}
+  if(options?.method==='DELETE'){deleted.push(path);item=null;return {removed:true};}if(path==='/presets/new-snapshot')return item;return item?[{id:item.id,name:item.name}]:[];
+ }});
+ document.getElementById('profilePresets').click();await tick();const dialog=document.querySelector('dialog');dialog.querySelector('input').value='Complete media';dialog.querySelector('form').dispatchEvent(new win.Event('submit',{cancelable:true}));await tick();assert.deepEqual(deleted,['/presets/new-snapshot']);assert.match(dialog.querySelector('.studio-status').textContent,/did not keep every setting/);assert.equal(item,null);
+ corrupt=false;dialog.querySelector('form').dispatchEvent(new win.Event('submit',{cancelable:true}));await tick();assert.equal(item.config.avatar.url,draft.avatar.url);assert.equal(item.config.background.url,draft.background.url);assert.match(dialog.querySelector('.studio-status').textContent,/Preset saved/);assert.ok(calls.every(([path])=>path.startsWith('/presets')));controller.close();await win.happyDOM.close();
 });
 console.log(JSON.stringify({passed:checks.length,checks}));
 

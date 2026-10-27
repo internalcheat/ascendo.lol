@@ -8,7 +8,7 @@ export function createProfilePlayer(video,{preview=false,onState=()=>{}}={}){
   const notify=()=>{onState(current());video.dispatchEvent(new win.Event('ascendo:music-state'));};
   const blocked=()=>doc.documentElement.dataset.profileCapture==='true'||!active||doc.hidden||video.dataset.entryBlocked==='true';
   const pause=media=>{if(!media.paused)media.pause();};
-  function assign(media,source){if((media.getAttribute('src')||'')===source)return;media.pause();try{const origin=new URL(source,win.location.href).origin;if([win.location.origin,'https://ascendo.lol','https://fstdttaxflayhtwhnbih.supabase.co'].includes(origin))media.crossOrigin='anonymous';else media.removeAttribute('crossorigin');}catch{}if(source)media.src=source;else media.removeAttribute('src');media.load();}
+  function assign(media,source,force=false){if(!force&&(media.getAttribute('src')||'')===source)return;media.pause();try{const origin=new URL(source,win.location.href).origin;if([win.location.origin,'https://ascendo.lol','https://fstdttaxflayhtwhnbih.supabase.co'].includes(origin))media.crossOrigin='anonymous';else media.removeAttribute('crossorigin');}catch{}if(source)media.src=source;else media.removeAttribute('src');media.load();}
   async function play(media,explicit,generation){
     if(!media.getAttribute('src')||blocked()||!media.paused&&!media.ended)return;
     try{await media.play();}catch(error){if(generation!==attempt||destroyed||blocked()||error?.name==='AbortError')return;if(media===video&&error?.name==='NotAllowedError'){media.muted=true;try{await media.play();}catch{}}}finally{if(generation===attempt){if(blocked())pause(media);notify();}}
@@ -47,5 +47,6 @@ export function createProfilePlayer(video,{preview=false,onState=()=>{}}={}){
   reduced.addEventListener('change',()=>start(),{signal});small.addEventListener('change',()=>{if(!preview)fromDataset();},{signal});
   win.addEventListener('pagehide',event=>{attempt++;video.pause();audio.pause();if(!event.persisted)destroy();},{signal});win.addEventListener('pageshow',()=>start(),{signal});
   function destroy(){if(destroyed)return;destroyed=true;attempt++;win.clearTimeout(recovery);abort.abort();audio.pause();audio.removeAttribute('src');audio.load();audio.remove();delete video.profileMusicPlayer;}
-  const api={update,current,volume,start,fromDataset,destroy,setActive(value){active=value;start();}};video.profileMusicPlayer=api;return api;
+  function reload(){attempt++;recoveryCount=0;win.clearTimeout(recovery);recovery=0;assign(video,desiredSource,true);assign(audio,config.source==='mp3'?(audio.getAttribute('src')||''):'',true);return start();}
+  const api={update,current,volume,start,reload,fromDataset,destroy,setActive(value){active=value;start();}};video.profileMusicPlayer=api;return api;
 }
