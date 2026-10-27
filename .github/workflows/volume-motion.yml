@@ -1,7 +1,7 @@
 name: Volume control motion
 on:
   push:
-    branches: [codex/volume-motion-polish, codex/volume-glass, main]
+    branches: [codex/volume-motion-polish, codex/volume-glass, codex/back-button-glass, main]
     paths: [app.js, styles.css, profile-palette.css, scripts/test-volume-motion.mjs, .github/workflows/volume-motion.yml]
   workflow_dispatch:
 permissions:
