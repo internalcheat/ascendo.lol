@@ -68,6 +68,22 @@ try{
   assert.equal(await page.evaluate(()=>window.navigationFixture.video===document.getElementById('previewVideo')&&window.navigationFixture.draft===sessionStorage.getItem('ascendo-editor-draft')),true);
   await page.click('#profilePresets');await page.waitForFunction(()=>document.querySelector('.studio-presets').getAttribute('aria-busy')==='false');const focusBefore=await page.evaluate(()=>document.activeElement===document.querySelector('.studio-presets input'));await page.keyboard.down('Control');await page.keyboard.press('k');await page.keyboard.up('Control');assert.equal(await page.evaluate(()=>document.activeElement===document.querySelector('.studio-presets input')),focusBefore);await page.keyboard.press('Escape');
   await page.emulateMediaFeatures([{name:'prefers-reduced-motion',value:'reduce'}]);await page.click('[data-category=effects]');assert.equal(await page.$$eval('.studio-section',nodes=>nodes.every(node=>node.getAnimations().length===0)),true);await page.emulateMediaFeatures([]);
+  await page.evaluate(()=>{const jump=document.getElementById('studioSectionJump');jump.value='cursor';jump.dispatchEvent(new Event('change',{bubbles:true}));});
+  await page.waitForFunction(()=>document.getElementById('studio-section-cursor').dataset.expanded==='true');
+  await page.evaluate(()=>{for(const id of ['cursorEnabled','cursorTrail']){const input=document.getElementById(id);input.checked=true;input.dispatchEvent(new Event('input',{bubbles:true}));}const click=document.getElementById('cursorClickEffect');click.value='ripple';click.dispatchEvent(new Event('change',{bubbles:true}));});
+  await page.waitForFunction(()=>!document.querySelector('.cursor-choice').disabled);
+  await page.click('[data-cursor-style=ring]');await page.keyboard.press('ArrowRight');assert.equal(await page.$eval('#cursorStyle',node=>node.value),'crosshair');
+  await page.waitForFunction(()=>[...document.querySelectorAll('.cursor-choice img')].every(node=>node.complete&&node.naturalWidth));
+  if(width===1280){
+   const box=await page.$eval('#cursorTestArea',node=>{node.scrollIntoView({block:'center'});const r=node.getBoundingClientRect();return {x:r.left,y:r.top,width:r.width,height:r.height};});
+   await page.mouse.move(box.x+15,box.y+25);await page.mouse.move(box.x+box.width-15,box.y+box.height-25,{steps:12});
+   await page.waitForFunction(()=>[...document.querySelectorAll('#cursorTestArea .profile-cursor-point')].some(node=>Number(node.style.opacity)>0));
+   await page.click('#cursorTestArea button');await page.waitForFunction(()=>document.querySelectorAll('#cursorTestArea [data-kind=ripple]').length===2);
+   const states=await page.evaluate(()=>({native:getComputedStyle(document.getElementById('cursorTestArea')).cursor,link:getComputedStyle(document.querySelector('#cursorTestArea button')).cursor,text:getComputedStyle(document.querySelector('#cursorTestArea p')).cursor}));assert.ok(states.native.startsWith('url('));assert.ok(states.link.endsWith('pointer'));assert.equal(states.text,'text');
+  }else if(width<500)assert.equal(await page.$eval('#cursorTestArea',node=>node.classList.contains('profile-custom-cursor')),false,'Touch retains the native cursor');
+  await page.$eval('#studio-section-cursor',node=>node.scrollIntoView({block:'start',behavior:'instant'}));await page.screenshot({path:`test-results/capture/cursor-editor-${width}.png`});
+  await page.emulateMediaFeatures([{name:'prefers-reduced-motion',value:'reduce'}]);assert.equal(await page.$$eval('#cursorTestArea .profile-cursor-point',nodes=>nodes.every(node=>Number(node.style.opacity)===0)),true);await page.emulateMediaFeatures([]);
+  await page.evaluate(()=>{const input=document.getElementById('cursorEnabled');input.checked=false;input.dispatchEvent(new Event('input',{bubbles:true}));});await page.waitForFunction(()=>!document.getElementById('cursorTestArea').classList.contains('profile-custom-cursor'));assert.equal(calls.filter(c=>c.method==='PUT'&&c.route==='/me').length,0);
   const first=await load(0),second=await load(1),restored=await load(0);assert.notEqual(first.video,second.video);assert.notEqual(second.avatar,restored.avatar);
   const beforeStyle=await page.$eval('#previewVideo',v=>v.getAttribute('src'));
   await page.evaluate(()=>{const change=(id,value)=>{const c=document.getElementById(id);c.value=value;c.dispatchEvent(new Event(c.tagName==='SELECT'?'change':'input',{bubbles:true}));};change('backgroundAppearanceBlur','14');change('glassBlur','18');change('electricBorderStyle','circuit');change('avatarFrameStyle','dashed');});

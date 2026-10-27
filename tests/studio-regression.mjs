@@ -12,6 +12,7 @@ import { renderProfile, bindMusic, replayNameEffect, bindNameEffectVisibility } 
 import { containsReservedBadge, badgeError, RESERVED_BADGES, RESERVED_BADGE_ERROR } from '../badge-policy.mjs';
 import { confusables } from '../vendor/unicode-confusables-18.mjs';
 import { createProfileEffects, nativeCursor } from '../profile-effects.mjs';
+import {cursorSvg,CURSOR_STYLES} from '../cursor-art.mjs';
 import { preserveVisualGroups, FONTS, TEXT_SIZES, LAYOUTS, OVERLAY_PRESETS, MEDIA_ORIGIN } from '../visual-schema.mjs';
 import { hasH264Track } from '../supabase/functions/profile-api/overlay-video.mjs';
 import { createOverlayParticles } from '../overlay-particles.mjs';
@@ -146,6 +147,9 @@ try{
     const disabled=normalizeProfile({...customized,cursorEffects:{...customized.cursorEffects,enabled:false}});
     assert.deepEqual(disabled.cardEffects,customized.cardEffects);assert.deepEqual(disabled.entranceEffects,customized.entranceEffects);assert.equal(disabled.cursorEffects.size,40);assert.equal(disabled.cursorEffects.trail,true);
     for(const style of ['arrow','dot','ring','crosshair'])assert.match(nativeCursor({...plain.cursorEffects,style}),/^url\("data:image\/svg\+xml,/);
+    for(const style of CURSOR_STYLES)for(const size of [12,24,40])for(const color of ['#000000','#ffffff','#c19aff']){
+      const cursor={...plain.cursorEffects,style,size,color},svg=cursorSvg(cursor),match=nativeCursor(cursor).match(/\) (\d+) (\d+), auto$/);assert.ok(match);assert.ok(+match[1]<size&&+match[2]<size);assert.match(svg,/stroke="#090a10"/);assert.match(svg,/stroke="#f7f7ff"/);assert.ok(svg.includes(color));assert.match(nativeCursor(cursor,{pointer:true}),/, pointer$/);
+    }
     assert.throws(()=>nativeCursor({...plain.cursorEffects,color:'\"><script>'}));
   });
   await check('actual backend rejects forged authority before media publication and persists isolated fixtures',async()=>{
@@ -323,6 +327,7 @@ try{
     await import(pathToFileURL(path.join(root,'editor.mjs')).href+'?unit=1');await flush();
     const byId=id=>document.getElementById(id);assert.equal(byId('editorContent').hidden,false);assert.equal(byId('displayName').value,'InternalCheats');
     for(const id of ['cursorEnabled','cardEnabled','entranceEnabled'])assert.equal(byId(id).checked,false);
+    assert.equal(document.querySelectorAll('[data-cursor-style]').length,4);assert.equal(document.querySelectorAll('.cursor-choice:disabled').length,4);assert.ok(byId('cursorStyle').hasAttribute('data-visual-picker'));assert.equal(document.querySelector('.cursor-test').classList.contains('profile-custom-cursor'),false);
     assert.equal(byId('cursorStyle').disabled,true);assert.equal(byId('cardIntensity').disabled,true);assert.equal(byId('entranceDuration').disabled,true);
     const edit=async(id,value)=>{const control=byId(id);if(['checkbox','radio'].includes(control.type))control.checked=value;else control.value=value;control.dispatchEvent(new window.Event(control.tagName==='SELECT'?'change':'input',{bubbles:true}));await flush();};
     assert.equal(document.querySelectorAll('.studio-nav-button').length,6);assert.equal(document.querySelectorAll('.studio-disclosure').length,31);assert.equal(document.querySelectorAll('.studio-floating-actions button').length,3);assert.equal(document.querySelectorAll('.studio-dock-slot').length,3);
@@ -341,7 +346,7 @@ try{
     document.querySelector('[data-category="effects"]').click();byId('displayName').dispatchEvent(new window.Event('invalid',{bubbles:false}));assert.equal(byId('studio-section-identity').hidden,false);assert.equal(byId('studio-section-identity-toggle').getAttribute('aria-expanded'),'true');
     await edit('colorTheme','custom');assert.equal(byId('accent').disabled,false);await edit('accent','#20ccaa');assert.equal(byId('themePrimary').value,'#20ccaa');assert.equal(byId('previewCard').style.getPropertyValue('--profile-accent'),'#20ccaa');await edit('colorTheme','monochrome');assert.equal(byId('accent').disabled,false);await edit('accent','#ee8844');assert.equal(byId('colorTheme').value,'custom');assert.equal(byId('themePrimary').value,'#ee8844');
     await edit('bioColorAuto',false);await edit('bioColor','#ffcc66');await edit('socialLabelColorAuto',false);await edit('socialLabelColor','#66ddff');assert.equal(byId('previewCard').style.getPropertyValue('--bio-text-color'),'#ffcc66');assert.equal(byId('previewCard').style.getPropertyValue('--social-label-color'),'#66ddff');assert.equal(saveCalls,0);await edit('colorTheme','original');
-    const beforeAvatar=byId('previewCard').querySelector('.avatar');await edit('cursorEnabled',true);await edit('cursorStyle','ring');await edit('cursorTrail',true);await edit('cursorTrailLength',12);await edit('cardEnabled',true);await edit('cardIntensity',78);await edit('entranceEnabled',true);await edit('entranceStyle','slide');await edit('entranceDirection','left');
+    const beforeAvatar=byId('previewCard').querySelector('.avatar');await edit('cursorEnabled',true);document.querySelector('[data-cursor-style=dot]').click();await flush();assert.equal(byId('cursorStyle').value,'dot');assert.equal(document.querySelector('[data-cursor-style=dot]').getAttribute('aria-checked'),'true');assert.equal(document.querySelector('.cursor-choice:disabled'),null);await edit('cursorStyle','ring');await edit('cursorTrail',true);await edit('cursorTrailLength',12);await edit('cardEnabled',true);await edit('cardIntensity',78);await edit('entranceEnabled',true);await edit('entranceStyle','slide');await edit('entranceDirection','left');
     assert.equal(byId('studio-section-cursor-toggle').getAttribute('aria-expanded'),'true');assert.equal(byId('previewCard').querySelector('.avatar'),beforeAvatar);assert.equal(byId('entranceDirection').disabled,false);assert.equal(byId('entranceZoom').disabled,true);assert.equal(byId('cursorTrailLength').disabled,false);assert.equal(byId('previewCard').closest('.profile-effects-boundary').hasAttribute('data-card-effects-active'),true);
     await edit('cursorEnabled',false);assert.equal(byId('studio-section-cursor-toggle').getAttribute('aria-expanded'),'false');assert.equal(byId('cursorTrailLength').value,'12');assert.equal(byId('cardIntensity').value,'78');assert.equal(byId('entranceEnabled').checked,true);assert.equal(saveCalls,0);
     assert.equal(JSON.parse(sessionStorage.getItem('ascendo-editor-draft')).config.cursorEffects.trailLength,12);
