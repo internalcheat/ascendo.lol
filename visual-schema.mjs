@@ -1,5 +1,6 @@
 import {normalizeAppearance,normalizeBorderStyle,APPEARANCE_GROUPS} from './appearance-schema.mjs?v=20261027-1';
 import {normalizeExpression,EXPRESSION_GROUPS} from './expression-schema.mjs?v=20261027-1';
+import {CREATIVE_GROUPS} from './creative-schema.mjs?v=20261027-9';
 import {FONTS} from './font-catalog.mjs?v=20261025-11';
 import {normalizeFeatureSettings,FEATURE_GROUPS} from './feature-schema.mjs?v=20261025-11';
 export {FONTS};
@@ -9,7 +10,7 @@ export const TILED_LAYOUTS=['bento','magazine','stack','wall','spine','collage',
 export const isTiledLayout=layout=>TILED_LAYOUTS.includes(layout);
 export const layoutWidth=layout=>({portrait:720,bento:960,magazine:1040,deck:760,stack:560,wall:1120,spine:920,collage:1040,flow:760,numbers:900}[layout]||460);
 export const OVERLAY_PRESETS = ['snow','rain','petals','embers','stars','fireflies','dust','bubbles','confetti','sparkles','meteors','matrix','aurora','ripples','fireworks'];
-export const VISUAL_GROUPS = ['colorTheme','themeColors','textColors','typography','cardLayout','electricBorder','overlays',...FEATURE_GROUPS,...EXPRESSION_GROUPS,...APPEARANCE_GROUPS];
+export const VISUAL_GROUPS = ['colorTheme','themeColors','textColors','typography','cardLayout','electricBorder','overlays',...FEATURE_GROUPS,...EXPRESSION_GROUPS,...APPEARANCE_GROUPS,...CREATIVE_GROUPS];
 export const MEDIA_ORIGIN = 'https://fstdttaxflayhtwhnbih.supabase.co/storage/v1/object/public/profile-media/';
 
 function object(value, keys, label) {

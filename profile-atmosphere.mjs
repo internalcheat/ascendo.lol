@@ -3,7 +3,7 @@ import {createAvatarFrames} from './avatar-frames.mjs?v=20261027-1';
 import {electricContour} from './electric-contour.mjs?v=20261027-1';
 import { createOverlayParticles } from './overlay-particles.mjs?v=20261025-15';
 import { createChromaKey } from './chroma-key.mjs?v=20261025-6';
-import {isTiledLayout} from './visual-schema.mjs?v=20261027-1';
+import {isTiledLayout} from './visual-schema.mjs?v=20261027-9';
 import {themePalette} from './profile-palette.mjs?v=20261027-1';
 
 export function createProfileAtmosphere(panel,scope,{clock,preview=false}) {

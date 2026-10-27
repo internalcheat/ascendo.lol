@@ -1,6 +1,7 @@
-import { normalizeVisual } from './visual-schema.mjs?v=20261027-1';
+import { normalizeVisual } from './visual-schema.mjs?v=20261027-9';
 import {BACKGROUNDS} from './background-presets.mjs?v=20261025-15';
 import {CURSOR_IDS} from './cursor-packs.mjs?v=20261027-5';
+import {normalizeCreative} from './creative-schema.mjs?v=20261027-9';
 
 export const EFFECTS = ['none', 'glow', 'glitch', 'shimmer', 'typewriter', 'pulse', 'aurora', 'wave', 'float'];
 export const ICONS = ['instagram', 'discord', 'youtube', 'tiktok', 'github', 'minecraft', 'twitch', 'x', 'spotify', 'website'];
@@ -111,6 +112,7 @@ export function normalizeProfile(input) {
     effectStrength: number(input.effectStrength ?? 65, 0, 100, 'effect strength'),
     ...normalizeEffects(input, input.accent),
     ...normalizeVisual(input, input.accent),
+    ...normalizeCreative(input,{safeUrl,mediaUrl}),
     avatar: { url: mediaUrl(input.avatar?.url, 'image'), poster: mediaUrl(input.avatar?.poster ?? '', 'image'), x: number(input.avatar?.x, 0, 100, 'avatar crop'), y: number(input.avatar?.y, 0, 100, 'avatar crop') },
     background: { kind: input.background.kind, ...(input.background.kind === 'preset' ? {preset:input.background.preset} : {}), url: mediaUrl(input.background.url, input.background.kind), mobile: mediaUrl(input.background.mobile ?? '', 'video'), poster: mediaUrl(input.background.poster ?? '', 'image') },
     music:{source:choice(music.source,['video','mp3'],'video','music source'),url:mediaUrl(music.url??'','audio'),volume:number(music.volume??65,0,70,'music volume')},
@@ -126,5 +128,5 @@ export function normalizeProfile(input) {
 }
 
 export function profileMedia(profile) {
-  return [...new Set([profile.avatar.url, profile.avatar.poster, profile.background.url, profile.background.mobile, profile.background.poster, profile.music?.url, profile.overlays?.media?.url, profile.overlays?.media?.poster].filter(Boolean))];
+  return [...new Set([profile.avatar.url, profile.avatar.poster, profile.background.url, profile.background.mobile, profile.background.poster, profile.music?.url, profile.overlays?.media?.url, profile.overlays?.media?.poster,profile.flipCard?.artwork,profile.flipCard?.poster,...(profile.stickers?.items||[]).flatMap(item=>[item.url,item.poster])].filter(Boolean))];
 }

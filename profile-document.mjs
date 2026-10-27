@@ -1,7 +1,7 @@
 import {applyBackgroundAppearance} from './profile-appearance.mjs';
 import {Window} from 'happy-dom';
-import {normalizeProfile} from './profile-schema.mjs';
-import {renderProfile} from './profile-view.mjs';
+import {normalizeProfile} from './profile-schema.mjs?v=20261027-9';
+import {renderProfile} from './profile-view.mjs?v=20261027-9';
 import {profileSlug,metadataHtml,jsonForHtml} from './share-policy.mjs';
 
 export function renderProfileDocument(template,slug,result){
