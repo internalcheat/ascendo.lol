@@ -17,9 +17,9 @@ export function createStudioPresets({request,getDraft,loadDraft,getPreviewUrls=(
  const confirmation=make('div','studio-presets__confirm');confirmation.hidden=true;confirmation.setAttribute('role','group');confirmation.setAttribute('aria-labelledby','presetConfirmation');
  const confirmationText=make('p','studio-help');confirmationText.id='presetConfirmation';const confirmActions=make('div','studio-presets__actions'),cancel=button('Cancel',()=>cancelConfirmation()),accept=button('Load preset',()=>{const run=pending;cancelConfirmation(false);run?.();});confirmActions.append(cancel,accept);confirmation.append(confirmationText,confirmActions);
  dialog.append(heading,help,form,confirmation,list,status);doc.body.append(dialog);
- let busy=false,ticket=0,items=[],returnFocus,pending,confirmReturn;const cache=new Map(),thumbnails=[];
+ let busy=false,writing=false,ticket=0,items=[],returnFocus,pending,confirmReturn;const cache=new Map(),thumbnails=[];
  function message(text,error=false){status.textContent=tr(text);status.dataset.error=String(error);}
- function controls(){trigger.disabled=isBusy();save.disabled=busy||!!pending||isBusy();name.disabled=busy||!!pending;for(const b of list.querySelectorAll('button'))b.disabled=busy||!!pending||isBusy();dialog.setAttribute('aria-busy',String(busy));}
+ function controls(){trigger.disabled=isBusy();save.disabled=busy||!!pending||isBusy();name.disabled=writing||!!pending;for(const b of list.querySelectorAll('button'))b.disabled=busy||!!pending||isBusy();dialog.setAttribute('aria-busy',String(busy));}
  function cancelConfirmation(focus=true){pending=undefined;confirmation.hidden=true;controls();if(focus)confirmReturn?.focus({preventScroll:true});}
  function ask(text,label,run){pending=run;confirmReturn=doc.activeElement;confirmationText.textContent=tr(text);accept.textContent=tr(label);confirmation.hidden=false;controls();cancel.focus({preventScroll:true});}
  function clearThumbnails(){for(const dispose of thumbnails.splice(0))dispose();}
@@ -46,15 +46,15 @@ export function createStudioPresets({request,getDraft,loadDraft,getPreviewUrls=(
   for(let i=0;i<Math.min(2,queue.length);i++)(async()=>{while(queue.length&&current===ticket&&dialog.open)await queue.shift()();})();
  }
  async function open(){if(isBusy())return;returnFocus=doc.activeElement;cache.clear();cancelConfirmation(false);clearThumbnails();list.replaceChildren(make('p','studio-help','Loading presets…'));message('');dialog.showModal();name.focus();await refresh();}
- function close(){ticket++;busy=false;cancelConfirmation(false);clearThumbnails();dialog.close();controls();returnFocus?.focus({preventScroll:true});}
+ function close(){ticket++;busy=false;writing=false;cancelConfirmation(false);clearThumbnails();dialog.close();controls();returnFocus?.focus({preventScroll:true});}
  form.addEventListener('submit',async event=>{
   event.preventDefault();if(busy||pending||isBusy()||!form.reportValidity())return;let config;try{config=normalizeProfile(structuredClone(getDraft()));}catch(error){message(error.message,true);return;}
-  const generation=++ticket;busy=true;controls();message('Saving preset…');
+  const generation=++ticket;busy=true;writing=true;controls();message('Saving preset…');
   try{
    const created=await request('/presets',{method:'POST',body:{name:name.value.trim(),config}});cache.delete(created.id);const stored=await read(created.id);
    if(!sameSnapshot(config,stored.config)){await request('/presets/'+created.id,{method:'DELETE'}).catch(()=>{});cache.delete(created.id);throw Error('This preset did not keep every setting. Nothing was published. Please try saving it again.');}
-   if(generation!==ticket||!dialog.open)return;name.value='';await refresh();message('Preset saved. Your public profile is unchanged.');
-  }catch(error){if(generation===ticket)message(error.message,true);}finally{if(generation===ticket){busy=false;controls();}}
+   if(generation!==ticket||!dialog.open)return;writing=false;name.value='';await refresh();message('Preset saved. Your public profile is unchanged.');
+  }catch(error){if(generation===ticket)message(error.message,true);}finally{if(generation===ticket){busy=false;writing=false;controls();}}
  });
  dialog.addEventListener('cancel',event=>{event.preventDefault();if(pending)cancelConfirmation();else close();});
  doc.addEventListener('ascendo:language',()=>{trigger.textContent=tr('Presets');title.textContent=tr('Saved presets');help.textContent=tr('Save your current preview. Loading a preset stays private until Save changes.');label.firstChild.textContent=tr('Preset name');save.textContent=tr('Save preset');closeButton.textContent=tr('Close');cancel.textContent=tr('Cancel');if(!pending)render();controls();});

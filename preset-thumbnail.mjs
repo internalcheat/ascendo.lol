@@ -17,7 +17,7 @@ export function createPresetThumbnail(host,input,{previewUrls}={}){
  for(const image of scope.querySelectorAll('img')){image.loading='lazy';image.decoding='async';}
  scope.querySelectorAll('iframe,video,audio').forEach(node=>node.remove());
  scope.querySelectorAll('a,button').forEach(node=>node.tabIndex=-1);
- const width=layoutWidth(config.cardLayout);scope.style.width=width+'px';scope.style.maxWidth='none';scope.inert=true;host.setAttribute('aria-hidden','true');host.replaceChildren(stage,scope);
+ const width=layoutWidth(config.cardLayout);panel.style.width='100%';scope.style.setProperty('--layout-width',width+'px');scope.style.width=width+'px';scope.style.maxWidth='none';scope.inert=true;host.setAttribute('aria-hidden','true');host.replaceChildren(stage,scope);
  const frames=createAvatarFrames(panel,{reduced:{matches:true}});frames.update(config);
  const borders=[];
  if(config.electricBorder.enabled){

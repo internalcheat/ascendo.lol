@@ -60,11 +60,11 @@ try{
   assert.equal(await page.$eval('#previewCard .profile-avatar-frame',n=>n.dataset.frameStyle),'dashed');
   await load(0);
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);
-  await page.click('#profilePresets');await page.type('.studio-presets input','Complete snapshot '+width);const before=post;await page.click('.studio-presets button[type=submit]');await page.waitForFunction(()=>document.querySelector('.studio-presets .studio-status').textContent.includes('Preset saved.'));
+  await page.click('#profilePresets');await page.waitForFunction(()=>document.querySelector('.studio-presets').getAttribute('aria-busy')==='false');await page.type('.studio-presets input','Complete snapshot '+width);const before=post;await page.click('.studio-presets button[type=submit]');await page.waitForFunction(()=>document.querySelector('.studio-presets .studio-status').textContent.includes('Preset saved.'));
   assert.equal(post,before+1);assert.deepEqual(normalizeProfile(items.at(-1).config),a);assert.equal(calls.filter(c=>c.method==='PUT'&&c.route==='/me').length,0);
   await page.waitForFunction(()=>document.querySelector('.preset-thumbnail .profile__name'));await page.screenshot({path:`test-results/capture/preset-full-${width}.png`,fullPage:true});await page.click('.studio-presets__heading button');
   await page.screenshot({path:`test-results/capture/appearance-${width}.png`,fullPage:true});results.push({width,restoredVideo:true,restoredAvatar:true,completeSnapshot:true,privateOnly:true});
  }
  assert.deepEqual(errors,[]);await page.close();
-}catch(error){for(const p of await browser.pages())if(!p.isClosed())await p.screenshot({path:'test-results/capture/appearance-failure.png',fullPage:true}).catch(()=>{});console.error(JSON.stringify({errors,calls:calls.slice(-12)}));throw error;}finally{await browser.close();}
+}catch(error){for(const p of await browser.pages())if(!p.isClosed())await p.screenshot({path:'test-results/capture/appearance-failure.png',fullPage:true}).catch(()=>{});console.error(JSON.stringify({errors,calls:calls.slice(-12)}));for(const p of await browser.pages())if(!p.isClosed())console.error(JSON.stringify(await p.evaluate(()=>({presetStatus:document.querySelector('.studio-presets .studio-status')?.textContent,name:document.querySelector('.studio-presets input')?.value,busy:document.querySelector('.studio-presets')?.getAttribute('aria-busy')})).catch(()=>({}))));throw error;}finally{await browser.close();}
 fs.writeFileSync('test-results/capture/appearance-results.json',JSON.stringify(results));console.log(JSON.stringify({appearanceAndPresetBrowserChecks:results}));
