@@ -22,6 +22,3 @@
 .custom-profile[data-profile-theme='monochrome'] .social-link__platform { color:var(--social-label-color,#bdbdbd); }
 .custom-profile[data-profile-theme='monochrome'] .profile__bio { color:var(--bio-text-color,#eee); }
 .custom-profile[data-profile-theme='monochrome'] .profile__bio p + p { color:var(--bio-text-color,#c6c6c6); }
-@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  .page--profile[data-profile-theme='custom'] .media-controls { background-color:rgba(12,10,18,.72); }
-}

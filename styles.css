@@ -142,6 +142,7 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .download-button, .founder-pill, .profile__panel, .back-link, .media-controls, .toast { background-color: #17121e; }
   .media-controls { background-color: rgba(16,13,24,.72); }
+  .page.page--profile[data-profile-theme='custom'] .media-controls { background-color: rgba(12,10,18,.72); }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
