@@ -10,7 +10,7 @@ const files=new Map(),assets=(suffix)=>{
 };
 const a=appearanceProfile(seed,{...assets('a'),name:'Preset A'}),b=appearanceProfile(seed,{...assets('b'),name:'Preset B',cardLayout:'portrait',electricBorder:{...a.electricBorder,style:'plasma'}});
 const ids=['aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'];
-const items=[{id:ids[0],name:'First complete profile',config:a},{id:ids[1],name:'Second complete profile',config:b}],calls=[],results=[],errors=[];let lease=0,post=0;
+const items=[{id:ids[0],name:'First complete profile',config:a,version:1},{id:ids[1],name:'Second complete profile',config:b,version:1}],calls=[],results=[],errors=[];let lease=0,post=0;
 fs.mkdirSync('test-results/capture',{recursive:true});const browser=await launchCaptureBrowser();
 try{
  const page=await browser.newPage();page.on('pageerror',e=>errors.push(e.message));page.on('dialog',d=>{if(d.type()==='beforeunload')return d.accept();errors.push('Unexpected native confirmation');d.dismiss();});
@@ -19,12 +19,13 @@ try{
   const u=new URL(request.url()),headers={'Access-Control-Allow-Origin':'https://ascendo.lol','Cache-Control':'no-store'};
   if(u.hostname===new URL(origin).hostname&&u.pathname.startsWith('/functions/v1/profile-api')){
    const route=u.pathname.slice('/functions/v1/profile-api'.length),method=request.method();calls.push({route,method});let data;
-   if(method==='OPTIONS')return request.respond({status:204,headers:{...headers,'Access-Control-Allow-Headers':'apikey,authorization,content-type','Access-Control-Allow-Methods':'GET,POST,PUT,DELETE,OPTIONS'}});
+   if(method==='OPTIONS')return request.respond({status:204,headers:{...headers,'Access-Control-Allow-Headers':'apikey,authorization,content-type','Access-Control-Allow-Methods':'GET,POST,PUT,PATCH,DELETE,OPTIONS'}});
    if(route==='/me'&&method==='GET')data={slug:'internalcheats',revision:11,config:base,defaults:base,usage:0,capabilities:{canUseReservedBadges:true}};
    else if(route==='/preferences')data={language:'en'};
    else if(route==='/uploads'){lease++;data=[...files.values()].map(f=>({id:f.id,url:f.url,state:'ready',kind:f.kind,bytes:f.bytes,preview:origin+'/storage/v1/object/sign/profile-drafts/'+f.path+'?token=fixture-'+lease}));}
-   else if(route==='/presets'&&method==='POST'){const body=JSON.parse(request.postData());post++;const item={id:'cccccccc-cccc-4ccc-8ccc-cccccccccccc',name:body.name,config:body.config};items.push(item);data={id:item.id,name:item.name};}
-   else if(route==='/presets')data=items.map(({id,name})=>({id,name}));
+   else if(route==='/presets'&&method==='POST'){const body=JSON.parse(request.postData());post++;const item={id:'cccccccc-cccc-4ccc-8ccc-'+String(post).padStart(12,'0'),name:body.name,config:body.config,version:1};items.push(item);data={id:item.id,name:item.name,version:1};}
+   else if(route==='/presets')data=items.map(({id,name,version})=>({id,name,version}));
+   else if(route.startsWith('/presets/')&&['PATCH','PUT'].includes(method)){const body=JSON.parse(request.postData()),item=items.find(x=>x.id===route.slice(9));assert.equal(body.version,item.version);if(method==='PATCH')item.name=body.name;else item.config=body.config;item.version++;data=item;}
    else if(route.startsWith('/presets/'))data=items.find(x=>x.id===route.slice(9));
    else return request.respond({status:400,contentType:'application/json',headers,body:JSON.stringify({error:'Unexpected fixture request'})});
    return request.respond({status:200,contentType:'application/json',headers,body:JSON.stringify(data)});
@@ -63,7 +64,16 @@ try{
   await page.click('#profilePresets');await page.waitForFunction(()=>document.querySelector('.studio-presets').getAttribute('aria-busy')==='false');await page.type('.studio-presets input','Complete snapshot '+width);const before=post;await page.click('.studio-presets button[type=submit]');await page.waitForFunction(()=>document.querySelector('.studio-presets .studio-status').textContent.includes('Preset saved.'));
   assert.equal(post,before+1);assert.deepEqual(normalizeProfile(items.at(-1).config),a);assert.equal(calls.filter(c=>c.method==='PUT'&&c.route==='/me').length,0);
   await page.waitForFunction(()=>document.querySelector('.preset-thumbnail .profile__name'));await page.screenshot({path:`test-results/capture/preset-full-${width}.png`,fullPage:true});await page.click('.studio-presets__heading button');
-  await page.screenshot({path:`test-results/capture/appearance-${width}.png`,fullPage:true});results.push({width,restoredVideo:true,restoredAvatar:true,completeSnapshot:true,privateOnly:true});
+  const updated=items.at(-1),selector=`[data-preset-id="${updated.id}"]`;
+  await page.evaluate(value=>{const field=document.getElementById('bio');field.value=value;field.dispatchEvent(new Event('input',{bubbles:true}));},'New unpublished bio '+width);
+  await page.click('#profilePresets');await page.waitForFunction(()=>document.querySelector('.studio-presets').getAttribute('aria-busy')==='false');
+  await page.click(selector+' [data-preset-menu]');await page.keyboard.press('Escape');assert.equal(await page.$eval(selector+' [data-preset-menu]',n=>n.getAttribute('aria-expanded')),'false');assert.equal(await page.$eval('.studio-presets',n=>n.open),true);
+  await page.click(selector+' [data-preset-menu]');await page.click(selector+' [data-preset-action=rename]');await page.$eval('#presetRenameName',(n,value)=>{n.value=value;n.dispatchEvent(new Event('input',{bubbles:true}));},'Renamed snapshot '+width);await page.waitForFunction(()=>{const box=document.querySelector('.studio-presets__confirm').getBoundingClientRect(),dialog=document.querySelector('.studio-presets').getBoundingClientRect();return box.top>=dialog.top&&box.bottom<=dialog.bottom;});await page.screenshot({path:`test-results/capture/preset-rename-${width}.png`,fullPage:true});await page.keyboard.press('Enter');await page.waitForFunction(()=>document.querySelector('.studio-presets .studio-status').textContent.includes('Preset renamed.'));
+  assert.equal(updated.version,2);assert.equal(updated.name,'Renamed snapshot '+width);assert.deepEqual(normalizeProfile(updated.config),a);
+  await page.click(selector+' [data-preset-menu]');await page.click(selector+' [data-preset-action=update]');await page.click('.studio-presets__confirm button:last-child');await page.waitForFunction(()=>document.querySelector('.studio-presets .studio-status').textContent.includes('Preset updated.'));
+  assert.equal(updated.version,3);assert.equal(updated.name,'Renamed snapshot '+width);assert.deepEqual(normalizeProfile(updated.config),normalizeProfile({...a,bio:'New unpublished bio '+width}));assert.equal(calls.filter(c=>c.method==='PUT'&&c.route==='/me').length,0);
+  await page.click(selector+' [data-preset-menu]');await page.waitForFunction(()=>{const node=document.querySelector('.studio-presets__menu:not([hidden])');return node&&Number(getComputedStyle(node).opacity)===1;});await page.screenshot({path:`test-results/capture/preset-actions-${width}.png`,fullPage:true});assert.equal(await page.$eval('.studio-presets',n=>n.scrollWidth>n.clientWidth+1),false);await page.keyboard.press('Escape');await page.click('.studio-presets__heading button');
+  await page.screenshot({path:`test-results/capture/appearance-${width}.png`,fullPage:true});results.push({width,restoredVideo:true,restoredAvatar:true,completeSnapshot:true,rename:true,update:true,privateOnly:true});
  }
  assert.deepEqual(errors,[]);await page.close();
 }catch(error){for(const p of await browser.pages())if(!p.isClosed())await p.screenshot({path:'test-results/capture/appearance-failure.png',fullPage:true}).catch(()=>{});console.error(JSON.stringify({errors,calls:calls.slice(-12)}));for(const p of await browser.pages())if(!p.isClosed())console.error(JSON.stringify(await p.evaluate(()=>({presetStatus:document.querySelector('.studio-presets .studio-status')?.textContent,name:document.querySelector('.studio-presets input')?.value,busy:document.querySelector('.studio-presets')?.getAttribute('aria-busy')})).catch(()=>({}))));throw error;}finally{await browser.close();}

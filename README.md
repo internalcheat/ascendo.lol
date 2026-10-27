@@ -444,3 +444,11 @@ all layout surfaces, old-client preservation, bounded input validation, independ
 audio analysis, Hungarian labels, responsive rendering, reduced motion and native
 browser save/load cycles with deliberately expired private media links. Real owner
 sessions and unpublished drafts are never used by the test fixtures.
+
+### Rename and update private presets
+
+In Customize, open Presets and use the three-dot menu on a saved card. Rename changes only its label (up to 40 characters). Update replaces that preset with the current preview, retaining its name and slot. Both require confirmation, leave the editor draft untouched, and never publish the profile. Save changes remains the only publish action.
+
+Preset versions reject conflicting edits from another tab. Updating revalidates badge authority and uploaded-media ownership, atomically replaces media references, and reads back the full snapshot before reporting success. Existing presets receive version 1; no profile settings are rewritten. The private service-only RPC and 10-preset limit remain unchanged.
+
+Verification: npm test; rolled-back tests/profile-presets.sql; isolated Chrome editor fixtures at 1280, 390 and 320 pixels, including rename, update, retained avatar/video/settings, keyboard menus and no public saves.

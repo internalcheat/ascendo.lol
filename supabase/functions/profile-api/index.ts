@@ -263,23 +263,42 @@ async function route(request: Request, path: string) {
   }
   const presetMatch=path.match(/^\/presets(?:\/([a-f0-9-]{36}))?$/);
   if(presetMatch){
-    const id=presetMatch[1];let operation=request.method==='GET'?(id?'get':'list'):request.method==='POST'&&!id?'create':request.method==='DELETE'&&id?'delete':'';
+    const id=presetMatch[1];const operation=request.method==='GET'?(id?'get':'list'):request.method==='POST'&&!id?'create':request.method==='DELETE'&&id?'delete':request.method==='PATCH'&&id?'rename':request.method==='PUT'&&id?'replace':'';
     if(!operation)throw new HttpError(404,'Not found.');
     let payload:any={owner:user.id,...(id?{id}:{})};
-    if(operation==='create'){
-      const input=await body(request);
-      if(!input||Object.keys(input).some(key=>!['name','config'].includes(key))||typeof input.name!=='string'||!input.name.trim()||input.name.trim().length>40)throw new HttpError(400,'Give your preset a name (up to 40 characters).');
-      const current=await command('mine',{owner:user.id});
-      let config;try{config=normalizeProfile(preserveVisualGroups(input.config,current.config));}catch(error){throw new HttpError(400,error.message);}
-      const error=badgeError(config.badge,badgeCapabilities(current).canUseReservedBadges);
-      if(error)throw new HttpError(400,error);
-      const owned=await command('uploads',{owner:user.id}),prefix=url+'/storage/v1/object/public/profile-media/';
-      for(const source of profileMedia(config))if(source.startsWith(prefix)&&!owned.some(item=>publicUrl(item.path)===source&&['ready','published'].includes(item.state)))throw new HttpError(400,'That upload is not ready or does not belong to your profile.');
-      payload={...payload,name:input.name.trim(),config,media:profileMedia(config)};
+    if(['create','rename','replace'].includes(operation)){
+      const input=await body(request),keys=operation==='create'?['name','config']:operation==='rename'?['name','version']:['config','version'];
+      if(!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).some(key=>!keys.includes(key)))throw new HttpError(400,'Check the preset changes.');
+      if(operation!=='create'){
+        if(!Number.isSafeInteger(input.version)||input.version<1||input.version>2147483647)throw new HttpError(400,'Check the preset version.');
+        payload.version=input.version;
+      }
+      if(operation!=='replace'){
+        if(typeof input.name!=='string'||!input.name.trim()||input.name.trim().length>40)throw new HttpError(400,'Give your preset a name (up to 40 characters).');
+        payload.name=input.name.trim();
+      }
+      if(operation!=='rename'){
+        const current=await command('mine',{owner:user.id});
+        let existing=current.config;
+        if(operation==='replace'){
+          const result=await admin.rpc('profile_presets_command',{operation:'get',payload:{owner:user.id,id}});
+          if(result.error)throw new HttpError(503,'Could not update your presets.');
+          if(!result.data)throw new HttpError(404,'Preset not found.');
+          if(result.data.version!==input.version)throw new HttpError(409,'This preset changed in another tab. Reopen Presets and try again.');
+          existing=result.data.config;
+        }
+        let config;try{config=normalizeProfile(preserveVisualGroups(input.config,existing));}catch(error){throw new HttpError(400,error.message);}
+        const error=badgeError(config.badge,badgeCapabilities(current).canUseReservedBadges);
+        if(error)throw new HttpError(400,error);
+        const owned=await command('uploads',{owner:user.id}),prefix=url+'/storage/v1/object/public/profile-media/';
+        for(const source of profileMedia(config))if(source.startsWith(prefix)&&!owned.some(item=>publicUrl(item.path)===source&&['ready','published'].includes(item.state)))throw new HttpError(400,'That upload is not ready or does not belong to your profile.');
+        payload={...payload,config,media:profileMedia(config)};
+      }
     }
     const {data,error}=await admin.rpc('profile_presets_command',{operation,payload});
     if(error)throw new HttpError(error.code==='23505'?409:503,error.code==='23505'?'A preset with this name already exists.':'Could not update your presets.');
     if(data?.limit)throw new HttpError(400,'You can save up to 10 presets. Delete one to make room.');
+    if(data?.conflict)throw new HttpError(409,'This preset changed in another tab. Reopen Presets and try again.');
     if(data===null)throw new HttpError(404,'Preset not found.');
     return data;
   }
@@ -352,7 +371,7 @@ Deno.serve(async request => {
   const origin = request.headers.get('origin');
   const cors = origin === site ? { 'Access-Control-Allow-Origin': site, 'Vary':'Origin' } : {};
   if (origin && origin !== site) return new Response(JSON.stringify({ error: 'Origin not allowed.' }), { status: 403, headers });
-  if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: { ...cors, 'Access-Control-Allow-Methods':'GET,POST,PUT,DELETE,OPTIONS', 'Access-Control-Allow-Headers':'authorization,content-type,apikey', 'Access-Control-Max-Age':'600' } });
+  if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: { ...cors, 'Access-Control-Allow-Methods':'GET,POST,PUT,PATCH,DELETE,OPTIONS', 'Access-Control-Allow-Headers':'authorization,content-type,apikey', 'Access-Control-Max-Age':'600' } });
   try {
     const path = new URL(request.url).pathname.replace(/^\/profile-api/, '') || '/';
     const data = await route(request, path);

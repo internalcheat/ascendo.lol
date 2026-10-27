@@ -9,10 +9,10 @@ await check('preset API binds native ownership, validates snapshots and never pu
    if(operation==='session')return {data:true};if(operation==='mine')return {data:{slug:payload.owner===a?'internalcheats':'regular-user',config:{...base,name:'InternalCheats'},revision:9}};if(operation==='uploads')return {data:[]};if(operation==='save'){writes++;return {data:{}};}throw Error(operation);
   }
   assert.equal(name,'profile_presets_command');
-  if(operation==='create'){items.set(id,{id,owner:payload.owner,name:payload.name,config:payload.config});return {data:{id,name:payload.name}};}
-  if(operation==='list')return {data:[...items.values()].filter(x=>x.owner===payload.owner).map(({id,name})=>({id,name}))};
+  if(operation==='create'){const createdId=payload.owner===a?id:'44444444-4444-4444-8444-444444444444';items.set(createdId,{id:createdId,owner:payload.owner,name:payload.name,config:payload.config,media:payload.media,version:1});return {data:items.get(createdId)};}
+  if(operation==='list')return {data:[...items.values()].filter(x=>x.owner===payload.owner).map(({id,name,version})=>({id,name,version}))};
   const item=items.get(payload.id);if(!item||item.owner!==payload.owner)return {data:null};
-  if(operation==='delete'){items.delete(payload.id);return {data:{removed:true}};}return {data:item};
+  if(operation==='delete'){items.delete(payload.id);return {data:{removed:true}};}if(['rename','replace'].includes(operation)){if(item.version!==payload.version)return {data:{conflict:true}};if(operation==='rename')item.name=payload.name;else{item.config=payload.config;item.media=payload.media;}item.version++;}return {data:item};
  },storage:{from:()=>({getPublicUrl:path=>({data:{publicUrl:'https://fixture.supabase.co/storage/v1/object/public/profile-media/'+path}}),remove:async()=>({})})}};
  const source=(await transform(fs.readFileSync('supabase/functions/profile-api/index.ts','utf8').replace(/^import .*;\r?\n/gm,''),{loader:'ts',format:'esm'})).code;
  vm.runInNewContext(source,{Deno:{env:{get:key=>key==='SUPABASE_URL'?'https://fixture.supabase.co':'fixture-only'},serve:fn=>handler=fn},createClient:()=>client,normalizeProfile,profileMedia,preserveVisualGroups,badgeError,badgeCapabilities,crypto:webcrypto,MAX_IMAGE:5e6,MAX_VIDEO:5e7,OWNER_QUOTA:25e7,TextEncoder,TextDecoder,Request,Response,URL,Uint8Array,console,atob});
@@ -27,6 +27,22 @@ await check('preset API binds native ownership, validates snapshots and never pu
  assert.equal((await (await call(a,'/presets')).json()).length,1);assert.equal((await (await call(b,'/presets')).json()).length,0);
  assert.equal((await call(b,'/presets/'+id)).status,404);assert.equal((await call(b,'/presets/'+id,'DELETE')).status,404);
  const restored=await (await call(a,'/presets/'+id)).json();assert.equal(restored.config.bio,'Unpublished snapshot');assert.equal(restored.config.holographic.finish,'pearl');
+ const beforeRename=structuredClone(restored.config);
+ assert.equal((await call(b,'/presets/'+id,'PATCH',{name:'Stolen',version:1})).status,404);
+ assert.equal((await call(b,'/presets/'+id,'PUT',{config:base,version:1})).status,404);
+ assert.equal((await call(a,'/presets/'+id,'PATCH',{name:'Renamed',version:1})).status,200);
+ const renamed=await (await call(a,'/presets/'+id)).json();assert.equal(renamed.name,'Renamed');assert.equal(renamed.version,2);assert.deepEqual(renamed.config,beforeRename);
+ assert.equal((await call(a,'/presets/'+id,'PATCH',{name:'Stale',version:1})).status,409);
+ for(const body of [{name:'',version:2},{name:'x'.repeat(41),version:2},{name:'Bad version',version:0},{name:'Bad version',version:'2'},{name:'Forged',version:2,owner:b}])assert.equal((await call(a,'/presets/'+id,'PATCH',body)).status,400);
+ const updated=normalizeProfile({...config,avatar:{...base.avatar,url:'https://ascendo.lol/assets/k3rlsen-avatar.png',poster:''},background:{kind:'video',url:'https://ascendo.lol/assets/mypfp.mp4',poster:''},music:{volume:19}});
+ assert.equal((await call(a,'/presets/'+id,'PUT',{config:updated,version:2})).status,200);
+ const replaced=await (await call(a,'/presets/'+id)).json();assert.equal(replaced.name,'Renamed');assert.equal(replaced.version,3);assert.deepEqual(replaced.config,updated);assert.deepEqual(replaced.media,profileMedia(updated));assert.equal(writes,0);
+ assert.equal((await call(a,'/presets/'+id,'PUT',{config:base,version:2})).status,409);
+ assert.equal((await call(a,'/presets/'+id,'PUT',{config:base,version:3,slug:'another'})).status,400);
+ const regularConfig={...base,badge:'Moonlight'};const regular=await (await call(b,'/presets','POST',{name:'Regular',config:regularConfig})).json();
+ assert.equal((await call(b,'/presets/'+regular.id,'PUT',{config:{...base,badge:'Founder'},version:1})).status,400);
+ assert.equal((await call(b,'/presets/'+regular.id,'PUT',{config:{...regularConfig,avatar:{...base.avatar,url:'https://fixture.supabase.co/storage/v1/object/public/profile-media/foreign/image.png'}},version:1})).status,400);
+ const options=await handler(new Request('https://fixture.invalid/profile-api/presets/'+id,{method:'OPTIONS'}));assert.ok(options.headers.get('Access-Control-Allow-Methods').includes('PATCH'));
  assert.equal((await (await call(a,'/me')).json()).uploadQuota,500e6);assert.equal((await (await call(b,'/me')).json()).uploadQuota,250e6);
  await call(a,'/presets/'+id,'DELETE');assert.equal((await (await call(a,'/presets')).json()).length,0);assert.equal(writes,0);
 });
@@ -50,6 +66,24 @@ await check('preset saving verifies restored media and removes only an incomplet
  }});
  document.getElementById('profilePresets').click();await tick();const dialog=document.querySelector('dialog');dialog.querySelector('input').value='Complete media';dialog.querySelector('form').dispatchEvent(new win.Event('submit',{cancelable:true}));await tick();assert.deepEqual(deleted,['/presets/new-snapshot']);assert.match(dialog.querySelector('.studio-status').textContent,/did not keep every setting/);assert.equal(item,null);
  corrupt=false;dialog.querySelector('form').dispatchEvent(new win.Event('submit',{cancelable:true}));await tick();assert.equal(item.config.avatar.url,draft.avatar.url);assert.equal(item.config.background.url,draft.background.url);assert.match(dialog.querySelector('.studio-status').textContent,/Preset saved/);assert.ok(calls.every(([path])=>path.startsWith('/presets')));controller.close();await win.happyDOM.close();
+});
+await check('rename and update preserve draft, identity and complete media while rejecting stale snapshots without deletion',async()=>{
+ const win=new Window({url:'https://ascendo.lol/customize/',settings:{disableJavaScriptEvaluation:true,disableJavaScriptFileLoading:true,disableCSSFileLoading:true}});globalThis.document=win.document;document.body.innerHTML='<div class="studio-header__actions"></div>';
+ const original=normalizeProfile({...base,bio:'Original snapshot'}),draft=normalizeProfile({...base,bio:'Private current preview',avatar:{...base.avatar,url:'https://ascendo.lol/assets/k3rlsen-avatar.png'},background:{kind:'video',url:'https://ascendo.lol/assets/mypfp.mp4'},music:{volume:19}}),unchanged=structuredClone(draft),calls=[];
+ let item={id:'one',name:'My preset',config:original,version:1},fail=false,corrupt=false;
+ const controller=createStudioPresets({getDraft:()=>draft,loadDraft(){throw Error('Rename/update must not load or change the preview');},request:async(path,options)=>{
+  calls.push([path,options]);if(options){assert.ok(['PATCH','PUT'].includes(options.method),'Never delete an existing preset on verification failure');if(fail||options.body.version!==item.version)throw Error('This preset changed in another tab. Reopen Presets and try again.');
+   if(options.method==='PATCH')item.name=options.body.name;else item.config=structuredClone(corrupt?original:options.body.config);item.version++;return structuredClone(item);}
+  return path==='/presets'?[{id:item.id,name:item.name,version:item.version}]:structuredClone(item);
+ }});
+ document.getElementById('profilePresets').click();await tick();const dialog=document.querySelector('dialog'),status=dialog.querySelector('.studio-status'),name=dialog.querySelector('form input');name.value='Keep new preset name';
+ const action=async kind=>{dialog.querySelector('[data-preset-menu]').focus();dialog.querySelector('[data-preset-menu]').click();dialog.querySelector('[data-preset-action='+kind+']').click();await tick();};
+ await action('rename');assert.equal(document.activeElement.id,'presetRenameName');assert.equal(document.activeElement.value,'My preset');dialog.dispatchEvent(new win.Event('cancel',{cancelable:true}));assert.equal(document.activeElement,dialog.querySelector('[data-preset-menu]'));assert.equal(calls.filter(([,v])=>v).length,0);
+ await action('rename');document.getElementById('presetRenameName').value='Renamed profile';document.getElementById('presetRenameName').dispatchEvent(new win.KeyboardEvent('keydown',{key:'Enter',bubbles:true,cancelable:true}));await tick();
+ assert.equal(item.name,'Renamed profile');assert.equal(item.version,2);assert.deepEqual(item.config,original);assert.equal(name.value,'Keep new preset name');assert.equal(document.activeElement,dialog.querySelector('[data-preset-menu]'));
+ await action('update');assert.equal(item.version,2);dialog.querySelector('.studio-presets__confirm button:last-child').click();await tick();assert.equal(item.id,'one');assert.equal(item.name,'Renamed profile');assert.equal(item.version,3);assert.deepEqual(item.config,draft);assert.match(status.textContent,/Preset updated/);assert.deepEqual(draft,unchanged);
+ fail=true;await action('rename');document.getElementById('presetRenameName').value='Stale edit';dialog.querySelector('.studio-presets__confirm button:last-child').click();await tick();assert.match(status.textContent,/changed in another tab/);assert.equal(item.name,'Renamed profile');
+ fail=false;corrupt=true;await action('update');dialog.querySelector('.studio-presets__confirm button:last-child').click();await tick();assert.match(status.textContent,/Could not verify the updated preset/);assert.equal(item.id,'one');assert.deepEqual(draft,unchanged);assert.ok(calls.every(([path])=>path.startsWith('/presets')));controller.close();await win.happyDOM.close();
 });
 console.log(JSON.stringify({passed:checks.length,checks}));
 
