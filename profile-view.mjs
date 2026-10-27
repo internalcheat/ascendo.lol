@@ -1,9 +1,9 @@
-import {appendRichBio} from './rich-bio.mjs?v=20261026-6';
-import {applyExpressionStyles} from './expression-view.mjs?v=20261026-6';
-import { normalizeProfile, safeUrl } from './profile-schema.mjs?v=20261026-6';
-import { FONTS, TEXT_SIZES, isTiledLayout } from './visual-schema.mjs?v=20261026-6';
-import {renderWidgets} from './profile-widgets.mjs?v=20261026-6';
-import {themePalette,channels} from './profile-palette.mjs?v=20261026-6';
+import {appendRichBio} from './rich-bio.mjs?v=20261026-9';
+import {applyExpressionStyles} from './expression-view.mjs?v=20261026-9';
+import { normalizeProfile, safeUrl } from './profile-schema.mjs?v=20261026-9';
+import { FONTS, TEXT_SIZES, isTiledLayout } from './visual-schema.mjs?v=20261026-9';
+import {renderWidgets} from './profile-widgets.mjs?v=20261026-9';
+import {themePalette,channels} from './profile-palette.mjs?v=20261026-9';
 
 export function element(tag, className = '', content) {
   const node = document.createElement(tag);

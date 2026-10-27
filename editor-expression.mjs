@@ -1,5 +1,5 @@
-import {element} from './profile-view.mjs?v=20261026-6';
-import {DETAIL_COLORS} from './expression-schema.mjs?v=20261026-6';
+import {element} from './profile-view.mjs?v=20261026-9';
+import {DETAIL_COLORS} from './expression-schema.mjs?v=20261026-9';
 export function createExpressionEditor({onChange,isBusy=()=>false,replaySignature=()=>{}}){
  const doc=document,host=doc.getElementById('controlsPanel'),groups=new Map(),fields=new Map(),byId=id=>doc.getElementById(id);
  const definitions={

@@ -385,3 +385,24 @@ No paid upgrade, bucket privacy change, credential change or profile rewrite occ
 Verification covers API ownership/badge/media checks, private UI save/load behavior,
 rolled-back database fixtures for limits and media protection, exact owner quota
 boundary checks, and GitHub-native modal checks at 1280px, 390px and 320px.
+
+### Social styles and electric borders across layouts (20261026-9)
+
+Tiled layouts retain individual grid cells for row buttons. Pill and icon styles
+use a full-span compact group, with explicitly sized interaction wrappers instead
+of stretched tiles. Chosen radii, padding and hover lighting match the actual
+button shape. Numbers keeps numbering off compact social controls; Spine uses
+one timeline marker per compact group. Widget placement remains layout-specific.
+
+Electric SVGs now have an explicit positioned target and border-box dimensions,
+rather than inheriting a wrapper's size. Contours follow all four actual corner
+radii, including asymmetrical Magazine/Collage cards, pill shapes and portrait
+avatars. Avatar images retain their own clipping while the outline can extend
+outside it. Per-target resize observation refreshes geometry; disabling or
+switching layouts removes decorations and restores original clipping. Settings,
+media, destinations, clipboard values and saved profiles are unchanged.
+
+The browser regression matrix checks all twelve layouts, default/row/pill/icon
+styles and desktop/tablet/320px widths, including electric alignment, dimensions,
+interaction wrappers, cleanup and live crackling. Isolated fixtures never publish
+settings to a real profile.
