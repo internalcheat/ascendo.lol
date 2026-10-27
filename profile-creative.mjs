@@ -27,6 +27,7 @@ export function createProfileCreative(panel,{surface}={}){
   stage.style.setProperty('--flip-duration',value.duration+'ms');stage.dataset.reduced=String(reduced.matches);
   for(const variable of ['--profile-accent','--accent-rgb','--profile-secondary','--secondary-rgb','--profile-opacity','--display-font','--body-font'])stage.style.setProperty(variable,panel.style.getPropertyValue(variable));
   stage.dataset.profileTheme=config.colorTheme;
+  stage.dataset.frontCompact=String(config.cardLayout==='bento'&&panel.dataset.hasWidgets==='false');
   const changed=JSON.stringify([value,config.name,resolve(value.artwork),resolve(value.poster)]);
   if(changed!==key){
    key=changed;const content=make('div','profile-flip-content');
