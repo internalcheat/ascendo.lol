@@ -1,10 +1,10 @@
 /* Appearance controls affect only their intended media or card surfaces. */
-:is(.video-stage,.preview-stage)[data-background-look='true']{filter:blur(var(--background-blur)) brightness(var(--background-brightness)) saturate(var(--background-saturation));transform:scale(1.06);transform-origin:center;background-position:var(--background-position)!important}
+:is(.video-stage,.preview-stage,.preset-thumbnail__background)[data-background-look='true']{filter:blur(var(--background-blur)) brightness(var(--background-brightness)) saturate(var(--background-saturation));transform:scale(1.06);transform-origin:center;background-position:var(--background-position)!important}
 [data-background-look='true'] :is(.video-stage__video,#previewVideo,#previewPoster){filter:none!important;object-position:var(--background-position)!important}
 [data-background-look='true'] .profile-background-preset__poster{background-position:var(--background-position)}
 [data-background-look='true'] .video-stage__shade{background:radial-gradient(ellipse at center,transparent 10%,rgb(0 0 0 / var(--background-vignette)) 100%)}
 .background-look-tint{position:absolute;inset:0;z-index:3;pointer-events:none;background:var(--background-color);opacity:var(--background-tint);mix-blend-mode:color}
-.preview-stage[data-background-look='true']::after{content:'';position:absolute;inset:0;z-index:2;pointer-events:none;background:radial-gradient(ellipse at center,transparent 10%,rgb(0 0 0 / var(--background-vignette)) 100%)}
+:is(.preview-stage,.preset-thumbnail__background)[data-background-look='true']::after{content:'';position:absolute;inset:0;z-index:2;pointer-events:none;background:radial-gradient(ellipse at center,transparent 10%,rgb(0 0 0 / var(--background-vignette)) 100%)}
 .profile__panel[data-glass='true']:not([data-tiled='true']),.profile__panel[data-glass='true'][data-tiled='true'] :is(.profile-identity,.now-playing,.profile-widget){border-radius:var(--card-radius)!important;backdrop-filter:blur(var(--card-blur));-webkit-backdrop-filter:blur(var(--card-blur));box-shadow:inset 0 1px 0 rgb(255 255 255 / var(--card-edge)),0 24px 80px rgb(0 0 0 / var(--card-shadow))}
 .profile__panel[data-glass='true']:not([data-tiled='true'])::before,.profile__panel[data-glass='true'] .profile-identity::before{opacity:var(--card-edge)}
 .profile-avatar-frame-target{position:relative;overflow:visible!important}

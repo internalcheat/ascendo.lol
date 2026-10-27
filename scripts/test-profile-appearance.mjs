@@ -40,7 +40,7 @@ try{
   const asset=publicAsset(process.cwd(),u.pathname);return asset?request.respond({status:200,contentType:asset.mime,body:fs.readFileSync(asset.target)}):request.abort();
  })().catch(error=>{errors.push(error.message);request.abort().catch(()=>{});});});
  async function load(index){
-  await page.click('#profilePresets');await page.waitForSelector('.studio-presets__row');
+  await page.click('#profilePresets');await page.waitForSelector('.studio-presets__row');await page.waitForFunction(()=>document.querySelector('.studio-presets').getAttribute('aria-busy')==='false');
   await page.evaluate(i=>document.querySelectorAll('.studio-presets__row')[i].querySelector('.studio-presets__body .studio-presets__actions button').click(),index);
   await page.click('.studio-presets__confirm button:last-child');await page.waitForFunction(()=>!document.querySelector('.studio-presets').open);
   const expected=items[index].config;
@@ -52,6 +52,13 @@ try{
  for(const width of [1280,390,320]){
   await page.setViewport({width,height:900});await page.goto('https://ascendo.lol/customize/',{waitUntil:'networkidle0'});await page.waitForFunction(()=>!document.getElementById('editorContent').hidden);
   const first=await load(0),second=await load(1),restored=await load(0);assert.notEqual(first.video,second.video);assert.notEqual(second.avatar,restored.avatar);
+  const beforeStyle=await page.$eval('#previewVideo',v=>v.getAttribute('src'));
+  await page.evaluate(()=>{const change=(id,value)=>{const c=document.getElementById(id);c.value=value;c.dispatchEvent(new Event(c.tagName==='SELECT'?'change':'input',{bubbles:true}));};change('backgroundAppearanceBlur','14');change('glassBlur','18');change('electricBorderStyle','circuit');change('avatarFrameStyle','dashed');});
+  await page.waitForFunction(()=>getComputedStyle(document.getElementById('previewStage')).filter.includes('blur(14px)'));
+  assert.equal(await page.$eval('#previewVideo',v=>v.getAttribute('src')),beforeStyle);
+  assert.equal(await page.$eval('#previewCard .avatar img',v=>getComputedStyle(v).filter),'none');
+  assert.equal(await page.$eval('#previewCard .profile-avatar-frame',n=>n.dataset.frameStyle),'dashed');
+  await load(0);
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);
   await page.click('#profilePresets');await page.type('.studio-presets input','Complete snapshot '+width);const before=post;await page.click('.studio-presets button[type=submit]');await page.waitForFunction(()=>document.querySelector('.studio-presets .studio-status').textContent.includes('Preset saved.'));
   assert.equal(post,before+1);assert.deepEqual(normalizeProfile(items.at(-1).config),a);assert.equal(calls.filter(c=>c.method==='PUT'&&c.route==='/me').length,0);

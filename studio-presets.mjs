@@ -45,7 +45,7 @@ export function createStudioPresets({request,getDraft,loadDraft,getPreviewUrls=(
   // At most two requests at a time; no thumbnail polling or idle animation loops.
   for(let i=0;i<Math.min(2,queue.length);i++)(async()=>{while(queue.length&&current===ticket&&dialog.open)await queue.shift()();})();
  }
- async function open(){if(isBusy())return;returnFocus=doc.activeElement;cache.clear();cancelConfirmation(false);message('');dialog.showModal();name.focus();await refresh();}
+ async function open(){if(isBusy())return;returnFocus=doc.activeElement;cache.clear();cancelConfirmation(false);clearThumbnails();list.replaceChildren(make('p','studio-help','Loading presets…'));message('');dialog.showModal();name.focus();await refresh();}
  function close(){ticket++;busy=false;cancelConfirmation(false);clearThumbnails();dialog.close();controls();returnFocus?.focus({preventScroll:true});}
  form.addEventListener('submit',async event=>{
   event.preventDefault();if(busy||pending||isBusy()||!form.reportValidity())return;let config;try{config=normalizeProfile(structuredClone(getDraft()));}catch(error){message(error.message,true);return;}
