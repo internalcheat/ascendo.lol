@@ -546,3 +546,5 @@ Object.assign(HU,{
  'This preset changed in another tab. Reopen Presets and try again.':'Ez a sablon egy másik lapon megváltozott. Nyisd meg újra a Sablonokat, és próbáld újra.',
  'Could not verify the updated preset. Reopen Presets and try again.':'A frissített sablont nem sikerült ellenőrizni. Nyisd meg újra a Sablonokat, és próbáld újra.'
 });
+
+Object.assign(HU,{'Jump to section':'Ugrás egy szakaszhoz','Jump to section…':'Ugrás egy szakaszhoz…'});

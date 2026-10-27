@@ -452,3 +452,11 @@ In Customize, open Presets and use the three-dot menu on a saved card. Rename ch
 Preset versions reject conflicting edits from another tab. Updating revalidates badge authority and uploaded-media ownership, atomically replaces media references, and reads back the full snapshot before reporting success. Existing presets receive version 1; no profile settings are rewritten. The private service-only RPC and 10-preset limit remain unchanged.
 
 Verification: npm test; rolled-back tests/profile-presets.sql; isolated Chrome editor fixtures at 1280, 390 and 320 pixels, including rename, update, retained avatar/video/settings, keyboard menus and no public saves.
+
+### Studio navigation and motion
+
+The editor keeps category navigation and mobile Edit/Preview controls in reach while scrolling. All six categories fit on phones. Jump to section uses the existing accessible selector to open a specific panel without changing settings. Search includes translated section names, has a clear action, and Ctrl/Cmd+K respects open dialogs.
+
+Category/view reveals are short, interruptible transform/opacity animations. Accordion motion reverses naturally; reduced motion skips it. There is no idle animation loop. Geometry updates on navigation resize, and effects cancel when hidden or leaving the page. Navigation never remounts the preview or writes a draft/profile. No backend or stored profile changes.
+
+Validation includes the full automated suite and isolated native Chrome checks at 1280, 390 and 320 pixels: keyboard section jumping, sticky-header clearance, all category targets visible, rapid navigation, reduced motion, modal shortcuts, unchanged draft/media DOM and existing private preset workflows.

@@ -1,6 +1,6 @@
 import {APPEARANCE_HU} from './appearance-hu.mjs?v=20261027-1';
 import {EXPRESSION_HU} from './expression-hu.mjs?v=20261027-1';
-import {HU} from './studio-hu.mjs?v=20261027-2';
+import {HU} from './studio-hu.mjs?v=20261027-3';
 import {STUDIO_COPY} from './studio-copy.mjs?v=20261025-15';
 Object.assign(HU,EXPRESSION_HU,APPEARANCE_HU);
 for(const [source,short]of Object.entries(STUDIO_COPY))HU[short]=HU[source];

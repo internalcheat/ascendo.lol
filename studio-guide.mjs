@@ -1,4 +1,4 @@
-import {tr} from './studio-i18n.mjs?v=20261027-2';
+import {tr} from './studio-i18n.mjs?v=20261027-3';
 export function createQuickGuide({layout}){
   const doc=document,win=doc.defaultView,abort=new win.AbortController(),signal=abort.signal,reduced=win.matchMedia('(prefers-reduced-motion: reduce)');
   const make=(tag,cls,text)=>{const node=doc.createElement(tag);node.className=cls;if(text)node.textContent=text;return node;};

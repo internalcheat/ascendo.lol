@@ -1,4 +1,4 @@
-import {tr} from './studio-i18n.mjs?v=20261027-2';
+import {tr} from './studio-i18n.mjs?v=20261027-3';
 import {normalizeProfile} from './profile-schema.mjs?v=20261027-1';
 import {createPresetThumbnail} from './preset-thumbnail.mjs?v=20261027-1';
 const ordered=value=>Array.isArray(value)?value.map(ordered):value&&typeof value==='object'?Object.fromEntries(Object.keys(value).sort().map(key=>[key,ordered(value[key])])):value;
