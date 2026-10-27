@@ -1,6 +1,6 @@
 import {createAppearanceEditor} from './editor-appearance.mjs?v=20261027-1';
 import {applyBackgroundAppearance} from './profile-appearance.mjs?v=20261027-1';
-import {createStudioPresets} from './studio-presets.mjs?v=20261027-2';
+import {createStudioPresets} from './studio-presets.mjs?v=20261027-3';
 import {createExpressionEditor} from './editor-expression.mjs?v=20261027-1';
 import {createProfileExpression} from './profile-expression.mjs?v=20261027-1';
 import { request, session, storeSession, freshSession } from './editor-api.mjs';
@@ -11,16 +11,16 @@ import { createProfileEffects } from './profile-effects.mjs?v=20261027-1';
 import { badgeError } from './badge-policy.mjs?v=20261025-4';
 import { createVisualEditor } from './editor-visual.mjs?v=20261027-1';
 import { createProfileBackground } from './profile-background.mjs?v=20261026-1';
-import { createEditorLayout } from './editor-layout.mjs?v=20261027-1';
+import { createEditorLayout } from './editor-layout.mjs?v=20261027-3';
 import {createAdditionalEditor} from './editor-additions.mjs?v=20261027-1';
 import {createProfileAdditions} from './profile-additions.mjs?v=20261027-1';
 import {createStudioControls} from './studio-controls.mjs?v=20261025-15';
 import {applyStudioPalette} from './profile-palette.mjs?v=20261027-1';
 import {BACKGROUNDS} from './background-catalog.mjs?v=20261025-15';
 import {createProfilePlayer} from './profile-music.mjs?v=20261027-1';
-import {createStudioLanguage,tr} from './studio-i18n.mjs?v=20261027-2';
-import {createQuickGuide} from './studio-guide.mjs?v=20261027-2';
-import {createStudioShare} from './studio-share.mjs?v=20261027-2';
+import {createStudioLanguage,tr} from './studio-i18n.mjs?v=20261027-3';
+import {createQuickGuide} from './studio-guide.mjs?v=20261027-3';
+import {createStudioShare} from './studio-share.mjs?v=20261027-3';
 
 const byId = id => document.getElementById(id);
 const form = byId('profileForm');
@@ -40,7 +40,7 @@ const profileExpression=createProfileExpression(panel,{scope:panel.closest('.pre
 const expressionEditor=createExpressionEditor({onChange:schedulePreview,isBusy:()=>model.busy||model.activeUploads>0,replaySignature:()=>profileExpression.replaySignature()});
 const appearanceEditor=createAppearanceEditor({isBusy:()=>model.busy||model.activeUploads>0});
 const studioLayout=createEditorLayout({isBusy:()=>model.busy||model.activeUploads>0,onNavigate:()=>{if(matchMedia('(max-width: 820px)').matches)byId('editTab').click();}});
-const studioControls=createStudioControls(form);
+const studioControls=createStudioControls(byId('editorContent'));
 const quickGuide=createQuickGuide({layout:studioLayout});
 const studioLanguage=createStudioLanguage({request,onChange:()=>{studioControls.close();studioControls.refresh();}});
 const studioShare=createStudioShare({request,getSaved:()=>model.saved?{slug:model.slug,revision:model.baselineRevision,config:model.saved}:null,isBusy:()=>model.busy||model.activeUploads>0});
@@ -402,10 +402,12 @@ byId('logoutButton').addEventListener('click',async()=>{
   clearDraft();storeSession(null);location.replace('/login/');
 });
 function selectTab(tab){
+  const changed=byId('studioGrid').dataset.tab!==tab;
   byId('studioGrid').dataset.tab=tab;
   byId('editTab').setAttribute('aria-selected',String(tab==='edit'));byId('previewTab').setAttribute('aria-selected',String(tab==='preview'));
   byId('editTab').tabIndex=tab==='edit'?0:-1;byId('previewTab').tabIndex=tab==='preview'?0:-1;
   if(tab==='edit'&&matchMedia('(max-width: 820px)').matches)musicPlayer.setActive(false);else preview();
+  if(changed)studioLayout.transitionView(tab);
 }
 for(const [id,tab]of [['editTab','edit'],['previewTab','preview']]){
   byId(id).addEventListener('click',()=>selectTab(tab));
