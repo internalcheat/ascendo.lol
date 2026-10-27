@@ -8,7 +8,7 @@ import {backgroundPoster} from './background-catalog.mjs?v=20261025-15';
 import {applyBackgroundAppearance} from './profile-appearance.mjs?v=20261027-1';
 export function createPresetThumbnail(host,input,{previewUrls}={}){
  const doc=host.ownerDocument,win=doc.defaultView,config=normalizeProfile(input),stage=doc.createElement('div'),scope=doc.createElement('div'),panel=doc.createElement('article');
- stage.className='preset-thumbnail__background';scope.className='preview-card preset-thumbnail__profile';panel.className='profile__panel';scope.append(panel);
+ stage.className='preset-thumbnail__background';scope.className='preview-card preset-thumbnail__profile';scope.setAttribute('data-user-content','');panel.className='profile__panel';scope.append(panel);
  const poster=config.background.kind==='preset'?backgroundPoster(config.background.preset):config.background.kind==='image'?config.background.url:config.background.poster;
  if(poster)stage.style.backgroundImage='url('+JSON.stringify(previewUrls?.get(poster)||poster)+')';applyBackgroundAppearance(stage,config);
  // Quiet thumbnails never create players, run effects or modify the live editor.

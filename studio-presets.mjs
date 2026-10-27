@@ -29,7 +29,7 @@ export function createStudioPresets({request,getDraft,loadDraft,getPreviewUrls=(
   clearThumbnails();list.replaceChildren();if(!items.length){list.append(make('p','studio-help','No presets yet.'));return;}
   const queue=[];
   for(const item of items){
-   const row=make('div','studio-presets__row'),thumbnail=make('div','preset-thumbnail'),body=make('div','studio-presets__body'),text=make('strong');text.textContent=item.name;
+   const row=make('div','studio-presets__row'),thumbnail=make('div','preset-thumbnail'),body=make('div','studio-presets__body'),text=make('strong');text.textContent=item.name;text.setAttribute('data-user-content','');
    const actions=make('div','studio-presets__actions');
    const load=button('Load',()=>{if(busy||isBusy())return;ask('Replace your current preview with this preset? Unpublished changes will be replaced.','Load preset',async()=>{
     busy=true;controls();const generation=++ticket;
