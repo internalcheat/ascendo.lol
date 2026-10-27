@@ -10,7 +10,7 @@ export async function resolveProfileRoute(){
   const slug=routeHandle(location.pathname);if(!slug){clearPending();return false;}
   let config;
   try{const response=await fetch(`${API_URL}/public/${encodeURIComponent(slug)}`,{headers:{apikey:PUBLISHABLE_KEY},credentials:'omit',cache:'no-store',referrerPolicy:'no-referrer',signal:AbortSignal.timeout(5000)});if(!response.ok){clearPending();return false;}config=(await response.json()).config;if(!config?.name){clearPending();return false;}}catch{clearPending();return false;}
-  for(const [file,version]of [['profile-expression.css','20261027-1'],['profile-custom.css','20261025-4'],['profile-effects.css','20261025-6'],['profile-visual.css','20261026-1'],['profile-additions.css','20261025-12'],['profile-palette.css','20261025-14']]){
+  for(const [file,version]of [['profile-expression.css','20261027-1'],['profile-appearance.css','20261027-1'],['profile-custom.css','20261025-4'],['profile-effects.css','20261025-6'],['profile-visual.css','20261026-1'],['profile-additions.css','20261025-12'],['profile-palette.css','20261025-14']]){
     if(!document.querySelector(`link[href^="/${file}"]`)){const link=document.createElement('link');link.rel='stylesheet';link.href=`/${file}?v=${version}`;document.head.append(link);}
   }
   const template=document.createElement('template');template.innerHTML=`

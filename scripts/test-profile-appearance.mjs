@@ -13,7 +13,7 @@ const ids=['aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','bbbbbbbb-bbbb-4bbb-8bbb-bbbbb
 const items=[{id:ids[0],name:'First complete profile',config:a},{id:ids[1],name:'Second complete profile',config:b}],calls=[],results=[],errors=[];let lease=0,post=0;
 fs.mkdirSync('test-results/capture',{recursive:true});const browser=await launchCaptureBrowser();
 try{
- const page=await browser.newPage();page.on('pageerror',e=>errors.push(e.message));page.on('dialog',d=>{errors.push('Unexpected native confirmation');d.dismiss();});
+ const page=await browser.newPage();page.on('pageerror',e=>errors.push(e.message));page.on('dialog',d=>{if(d.type()==='beforeunload')return d.accept();errors.push('Unexpected native confirmation');d.dismiss();});
  await page.evaluateOnNewDocument(()=>{sessionStorage.setItem('ascendo-editor-session',JSON.stringify({access_token:'isolated-ci-fixture',refresh_token:'isolated-ci-fixture',expires_at:Date.now()/1000+3600}));});
  await page.setRequestInterception(true);page.on('request',request=>{(async()=>{
   const u=new URL(request.url()),headers={'Access-Control-Allow-Origin':'https://ascendo.lol','Cache-Control':'no-store'};
@@ -50,7 +50,7 @@ try{
   assert.ok(state.video.endsWith('token=fixture-'+lease));assert.ok(state.avatar.endsWith('token=fixture-'+lease));assert.equal(state.videoSaved,expected.background.url);assert.equal(state.avatarSaved,expected.avatar.url);assert.equal(state.volume,.31);return state;
  }
  for(const width of [1280,390,320]){
-  await page.setViewport({width,height:900});await page.goto('https://ascendo.lol/customize/',{waitUntil:'networkidle0'});await page.waitForFunction(()=>!document.getElementById('editorContent').hidden);
+  await page.setViewport({width,height:900,isMobile:width<500,hasTouch:width<500});await page.goto('https://ascendo.lol/customize/',{waitUntil:'networkidle0'});await page.waitForFunction(()=>!document.getElementById('editorContent').hidden);
   const first=await load(0),second=await load(1),restored=await load(0);assert.notEqual(first.video,second.video);assert.notEqual(second.avatar,restored.avatar);
   const beforeStyle=await page.$eval('#previewVideo',v=>v.getAttribute('src'));
   await page.evaluate(()=>{const change=(id,value)=>{const c=document.getElementById(id);c.value=value;c.dispatchEvent(new Event(c.tagName==='SELECT'?'change':'input',{bubbles:true}));};change('backgroundAppearanceBlur','14');change('glassBlur','18');change('electricBorderStyle','circuit');change('avatarFrameStyle','dashed');});
