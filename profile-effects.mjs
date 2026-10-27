@@ -20,7 +20,7 @@ export function createProfileEffects(panel, { scope, preview = false } = {}) {
   const entry = make('profile-effects-entry');
   const surface = make('profile-effects-surface');
   panel.before(boundary); boundary.append(entry); entry.append(surface); surface.append(panel);
-  const creative=createProfileCreative(panel,{surface});
+  const creative=panel.classList.contains('profile__panel')?createProfileCreative(panel,{surface}):{update(){},destroy(){}};
   scope ||= boundary;
   const atmosphere = createProfileAtmosphere(panel,scope,{clock,preview});
   const cards = new Map();

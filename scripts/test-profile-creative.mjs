@@ -52,7 +52,7 @@ try{
  await page.evaluate(()=>{const set=(id,value)=>{const n=document.getElementById(id);if(n.type==='checkbox')n.checked=value;else n.value=value;n.dispatchEvent(new Event(n.tagName==='SELECT'?'change':'input',{bubbles:true}));};set('flipEnabled',true);set('flipTitle','Private reverse');set('flipText','Saved only on request');set('constellationEnabled',true);set('stickersEnabled',true);});
  await page.waitForFunction(()=>[...document.querySelectorAll('button')].some(n=>n.textContent==='Add sticker'&&!n.disabled));
  await page.evaluate(()=>[...document.querySelectorAll('button')].find(n=>n.textContent==='Add sticker').click());
- await page.waitForSelector('#previewCard .profile-sticker');assert.equal(putCount,0);assert.equal(await page.$eval('#displayName',n=>n.value),saved.name);
+ await page.waitForSelector('#previewCard .profile-sticker');assert.equal(putCount,0);assert.equal(await page.$eval('#displayName',n=>n.value),saved.name);assert.equal(await page.$$eval('.profile-flip-toggle',nodes=>nodes.length),1,'Only the real profile preview receives a flip control');
  // Save and load an entire private preset, including all three new groups.
  await page.click('#profilePresets');await page.waitForSelector('.studio-presets input');await page.waitForFunction(()=>document.querySelector('.studio-presets').getAttribute('aria-busy')==='false');await page.type('.studio-presets input','Creative preset');
  await page.evaluate(()=>[...document.querySelectorAll('.studio-presets button')].find(n=>n.textContent==='Save preset').click());

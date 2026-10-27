@@ -34,5 +34,9 @@ await check('editor independently collects every setting, reorders stickers and 
  const {doc}=environment();doc.body.innerHTML='<div id="controlsPanel"></div>';let changes=0;const editor=createCreativeEditor({onChange:()=>changes++,uploadImage:async()=>({url:'https://example.com/test.png'})}),full=normalizeProfile({...seed,...creativeFixture});editor.fill(full);assert.deepEqual(normalizeProfile({...seed,...editor.collect()}),full);
  const down=[...doc.querySelector('.creative-sticker-rows').querySelectorAll('button')].find(b=>b.textContent==='Move down');down.click();assert.equal(editor.collect().stickers.items[0].id,'note');doc.getElementById('stickersEnabled').checked=false;editor.updateControls();assert.equal(doc.querySelector('.creative-sticker-rows input').disabled,true);assert.equal(editor.collect().stickers.items.length,3);assert.equal(editor.collect().flipCard.enabled,true);assert.equal(changes,1);
 });
+await check('cursor-only test surfaces never receive profile-card flipping or duplicate controls',()=>{
+ const {doc}=environment(),scope=doc.createElement('div'),surface=doc.createElement('div');surface.className='cursor-test__surface';surface.textContent='Cursor tester';scope.append(surface);doc.body.append(scope);
+ const runtime=createProfileEffects(surface,{scope,preview:true});runtime.update(normalizeProfile({...seed,...creativeFixture,cardEffects:{enabled:false}}));assert.equal(scope.querySelector('.profile-flip-stage'),null);assert.equal(scope.querySelector('.profile-flip-toggle'),null);assert.equal(surface.textContent,'Cursor tester');runtime.destroy();assert.equal(scope.querySelector('.profile-effects-boundary'),null);
+});
 console.log(JSON.stringify({passed:checks.length,checks}));
 }finally{for(const win of windows)await win.happyDOM.close();}
