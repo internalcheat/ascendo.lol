@@ -1,7 +1,9 @@
 import { createProfileClock } from './profile-clock.mjs?v=20261025-6';
 import { createProfileAtmosphere } from './profile-atmosphere.mjs?v=20261027-1';
 import {isTiledLayout,layoutWidth} from './visual-schema.mjs?v=20261027-1';
-import {nativeCursor} from './cursor-art.mjs?v=20261027-4';
+import {nativeCursor} from './cursor-art.mjs?v=20261027-5';
+import {prepareNativeCursor} from './cursor-pack-runtime.mjs?v=20261027-5';
+import {CURSOR_PACKS} from './cursor-packs.mjs?v=20261027-5';
 export {nativeCursor};
 
 export function createProfileEffects(panel, { scope, preview = false } = {}) {
@@ -34,7 +36,7 @@ export function createProfileEffects(panel, { scope, preview = false } = {}) {
       const node = make('profile-click-particle'); decorations.append(node); particles.push({node,animation:null});
     }
   }
-  let config, entranceKey, bounds, scopeBounds, pendingEntrance;
+  let config, entranceKey, bounds, scopeBounds, pendingEntrance, cursorLoadKey='',cursorLoadTicket=0,destroyed=false;
   let frame = 0, lastTime = 0, slowFrames = 0, limited = false, onscreen = true;
   let painted = !preview && (doc.readyState === 'complete' || (win.performance.getEntriesByType?.('paint') || []).some(entry => entry.name === 'first-contentful-paint'));
   let mouseX = 0, mouseY = 0, lastMove = -Infinity, trailStarted = false, pointerKind;
@@ -92,10 +94,13 @@ export function createProfileEffects(panel, { scope, preview = false } = {}) {
     clearParticles();
   }
   function syncCursor() {
+    if(destroyed)return;
     const enabled = cursorEnabled();
     scope.classList.toggle('profile-custom-cursor',enabled);
     if (enabled) {scope.style.setProperty('--custom-cursor',nativeCursor(config.cursorEffects));scope.style.setProperty('--custom-pointer',nativeCursor(config.cursorEffects,{pointer:true}));}
     else {scope.style.removeProperty('--custom-cursor');scope.style.removeProperty('--custom-pointer');}
+    const key=enabled?config.cursorEffects.style+':'+Math.round(config.cursorEffects.size):'';
+    if(key!==cursorLoadKey){cursorLoadKey=key;const ticket=++cursorLoadTicket;if(enabled&&Object.hasOwn(CURSOR_PACKS,config.cursorEffects.style))prepareNativeCursor(config.cursorEffects,doc).then(()=>{if(!destroyed&&ticket===cursorLoadTicket)syncCursor();}).catch(()=>{if(!destroyed&&ticket===cursorLoadTicket)scope.dispatchEvent(new win.CustomEvent('ascendo:cursor-status',{detail:{message:'Cursor artwork unavailable. Using Arrow.'}}));});}
   }
   function schedule() { if (!frame && interactive()) frame = clock.request(step); }
   function step(time) {
@@ -260,6 +265,7 @@ export function createProfileEffects(panel, { scope, preview = false } = {}) {
   const resize = typeof win.ResizeObserver === 'function' ? new win.ResizeObserver(() => { neutral(); geometry(); }) : null;
   resize?.observe(boundary);
   function destroy() {
+    destroyed=true;cursorLoadTicket++;
     suspend(); abort.abort(); observer?.disconnect(); resize?.disconnect(); clock.cancel(firstPaint); atmosphere.destroy();
     for (const [node,record] of cards) if (node !== panel) { record.boundary.before(node); record.boundary.remove(); }
     cards.clear(); clock.destroy();

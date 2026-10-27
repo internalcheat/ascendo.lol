@@ -1,6 +1,6 @@
-import {tr} from './studio-i18n.mjs?v=20261027-4';
-import {normalizeProfile} from './profile-schema.mjs?v=20261027-1';
-import {createPresetThumbnail} from './preset-thumbnail.mjs?v=20261027-1';
+import {tr} from './studio-i18n.mjs?v=20261027-5';
+import {normalizeProfile} from './profile-schema.mjs?v=20261027-5';
+import {createPresetThumbnail} from './preset-thumbnail.mjs?v=20261027-5';
 const ordered=value=>Array.isArray(value)?value.map(ordered):value&&typeof value==='object'?Object.fromEntries(Object.keys(value).sort().map(key=>[key,ordered(value[key])])):value;
 export const sameSnapshot=(a,b)=>JSON.stringify(ordered(normalizeProfile(a)))===JSON.stringify(ordered(normalizeProfile(b)));
 

@@ -1,5 +1,6 @@
 import { normalizeVisual } from './visual-schema.mjs?v=20261027-1';
 import {BACKGROUNDS} from './background-presets.mjs?v=20261025-15';
+import {CURSOR_IDS} from './cursor-packs.mjs?v=20261027-5';
 
 export const EFFECTS = ['none', 'glow', 'glitch', 'shimmer', 'typewriter', 'pulse', 'aurora', 'wave', 'float'];
 export const ICONS = ['instagram', 'discord', 'youtube', 'tiktok', 'github', 'minecraft', 'twitch', 'x', 'spotify', 'website'];
@@ -65,7 +66,7 @@ export function normalizeEffects(input, accent) {
   return {
     cursorEffects: {
       enabled: boolean(cursor.enabled, false, 'custom cursor'),
-      style: choice(cursor.style, ['arrow','dot','ring','crosshair'], 'arrow', 'cursor style'),
+      style: choice(cursor.style, CURSOR_IDS, 'arrow', 'cursor style'),
       color: color.toLowerCase(), size: number(cursor.size === undefined ? 24 : cursor.size, 12, 40, 'cursor size'),
       trail: boolean(cursor.trail, false, 'cursor trail'), trailLength,
       trailSmoothness: number(cursor.trailSmoothness === undefined ? 55 : cursor.trailSmoothness, 0, 100, 'trail smoothness'),

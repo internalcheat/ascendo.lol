@@ -1,5 +1,6 @@
 import fs from 'node:fs';import vm from 'node:vm';import assert from 'node:assert/strict';import {webcrypto} from 'node:crypto';import {transform} from 'esbuild';import {Window} from 'happy-dom';
 import {normalizeProfile,profileMedia} from '../profile-schema.mjs';import {preserveVisualGroups} from '../visual-schema.mjs';import {badgeError} from '../badge-policy.mjs';import {badgeCapabilities} from '../supabase/functions/profile-api/badge-authority.mjs';import {createStudioPresets} from '../studio-presets.mjs';
+import {CURSOR_PACKS,CURSOR_IDS} from '../cursor-packs.mjs';import {createHash} from 'node:crypto';
 const base=normalizeProfile(JSON.parse(fs.readFileSync('supabase/seed-profiles.json','utf8')).internalcheats),checks=[],check=async(name,fn)=>{await fn();checks.push(name);},tick=async()=>{for(let i=0;i<8;i++)await new Promise(r=>setTimeout(r,0));};
 await check('preset API binds native ownership, validates snapshots and never publishes media or changes profile revisions',async()=>{
  const a='11111111-1111-4111-8111-111111111111',b='22222222-2222-4222-8222-222222222222',id='33333333-3333-4333-8333-333333333333',items=new Map();let handler,writes=0;
@@ -22,7 +23,7 @@ await check('preset API binds native ownership, validates snapshots and never pu
  assert.equal((await call(b,'/presets','POST',{name:'Stolen authority',config:base,owner:a})).status,400);
  assert.equal((await call(b,'/presets','POST',{name:'Reserved badge',config:{...base,badge:'Founder'}})).status,400);
  assert.equal((await call(a,'/presets','POST',{name:'Foreign media',config:{...base,avatar:{...base.avatar,url:'https://fixture.supabase.co/storage/v1/object/public/profile-media/foreign/file.png'}}})).status,400);
- const config={...base,bio:'Unpublished snapshot',holographic:{enabled:true,finish:'pearl'}};
+ const config={...base,bio:'Unpublished snapshot',holographic:{enabled:true,finish:'pearl'},cursorEffects:{...base.cursorEffects,style:Object.keys(CURSOR_PACKS)[0]}};
  assert.equal((await call(a,'/presets','POST',{name:'My profile',config})).status,200);assert.equal(writes,0);
  assert.equal((await (await call(a,'/presets')).json()).length,1);assert.equal((await (await call(b,'/presets')).json()).length,0);
  assert.equal((await call(b,'/presets/'+id)).status,404);assert.equal((await call(b,'/presets/'+id,'DELETE')).status,404);
@@ -84,6 +85,14 @@ await check('rename and update preserve draft, identity and complete media while
  await action('update');assert.equal(item.version,2);dialog.querySelector('.studio-presets__confirm button:last-child').click();await tick();assert.equal(item.id,'one');assert.equal(item.name,'Renamed profile');assert.equal(item.version,3);assert.deepEqual(item.config,draft);assert.match(status.textContent,/Preset updated/);assert.deepEqual(draft,unchanged);
  fail=true;await action('rename');document.getElementById('presetRenameName').value='Stale edit';dialog.querySelector('.studio-presets__confirm button:last-child').click();await tick();assert.match(status.textContent,/changed in another tab/);assert.equal(item.name,'Renamed profile');
  fail=false;corrupt=true;await action('update');dialog.querySelector('.studio-presets__confirm button:last-child').click();await tick();assert.match(status.textContent,/Could not verify the updated preset/);assert.equal(item.id,'one');assert.deepEqual(draft,unchanged);assert.ok(calls.every(([path])=>path.startsWith('/presets')));controller.close();await win.happyDOM.close();
+});
+await check('all thirty licensed-source cursor pairs retain integrity and validate as saved settings without altering defaults',()=>{
+ const records=JSON.parse(fs.readFileSync('vendor/sweezy-cursors/SOURCES.json','utf8'));assert.equal(records.packs.length,30);assert.equal(CURSOR_IDS.length,34);assert.equal(normalizeProfile({ ...base,cursorEffects:undefined }).cursorEffects.enabled,false);
+ for(const [index,pack]of records.packs.entries()){
+  assert.equal(pack.rank,index+1);assert.ok(CURSOR_PACKS[pack.id]);const profile=normalizeProfile({...base,cursorEffects:{...base.cursorEffects,enabled:true,style:pack.id,size:40}});assert.equal(profile.cursorEffects.style,pack.id);assert.deepEqual(normalizeProfile(JSON.parse(JSON.stringify(profile))),profile);
+  for(const asset of Object.values(pack.assets)){const bytes=fs.readFileSync(asset.path.slice(1));assert.equal(bytes.length,asset.bytes);assert.equal(createHash('sha256').update(bytes).digest('hex'),asset.sha256);assert.equal(bytes.subarray(1,4).toString(),'PNG');assert.ok(asset.hotspot[0]>=0&&asset.hotspot[0]<asset.width);assert.ok(asset.hotspot[1]>=0&&asset.hotspot[1]<asset.height);}
+ }
+ for(const style of ['sweezy-0','https://example.com/cursor.png','__proto__','sweezy-12273<script>'])assert.throws(()=>normalizeProfile({...base,cursorEffects:{style}}));
 });
 console.log(JSON.stringify({passed:checks.length,checks}));
 

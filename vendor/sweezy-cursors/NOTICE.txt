@@ -1,0 +1,8 @@
+Sweezy cursor artwork
+
+Source: https://sweezy-cursors.com/
+Ranking snapshot: 2026-10-27, all-time top 30 (page 1 plus first six results on page 2).
+
+Bundled at the site owner's explicit instruction and confirmation of written redistribution permission on 2026-10-27. Artwork, characters and trademarks remain the property of Sweezy and their respective owners. ASCENDO grants no additional reuse license for these assets.
+
+Original PNG files are preserved unchanged. Native cursors are resized in the browser with their supplied hotspots. Animated source packs use their supplied static PNG artwork for native browser compatibility. See SOURCES.json for source pages, files, dimensions, hotspots and SHA-256 hashes.
