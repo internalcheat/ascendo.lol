@@ -1,10 +1,11 @@
 import {applyAppearanceStyles} from './profile-appearance.mjs?v=20261027-1';
 import {appendRichBio} from './rich-bio.mjs?v=20261027-1';
 import {applyExpressionStyles} from './expression-view.mjs?v=20261027-1';
-import { normalizeProfile, safeUrl } from './profile-schema.mjs?v=20261027-5';
-import { FONTS, TEXT_SIZES, isTiledLayout } from './visual-schema.mjs?v=20261027-1';
+import { normalizeProfile, safeUrl } from './profile-schema.mjs?v=20261027-9';
+import { FONTS, TEXT_SIZES, isTiledLayout } from './visual-schema.mjs?v=20261027-9';
 import {renderWidgets} from './profile-widgets.mjs?v=20261027-1';
 import {themePalette,channels} from './profile-palette.mjs?v=20261027-1';
+import {applyCreativeView} from './creative-view.mjs?v=20261027-9';
 
 export function element(tag, className = '', content) {
   const node = document.createElement(tag);
@@ -220,14 +221,15 @@ export function renderProfile(panel, input, options = {}) {
   const hasMusic=config.background.kind==='video'||config.music?.source==='mp3'&&!!config.music.url;
   if (config.soundtrackCard.enabled && hasMusic && music?.dataset.sourceKey !== musicKey) { music = musicCard(config.soundtrack); music.dataset.sourceKey = musicKey; }
   if (!config.soundtrackCard.enabled || !hasMusic) music = null;
-  const extra=renderWidgets(panel,config.widgets),contents=[socials,music,...extra].filter(Boolean).map(node=>{let outer=node;while(outer.parentElement&&outer.parentElement!==widgets&&widgets.contains(outer))outer=outer.parentElement;return outer.parentElement===widgets?outer:node;}),keep=new Set(contents);
+  const extra=renderWidgets(panel,config.widgets),contents=[config.constellation.enabled&&config.socials.length?null:socials,music,...extra].filter(Boolean).map(node=>{let outer=node;while(outer.parentElement&&outer.parentElement!==widgets&&widgets.contains(outer))outer=outer.parentElement;return outer.parentElement===widgets?outer:node;}),keep=new Set(contents);
   for(const child of [...widgets.children])if(!keep.has(child))child.remove();
   contents.forEach((node,index)=>{if(widgets.children[index]!==node)widgets.insertBefore(node,widgets.children[index]||null);});
-  panel.dataset.hasWidgets=String(config.socials.length>0||!!music||extra.length>0);
+  panel.dataset.hasWidgets=String(!config.constellation.enabled&&config.socials.length>0||!!music||extra.length>0);
   [identity,...socials.querySelectorAll('.social-link'),music,...extra].filter(Boolean).forEach((node,index)=>{node.dataset.layoutIndex=String(index+1).padStart(2,'0');});
   if (!panel.contains(identity) || !panel.contains(widgets)) panel.replaceChildren(identity,widgets);
   applyExpressionStyles(panel,config);
   applyAppearanceStyles(panel,config);
+  applyCreativeView(panel,{identity,summary,avatar,socials,config,resolve:resolved});
   panel.setAttribute('aria-label',`${config.name} profile`);
   return config;
 }

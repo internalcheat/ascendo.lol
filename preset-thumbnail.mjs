@@ -1,9 +1,9 @@
 import {createAvatarFrames} from './avatar-frames.mjs?v=20261027-1';
 import {electricContour} from './electric-contour.mjs?v=20261027-1';
 import {electricPaths} from './electric-styles.mjs?v=20261027-1';
-import {renderProfile} from './profile-view.mjs?v=20261027-5';
-import {normalizeProfile} from './profile-schema.mjs?v=20261027-5';
-import {layoutWidth} from './visual-schema.mjs?v=20261027-1';
+import {renderProfile} from './profile-view.mjs?v=20261027-9';
+import {normalizeProfile} from './profile-schema.mjs?v=20261027-9';
+import {layoutWidth} from './visual-schema.mjs?v=20261027-9';
 import {backgroundPoster} from './background-catalog.mjs?v=20261025-15';
 import {applyBackgroundAppearance} from './profile-appearance.mjs?v=20261027-1';
 export function createPresetThumbnail(host,input,{previewUrls}={}){

@@ -23,11 +23,13 @@ await check('preset API binds native ownership, validates snapshots and never pu
  assert.equal((await call(b,'/presets','POST',{name:'Stolen authority',config:base,owner:a})).status,400);
  assert.equal((await call(b,'/presets','POST',{name:'Reserved badge',config:{...base,badge:'Founder'}})).status,400);
  assert.equal((await call(a,'/presets','POST',{name:'Foreign media',config:{...base,avatar:{...base.avatar,url:'https://fixture.supabase.co/storage/v1/object/public/profile-media/foreign/file.png'}}})).status,400);
- const config={...base,bio:'Unpublished snapshot',holographic:{enabled:true,finish:'pearl'},cursorEffects:{...base.cursorEffects,style:Object.keys(CURSOR_PACKS)[0]}};
+ for(const extra of [{flipCard:{artwork:'https://fixture.supabase.co/storage/v1/object/public/profile-media/foreign/file.png'}},{stickers:{items:[{id:'foreign',kind:'image',url:'https://fixture.supabase.co/storage/v1/object/public/profile-media/foreign/file.png'}]}}])assert.equal((await call(a,'/presets','POST',{name:'Foreign creative media',config:{...base,...extra}})).status,400);
+ const config={...base,bio:'Unpublished snapshot',holographic:{enabled:true,finish:'pearl'},cursorEffects:{...base.cursorEffects,style:Object.keys(CURSOR_PACKS)[0]},flipCard:{enabled:true,title:'Private reverse',links:[{label:'Work',url:'https://example.com/'}]},constellation:{enabled:true},stickers:{enabled:true,items:[{id:'saved-star',kind:'emoji',text:'✦'}]}};
  assert.equal((await call(a,'/presets','POST',{name:'My profile',config})).status,200);assert.equal(writes,0);
  assert.equal((await (await call(a,'/presets')).json()).length,1);assert.equal((await (await call(b,'/presets')).json()).length,0);
  assert.equal((await call(b,'/presets/'+id)).status,404);assert.equal((await call(b,'/presets/'+id,'DELETE')).status,404);
  const restored=await (await call(a,'/presets/'+id)).json();assert.equal(restored.config.bio,'Unpublished snapshot');assert.equal(restored.config.holographic.finish,'pearl');
+ assert.equal(restored.config.flipCard.title,'Private reverse');assert.equal(restored.config.constellation.enabled,true);assert.equal(restored.config.stickers.items[0].text,'✦');
  const beforeRename=structuredClone(restored.config);
  assert.equal((await call(b,'/presets/'+id,'PATCH',{name:'Stolen',version:1})).status,404);
  assert.equal((await call(b,'/presets/'+id,'PUT',{config:base,version:1})).status,404);

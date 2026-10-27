@@ -1,9 +1,10 @@
 import { createProfileClock } from './profile-clock.mjs?v=20261025-6';
-import { createProfileAtmosphere } from './profile-atmosphere.mjs?v=20261027-1';
-import {isTiledLayout,layoutWidth} from './visual-schema.mjs?v=20261027-1';
+import { createProfileAtmosphere } from './profile-atmosphere.mjs?v=20261027-9';
+import {isTiledLayout,layoutWidth} from './visual-schema.mjs?v=20261027-9';
 import {nativeCursor} from './cursor-art.mjs?v=20261027-5';
 import {prepareNativeCursor} from './cursor-pack-runtime.mjs?v=20261027-5';
 import {CURSOR_PACKS} from './cursor-packs.mjs?v=20261027-5';
+import {createProfileCreative} from './profile-creative.mjs?v=20261027-9';
 export {nativeCursor};
 
 export function createProfileEffects(panel, { scope, preview = false } = {}) {
@@ -19,6 +20,7 @@ export function createProfileEffects(panel, { scope, preview = false } = {}) {
   const entry = make('profile-effects-entry');
   const surface = make('profile-effects-surface');
   panel.before(boundary); boundary.append(entry); entry.append(surface); surface.append(panel);
+  const creative=createProfileCreative(panel,{surface});
   scope ||= boundary;
   const atmosphere = createProfileAtmosphere(panel,scope,{clock,preview});
   const cards = new Map();
@@ -58,11 +60,11 @@ export function createProfileEffects(panel, { scope, preview = false } = {}) {
     record.surface.style.removeProperty('transform'); record.artwork?.style.removeProperty('translate'); record.light.style.opacity = '0';
   }
   function syncCards() {
-    const targets = isTiledLayout(config.cardLayout) ? [panel.querySelector('.profile-identity'),...panel.querySelectorAll('.social-link,.now-playing,.profile-widget')].filter(Boolean) : [panel];
+    const targets = isTiledLayout(config.cardLayout) ? [panel.querySelector('.profile-identity'),...panel.querySelectorAll(config.constellation.enabled?'.now-playing,.profile-widget':'.social-link,.now-playing,.profile-widget')].filter(Boolean) : [panel];
     light.hidden = isTiledLayout(config.cardLayout);
     for (const [node,record] of cards) if (!targets.includes(node) || !record.boundary.isConnected || !record.boundary.contains(node)) {
       resetCard(record);
-      if (node !== panel) { record.boundary.before(node); record.boundary.remove(); }
+      if (node !== panel) { if(record.boundary.contains(node))record.boundary.before(node); record.boundary.remove(); }
       cards.delete(node);
     }
     for (const node of targets) {
@@ -219,6 +221,7 @@ export function createProfileEffects(panel, { scope, preview = false } = {}) {
     const width = layoutWidth(config.cardLayout);
     boundary.style.setProperty('--layout-width',`${width}px`); scope.style.setProperty('--layout-width',`${width}px`);
     syncCards();
+    creative.update(config,{previewUrls});
     surface.style.setProperty('--accent-rgb',[1,3,5].map(offset=>parseInt(config.accent.slice(offset,offset+2),16)).join(','));
     geometry();
     atmosphere.update(config,{previewUrls}); atmosphere.setActive(!doc.hidden && onscreen);
@@ -266,7 +269,7 @@ export function createProfileEffects(panel, { scope, preview = false } = {}) {
   resize?.observe(boundary);
   function destroy() {
     destroyed=true;cursorLoadTicket++;
-    suspend(); abort.abort(); observer?.disconnect(); resize?.disconnect(); clock.cancel(firstPaint); atmosphere.destroy();
+    suspend(); abort.abort(); observer?.disconnect(); resize?.disconnect(); clock.cancel(firstPaint); atmosphere.destroy(); creative.destroy();
     for (const [node,record] of cards) if (node !== panel) { record.boundary.before(node); record.boundary.remove(); }
     cards.clear(); clock.destroy();
     scope.classList.remove('profile-custom-cursor'); scope.style.removeProperty('--custom-cursor');scope.style.removeProperty('--custom-pointer');

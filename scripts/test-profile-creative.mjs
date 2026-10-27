@@ -1,0 +1,61 @@
+import fs from 'node:fs';import assert from 'node:assert/strict';
+import {launchCaptureBrowser,publicAsset} from './profile-capture.mjs';import {renderProfileDocument} from '../profile-document.mjs';import {normalizeProfile} from '../profile-schema.mjs';import {LAYOUTS} from '../visual-schema.mjs';
+if(process.env.GITHUB_ACTIONS!=='true')throw Error('Creative browser checks run only on GitHub Actions.');
+const root=process.cwd(),seed=JSON.parse(fs.readFileSync('supabase/seed-profiles.json','utf8')).internalcheats,template=fs.readFileSync('profile-shell.html','utf8');
+const fixture={flipCard:{enabled:true,title:'After hours',text:'A different side.\nSame person.',artwork:'https://ascendo.lol/assets/k3rlsen-avatar.png',color:'#8be0c2',links:[{label:'Explore my work',url:'https://github.com/internalcheat'}],duration:500},constellation:{enabled:true,spread:100,nodeSize:48,lineOpacity:45},stickers:{enabled:true,items:[{id:'star',kind:'emoji',text:'✦',edge:'top',position:75,size:48},{id:'note',kind:'note',text:'stay curious',edge:'right',position:70,size:80,rotation:12},{id:'image',kind:'image',url:'https://ascendo.lol/assets/ascendo-icon-32.png',edge:'left',size:48}]}};
+let config=normalizeProfile({...seed,...fixture,background:{kind:'black'},badge:'Moonlight'}),saved=normalizeProfile({...seed,background:{kind:'black'},badge:''}),html,revision=5,preset,putCount=0;
+const browser=await launchCaptureBrowser(),reports=[],errors=[];fs.mkdirSync('test-results/creative',{recursive:true});
+try{
+ const page=await browser.newPage();page.on('pageerror',e=>errors.push(e.message));page.on('dialog',d=>d.accept());
+ await page.evaluateOnNewDocument(()=>sessionStorage.setItem('ascendo-editor-session',JSON.stringify({access_token:'isolated-ci-fixture',refresh_token:'isolated-ci-fixture',expires_at:Date.now()/1000+3600})));
+ await page.setRequestInterception(true);page.on('request',request=>{(async()=>{
+  const u=new URL(request.url());
+  if(u.hostname==='fstdttaxflayhtwhnbih.supabase.co'&&u.pathname.startsWith('/functions/v1/profile-api')){
+   const route=u.pathname.split('/profile-api')[1],method=request.method(),headers={'Access-Control-Allow-Origin':'https://ascendo.lol','Access-Control-Allow-Headers':'apikey,authorization,content-type','Access-Control-Allow-Methods':'GET,POST,PUT,DELETE,OPTIONS'};let data;
+   if(method==='OPTIONS')return request.respond({status:204,headers});
+   if(route.startsWith('/public/'))data={config,revision:1};
+   else if(route==='/me'&&method==='PUT'){const body=JSON.parse(request.postData());assert.equal(body.revision,revision);saved=normalizeProfile(body.config);revision++;putCount++;data={config:saved,revision};}
+   else if(route==='/me')data={slug:'internalcheats',config:saved,defaults:saved,revision,capabilities:{canUseReservedBadges:true},usage:0};
+   else if(route==='/uploads')data=[];else if(route==='/preferences')data={language:'en'};
+   else if(route==='/presets'&&method==='POST'){const body=JSON.parse(request.postData());preset={id:'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',name:body.name,version:1,config:body.config};data=preset;}
+   else if(route==='/presets')data=preset?[preset]:[];else if(route.startsWith('/presets/'))data=preset;
+   else throw Error('Unexpected fixture request '+method+' '+route);
+   return request.respond({status:200,contentType:'application/json',headers,body:JSON.stringify(data)});
+  }
+  if(u.hostname!=='ascendo.lol')return request.abort();
+  if(request.isNavigationRequest())return request.respond({status:200,contentType:'text/html',body:u.pathname==='/customize/'?fs.readFileSync('customize/index.html','utf8'):html});
+  const asset=publicAsset(root,u.pathname);return asset?request.respond({status:200,contentType:asset.mime,body:fs.readFileSync(asset.target)}):request.abort();
+ })().catch(e=>{errors.push(e.message);request.abort().catch(()=>{});});});
+ for(const width of [1280,768,390,320])for(const cardLayout of LAYOUTS){
+  const long=cardLayout==='bento'||cardLayout==='portrait',socials=long?Array.from({length:16},(_,i)=>({...seed.socials[i%3],label:seed.socials[i%3].label+' '+(i+1),handle:'long_handle_'+i})):seed.socials;
+  config=normalizeProfile({...seed,...fixture,badge:'Moonlight',background:{kind:'black'},cardLayout,socials,cardEffects:{enabled:true},electricBorder:{enabled:true,intensity:20},socialStyle:{enabled:true,layout:'icons'},name:long?'A longer display name':'InternalCheats'});
+  html=renderProfileDocument(template,'creative-fixture',{config,revision:1});await page.setViewport({width,height:1000});await page.goto('https://ascendo.lol/creative-fixture/',{waitUntil:'networkidle0'});
+  await page.waitForSelector('.profile-flip-toggle');await page.evaluate(()=>document.fonts.ready);
+  const state=await page.evaluate(()=>{const panel=document.querySelector('.profile__panel'),sky=panel.querySelector('.profile-constellation'),avatar=panel.querySelector('.avatar'),links=[...sky.querySelectorAll('.social-link')],box=sky.getBoundingClientRect(),orbital=getComputedStyle(links[0]).position==='absolute';return{overflow:document.documentElement.scrollWidth>innerWidth+1,socials:links.length,orbital,linksOutside:links.some(n=>{const r=n.getBoundingClientRect();return r.left<box.left-1||r.right>box.right+1;}),avatarCenter:orbital?Math.abs(avatar.getBoundingClientRect().left+avatar.getBoundingClientRect().width/2-box.left-box.width/2)<1:true,stickers:panel.querySelectorAll('.profile-sticker').length,decorationClicks:getComputedStyle(panel.querySelector('.profile-stickers')).pointerEvents};});
+  assert.equal(state.overflow,false,JSON.stringify({width,cardLayout,state}));assert.equal(state.socials,socials.length);assert.equal(state.linksOutside,false,JSON.stringify({width,cardLayout,state}));assert.equal(state.avatarCenter,true);assert.equal(state.stickers,3);assert.equal(state.decorationClicks,'none');
+  await page.evaluate(()=>{window.avatarBefore=document.querySelector('.avatar');window.videoBefore=document.getElementById('musicBackground');});
+  await page.click('.profile-flip-toggle');await page.waitForFunction(()=>document.querySelector('.profile-flip-stage').classList.contains('is-back'));await page.evaluate(()=>new Promise(r=>setTimeout(r,550)));
+  const reverse=await page.evaluate(()=>{const panel=document.querySelector('.profile__panel'),back=document.querySelector('.profile-flip-back');return{frontInert:panel.inert,backInert:back.inert,title:back.querySelector('h2').textContent,href:back.querySelector('a').href,newTab:back.querySelector('a').target,rel:back.querySelector('a').rel,overflow:document.documentElement.scrollWidth>innerWidth+1,mediaSame:window.videoBefore===document.getElementById('musicBackground'),avatarSame:window.avatarBefore===panel.querySelector('.avatar')};});
+  assert.deepEqual(reverse,{frontInert:true,backInert:false,title:'After hours',href:'https://github.com/internalcheat',newTab:'_blank',rel:'noopener noreferrer',overflow:false,mediaSame:true,avatarSame:true});
+  if((width===1280&&cardLayout==='classic')||(width===320&&cardLayout==='bento'))await page.screenshot({path:`test-results/creative/reverse-${width}.png`,fullPage:true});
+  await page.keyboard.press('Escape');assert.equal(await page.$eval('.profile__panel',n=>n.inert),false);
+  if(['classic','bento'].includes(cardLayout)){await page.evaluate(()=>new Promise(r=>setTimeout(r,550)));await page.screenshot({path:`test-results/creative/front-${cardLayout}-${width}.png`,fullPage:true});}
+  reports.push({width,cardLayout,...state});
+ }
+ // No-JavaScript remains a complete front profile, with working ordinary social links.
+ await page.setJavaScriptEnabled(false);await page.goto('https://ascendo.lol/creative-fixture/',{waitUntil:'networkidle0'});assert.equal(await page.$$eval('.social-link',n=>n.length),config.socials.length);await page.setJavaScriptEnabled(true);
+ // Test the real editor using isolated saved settings and a simulated authenticated API.
+ await page.setViewport({width:1280,height:900});await page.goto('https://ascendo.lol/customize/',{waitUntil:'networkidle0'});await page.waitForFunction(()=>!document.getElementById('editorContent').hidden);
+ for(const id of ['flipEnabled','constellationEnabled','stickersEnabled'])assert.equal(await page.$eval('#'+id,n=>n.checked),false);
+ await page.evaluate(()=>{const set=(id,value)=>{const n=document.getElementById(id);if(n.type==='checkbox')n.checked=value;else n.value=value;n.dispatchEvent(new Event(n.tagName==='SELECT'?'change':'input',{bubbles:true}));};set('flipEnabled',true);set('flipTitle','Private reverse');set('flipText','Saved only on request');set('constellationEnabled',true);set('stickersEnabled',true);[...document.querySelectorAll('button')].find(n=>n.textContent==='Add sticker').click();});
+ await page.waitForSelector('#previewCard .profile-sticker');assert.equal(putCount,0);assert.equal(await page.$eval('#displayName',n=>n.value),saved.name);
+ // Save and load an entire private preset, including all three new groups.
+ await page.click('#profilePresets');await page.waitForSelector('.studio-presets input');await page.type('.studio-presets input','Creative preset');
+ await page.evaluate(()=>[...document.querySelectorAll('.studio-presets button')].find(n=>n.textContent==='Save preset').click());
+ await page.waitForFunction(()=>document.querySelector('.studio-presets__row'));assert.equal(preset.config.flipCard.title,'Private reverse');assert.equal(preset.config.stickers.items.length,1);assert.equal(putCount,0);await page.keyboard.press('Escape');
+ await page.click('#saveChanges');await page.waitForFunction(()=>document.getElementById('saveState').textContent==='All changes saved');assert.equal(putCount,1);assert.equal(saved.flipCard.title,'Private reverse');assert.equal(saved.constellation.enabled,true);assert.equal(saved.stickers.items.length,1);
+ await page.reload({waitUntil:'networkidle0'});await page.waitForFunction(()=>!document.getElementById('editorContent').hidden);assert.equal(await page.$eval('#flipTitle',n=>n.value),'Private reverse');assert.equal(await page.$eval('#stickersEnabled',n=>n.checked),true);
+ await page.emulateMediaFeatures([{name:'prefers-reduced-motion',value:'reduce'}]);await page.click('#previewTab');await page.click('.profile-flip-toggle');assert.equal(await page.$eval('.profile-flip-stage',n=>n.dataset.reduced),'true');await page.keyboard.press('Escape');
+ assert.deepEqual(errors,[]);await page.close();
+}finally{await browser.close();}
+fs.writeFileSync('test-results/creative/results.json',JSON.stringify({layouts:reports.length,reports,editor:{privatePreview:true,preset:true,persisted:true,publicFixtureSaves:putCount}},null,2));console.log(JSON.stringify({creativeLayouts:reports.length,passed:true,editorPersistence:true}));
