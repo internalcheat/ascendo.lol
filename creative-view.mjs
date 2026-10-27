@@ -16,6 +16,7 @@ export function applyCreativeView(panel,{identity,summary,avatar,socials,config,
  if(enabled){
   for(const child of [...socials.children])if(child.classList.contains('profile-tile-boundary')){const link=child.querySelector('.social-link');if(link)child.replaceWith(link);}
   if(!sky){sky=make(doc,'div','profile-constellation');identity.prepend(sky);}
+  for(const other of [...sky.children])if(other.classList.contains('social-list')&&other!==socials)other.remove();
   const key=JSON.stringify([config.name,config.socials,stars]);
   if(sky.dataset.key!==key){
    sky.dataset.key=key;sky.querySelector('svg')?.remove();const svg=doc.createElementNS(NS,'svg');svg.classList.add('constellation-lines');svg.setAttribute('viewBox','0 0 400 400');svg.setAttribute('aria-hidden','true');
