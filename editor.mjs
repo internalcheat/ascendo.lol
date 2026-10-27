@@ -45,6 +45,8 @@ const appearanceEditor=createAppearanceEditor({isBusy:()=>model.busy||model.acti
 const cursorEditor=createCursorEditor({isBusy:()=>model.busy||model.activeUploads>0});
 const creativeEditor=createCreativeEditor({onChange:schedulePreview,isBusy:()=>model.busy||model.activeUploads>0,uploadImage:async(file,group)=>{
   if(model.busy||model.activeUploads)throw Error('Finish or cancel your upload first.');
+  if(!file.size||file.size>MAX_IMAGE)throw Error('Choose an image up to 5 MB.');
+  if(!['image/jpeg','image/png','image/webp','image/gif'].includes(file.type))throw Error('Unsupported file. Use MP3 audio, MP4 video or JPEG, PNG, GIF, or WebP images.');
   model.activeUploads++;markDirty();
   try{const poster=await posterFrom(file),completed=await uploadFile(file,'backgroundImage',group);let still;if(poster)still=await uploadFile(poster,'poster',group);await library();return{url:completed.url,poster:still?.url||''};}
   finally{model.activeUploads--;markDirty();}
