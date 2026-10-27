@@ -1,9 +1,10 @@
-import {appendRichBio} from './rich-bio.mjs?v=20261026-9';
-import {applyExpressionStyles} from './expression-view.mjs?v=20261026-9';
-import { normalizeProfile, safeUrl } from './profile-schema.mjs?v=20261026-9';
-import { FONTS, TEXT_SIZES, isTiledLayout } from './visual-schema.mjs?v=20261026-9';
-import {renderWidgets} from './profile-widgets.mjs?v=20261026-9';
-import {themePalette,channels} from './profile-palette.mjs?v=20261026-9';
+import {applyAppearanceStyles} from './profile-appearance.mjs?v=20261027-1';
+import {appendRichBio} from './rich-bio.mjs?v=20261027-1';
+import {applyExpressionStyles} from './expression-view.mjs?v=20261027-1';
+import { normalizeProfile, safeUrl } from './profile-schema.mjs?v=20261027-1';
+import { FONTS, TEXT_SIZES, isTiledLayout } from './visual-schema.mjs?v=20261027-1';
+import {renderWidgets} from './profile-widgets.mjs?v=20261027-1';
+import {themePalette,channels} from './profile-palette.mjs?v=20261027-1';
 
 export function element(tag, className = '', content) {
   const node = document.createElement(tag);
@@ -226,6 +227,7 @@ export function renderProfile(panel, input, options = {}) {
   [identity,...socials.querySelectorAll('.social-link'),music,...extra].filter(Boolean).forEach((node,index)=>{node.dataset.layoutIndex=String(index+1).padStart(2,'0');});
   if (!panel.contains(identity) || !panel.contains(widgets)) panel.replaceChildren(identity,widgets);
   applyExpressionStyles(panel,config);
+  applyAppearanceStyles(panel,config);
   panel.setAttribute('aria-label',`${config.name} profile`);
   return config;
 }

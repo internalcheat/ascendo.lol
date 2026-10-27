@@ -1,11 +1,12 @@
-import {createProfileExpression} from './profile-expression.mjs?v=20261026-9';
+import {applyBackgroundAppearance} from './profile-appearance.mjs?v=20261027-1';
+import {createProfileExpression} from './profile-expression.mjs?v=20261027-1';
 import { API_URL, PUBLISHABLE_KEY } from './customizer-config.mjs';
-import { normalizeProfile } from './profile-schema.mjs?v=20261026-9';
-import { renderProfile, bindMusic, bindNameEffectVisibility } from './profile-view.mjs?v=20261026-9';
-import { createProfileEffects } from './profile-effects.mjs?v=20261026-9';
+import { normalizeProfile } from './profile-schema.mjs?v=20261027-1';
+import { renderProfile, bindMusic, bindNameEffectVisibility } from './profile-view.mjs?v=20261027-1';
+import { createProfileEffects } from './profile-effects.mjs?v=20261027-1';
 import { createProfileBackground } from './profile-background.mjs?v=20261026-1';
-import {createProfileAdditions} from './profile-additions.mjs?v=20261026-9';
-import {themePalette,channels} from './profile-palette.mjs?v=20261026-9';
+import {createProfileAdditions} from './profile-additions.mjs?v=20261027-1';
+import {themePalette,channels} from './profile-palette.mjs?v=20261027-1';
 
 bindNameEffectVisibility();
 
@@ -59,6 +60,7 @@ if(panel){
     const stage=document.querySelector('.video-stage');
     stage.style.backgroundImage=poster?`url(${JSON.stringify(poster)})`:'';
     stage.style.backgroundSize='cover';stage.style.backgroundPosition='center';
+    applyBackgroundAppearance(stage,config);
     additions.update(config);
     video.dispatchEvent(new Event('ascendo:background'));
     update();

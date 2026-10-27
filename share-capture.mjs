@@ -1,4 +1,4 @@
-import {displayProfileUrl,SHARE_MAX_HEIGHT,profileSlug} from './share-policy.mjs?v=20261026-9';
+import {displayProfileUrl,SHARE_MAX_HEIGHT,profileSlug} from './share-policy.mjs?v=20261027-1';
 const root=document.documentElement;
 export async function prepareCapture(doc=document,win=window){
   const html=doc.documentElement;if(html.dataset.profileCapture!=='true')return;

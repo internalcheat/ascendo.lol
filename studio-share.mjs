@@ -1,6 +1,6 @@
-import {tr} from './studio-i18n.mjs?v=20261026-9';
-import {themePalette} from './profile-palette.mjs?v=20261026-9';
-import {publicProfileUrl,displayProfileUrl,SHARE_MAX_BYTES,pngDimensions} from './share-policy.mjs?v=20261026-9';
+import {tr} from './studio-i18n.mjs?v=20261027-1';
+import {themePalette} from './profile-palette.mjs?v=20261027-1';
+import {publicProfileUrl,displayProfileUrl,SHARE_MAX_BYTES,pngDimensions} from './share-policy.mjs?v=20261027-1';
 import {BACKEND_URL} from './customizer-config.mjs';
 export function drawProfileQr(canvas,matrix,{primary},label){
   canvas.width=canvas.height=1024;const ctx=canvas.getContext('2d');if(!ctx)throw Error('Image downloads are unavailable in this browser.');ctx.fillStyle='#fff';ctx.fillRect(0,0,1024,1024);ctx.strokeStyle=primary;ctx.lineWidth=6;ctx.strokeRect(24,24,976,976);
@@ -29,7 +29,7 @@ export function createStudioShare({request,getSaved,isBusy=()=>false}){
   function cancelPoll(){if(timer)win.clearTimeout(timer);timer=0;}
   function close(){generation++;working=false;checking=false;cancelPoll();if(dialog.open)dialog.close();controls();trigger.focus({preventScroll:true});}
   function saved(){const value=getSaved();return value?.config&&value.slug&&Number.isSafeInteger(value.revision)?structuredClone(value):null;}
-  async function qr(){const current=++qrVersion;qrDownload.disabled=true;try{qrModule??=import('./vendor/qr.mjs?v=20261026-9');const {qrMatrix}=await qrModule;if(current!==qrVersion||!snapshot)return;drawProfileQr(qrCanvas,qrMatrix(publicProfileUrl(snapshot.slug)),themePalette(snapshot.config),displayProfileUrl(snapshot.slug));qrDownload.disabled=false;}catch{message('Could not generate the QR code. Please try again.',true);}}
+  async function qr(){const current=++qrVersion;qrDownload.disabled=true;try{qrModule??=import('./vendor/qr.mjs?v=20261027-1');const {qrMatrix}=await qrModule;if(current!==qrVersion||!snapshot)return;drawProfileQr(qrCanvas,qrMatrix(publicProfileUrl(snapshot.slug)),themePalette(snapshot.config),displayProfileUrl(snapshot.slug));qrDownload.disabled=false;}catch{message('Could not generate the QR code. Please try again.',true);}}
   function useSaved(value){const nextKey=JSON.stringify([value.slug,value.revision]);snapshot=structuredClone(value);if(nextKey!==key){key=nextKey;cancelPoll();job=null;available=true;cardImage.hidden=true;cardImage.removeAttribute('src');}link.value=publicProfileUrl(snapshot.slug);qr();}
   async function latestSaved(ticket){checking=true;controls();try{const value=await request('/me');if(ticket!==generation||!dialog.open)return false;if(value.slug!==snapshot.slug||!value.config||!Number.isSafeInteger(value.revision)||value.revision<1)throw Error('Your studio session changed. Reopen the studio after preserving your draft.');useSaved({slug:value.slug,revision:value.revision,config:value.config});return true;}catch(error){if(ticket===generation&&dialog.open){available=false;message(error.message,true);}return false;}finally{if(ticket===generation){checking=false;controls();}}}
   async function open(){if(isBusy())return;const value=saved();if(!value)return;editorKey=JSON.stringify([value.slug,value.revision]);useSaved(value);message('');dialog.showModal();copy.focus({preventScroll:true});controls();pollDelay=1000;const ticket=++generation;if(await latestSaved(ticket))await refreshJob(ticket);}

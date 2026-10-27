@@ -1,3 +1,4 @@
+import {APPEARANCE_GROUPS} from '../appearance-schema.mjs';
 import {EXPRESSION_GROUPS} from '../expression-schema.mjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -233,7 +234,7 @@ try{
     assert.equal(xhr.headers.authorization,'Bearer fresh-test-token');
   });
   await check('all seeded profiles normalize without losing names, links or bio',()=>{
-    for(const original of Object.values(seeds)){const config={...original,...Object.fromEntries(EXPRESSION_GROUPS.map(key=>[key,undefined]))};assert.deepEqual({...normalizeProfile(config),cursorEffects:undefined,cardEffects:undefined,entranceEffects:undefined,music:undefined,colorTheme:undefined,themeColors:undefined,textColors:undefined,typography:undefined,cardLayout:undefined,electricBorder:undefined,overlays:undefined,soundtrackCard:undefined,enterScreen:undefined,pageTitle:undefined,widgets:undefined,...Object.fromEntries(EXPRESSION_GROUPS.map(key=>[key,undefined]))},{...config,effectSpeed:100,effectStrength:65,cursorEffects:undefined,cardEffects:undefined,entranceEffects:undefined,music:undefined,colorTheme:undefined,themeColors:undefined,textColors:undefined,typography:undefined,cardLayout:undefined,electricBorder:undefined,overlays:undefined,soundtrackCard:undefined,enterScreen:undefined,pageTitle:undefined,widgets:undefined});}
+    for(const original of Object.values(seeds)){const config={...original,...Object.fromEntries([...EXPRESSION_GROUPS,...APPEARANCE_GROUPS].map(key=>[key,undefined]))};assert.deepEqual({...normalizeProfile(config),cursorEffects:undefined,cardEffects:undefined,entranceEffects:undefined,music:undefined,colorTheme:undefined,themeColors:undefined,textColors:undefined,typography:undefined,cardLayout:undefined,electricBorder:undefined,overlays:undefined,soundtrackCard:undefined,enterScreen:undefined,pageTitle:undefined,widgets:undefined,...Object.fromEntries([...EXPRESSION_GROUPS,...APPEARANCE_GROUPS].map(key=>[key,undefined]))},{...config,...Object.fromEntries(APPEARANCE_GROUPS.map(key=>[key,undefined])),effectSpeed:100,effectStrength:65,cursorEffects:undefined,cardEffects:undefined,entranceEffects:undefined,music:undefined,colorTheme:undefined,themeColors:undefined,textColors:undefined,typography:undefined,cardLayout:undefined,electricBorder:undefined,overlays:undefined,soundtrackCard:undefined,enterScreen:undefined,pageTitle:undefined,widgets:undefined});}
     assert.equal(seeds.bal4zs.bio,'');
     assert.equal(seeds.bal4zs.socials[3].handle,'_bal4zs.exe_');
     for(const effect of EFFECTS)assert.equal(normalizeProfile({...seeds.internalcheats,effect}).effect,effect);
@@ -324,7 +325,7 @@ try{
     for(const id of ['cursorEnabled','cardEnabled','entranceEnabled'])assert.equal(byId(id).checked,false);
     assert.equal(byId('cursorStyle').disabled,true);assert.equal(byId('cardIntensity').disabled,true);assert.equal(byId('entranceDuration').disabled,true);
     const edit=async(id,value)=>{const control=byId(id);if(['checkbox','radio'].includes(control.type))control.checked=value;else control.value=value;control.dispatchEvent(new window.Event(control.tagName==='SELECT'?'change':'input',{bubbles:true}));await flush();};
-    assert.equal(document.querySelectorAll('.studio-nav-button').length,6);assert.equal(document.querySelectorAll('.studio-disclosure').length,28);assert.equal(document.querySelectorAll('.studio-floating-actions button').length,3);assert.equal(document.querySelectorAll('.studio-dock-slot').length,3);
+    assert.equal(document.querySelectorAll('.studio-nav-button').length,6);assert.equal(document.querySelectorAll('.studio-disclosure').length,31);assert.equal(document.querySelectorAll('.studio-floating-actions button').length,3);assert.equal(document.querySelectorAll('.studio-dock-slot').length,3);
     assert.equal(byId('studioSearch').form,null);assert.equal(document.querySelector('.studio-nav-button').form,null);assert.equal(byId('saveChanges').form,byId('profileForm'));
     const savedDraftBefore=sessionStorage.getItem('ascendo-editor-draft'),savedVideoBefore=byId('previewVideo'),savedAvatarBefore=byId('previewCard').querySelector('.avatar');
     document.querySelector('[data-category="appearance"]').click();assert.equal(byId('studio-section-style').hidden,false);assert.equal(byId('studio-section-identity').hidden,true);assert.equal(byId('displayFont').isConnected,true);

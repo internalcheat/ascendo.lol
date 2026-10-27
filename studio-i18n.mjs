@@ -1,7 +1,8 @@
-import {EXPRESSION_HU} from './expression-hu.mjs?v=20261026-9';
-import {HU} from './studio-hu.mjs?v=20261026-9';
+import {APPEARANCE_HU} from './appearance-hu.mjs?v=20261027-1';
+import {EXPRESSION_HU} from './expression-hu.mjs?v=20261027-1';
+import {HU} from './studio-hu.mjs?v=20261027-1';
 import {STUDIO_COPY} from './studio-copy.mjs?v=20261025-15';
-Object.assign(HU,EXPRESSION_HU);
+Object.assign(HU,EXPRESSION_HU,APPEARANCE_HU);
 for(const [source,short]of Object.entries(STUDIO_COPY))HU[short]=HU[source];
 let language='en';
 const parts={'display name':'megjelenő név',bio:'bemutatkozás',badge:'jelvény','song title':'zeneszám címe',artist:'előadó','social label':'oldal neve','social handle':'felhasználónév','copy value':'másolandó érték','music volume':'kezdő hangerő','music source':'zene forrása','background preset':'háttér','avatar crop':'profilkép kivágása','animation speed':'animáció sebessége','effect strength':'effekt erőssége','custom cursor':'egyéni kurzor','cursor style':'kurzor formája','cursor size':'kurzor mérete','cursor trail':'kurzorcsóva','trail length':'csóva hossza','trail smoothness':'csóva simasága','click effect':'kattintási effekt','interactive card':'interaktív kártya','card tilt':'kártya döntése','card parallax':'térbeli mozgás','card glow':'kártya ragyogása','card intensity':'mozgás erőssége','card response speed':'követés sebessége','animated entrance':'megjelenési animáció','entrance style':'megjelenés típusa','slide direction':'becsúszás iránya','entrance duration':'animáció hossza','entrance distance':'elmozdulás','entrance zoom':'nagyítás','stagger gap':'késleltetés','font':'betűtípus','card layout':'elrendezés','color theme':'színvilág',glow:'ragyogás','card opacity':'kártya fedettsége',music:'zene'};
