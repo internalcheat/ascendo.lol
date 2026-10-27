@@ -1,4 +1,4 @@
-import {element} from './profile-view.mjs?v=20261027-1';
+import {element} from './profile-view.mjs?v=20261027-5';
 import {BORDER_STYLES,FRAME_STYLES} from './appearance-schema.mjs?v=20261027-1';
 export function createAppearanceEditor({isBusy=()=>false}){
  const doc=document,byId=id=>doc.getElementById(id),host=byId('controlsPanel'),fields=new Map(),masters=new Map();

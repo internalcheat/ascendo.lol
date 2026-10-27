@@ -470,3 +470,13 @@ The editor has keyboard-accessible visual choices and a private test area for mo
 The tapered trail reuses at most 12 transform-only segments. Primary-click rings use two staggered outlines; sparks use a capped 24-particle pool. The shared on-demand scheduler stops at rest, when hidden or offscreen, and on navigation. Reduced motion suppresses decorations; touch uses native cursors. Text, disabled controls and resize affordances remain native.
 
 Validation covers normalized settings, hotspots and contrast at 12/24/40px, source provenance, editor selection and draft preservation, desktop/tablet/mobile layouts, reduced motion, touch, primary clicks, bounded animation cleanup and light/dark native artwork screenshots on isolated GitHub Actions fixtures.
+
+### Sweezy all-time top 30 cursors
+
+The cursor picker includes the first 24 all-time results plus the next six from Sweezy, snapshotted on 2026-10-27. The owner explicitly confirmed written redistribution permission. Original PNG cursor/pointer pairs, source pages, ranks, dimensions, hotspots and SHA-256 hashes are recorded in vendor/sweezy-cursors/. Artwork remains credited to Sweezy and its rights holders.
+
+Search and keyboard navigation cover all 34 choices. Search never changes a draft. Artwork preserves original colors and proportions; native cursors resize to the selected 12-40px size with scaled hotspots. Animated source packs use the supplied static PNG pair for browser compatibility, as explained in the picker. Personal cursor colors remain available for the four basic designs.
+
+Only the selected enabled cursor pair is decoded for native use. Thumbnails load as their gallery rows enter view. Native image and size caches are bounded, stale asynchronous completions cannot overwrite a newer selection, unavailable artwork falls back to Arrow, and touch/reduced-motion cleanup is retained. Settings remain private until Save changes; saved presets retain the pack choice.
+
+The compatible backend adds an allowlisted cursor ID catalog to existing JSON validation. No database migration, profile rewrite, permission or authentication change is required. Tests cover all 60 original hashes and 30 stored IDs, backend private-preset persistence, invalid IDs, search isolation, 90 native size/pointer pairs, desktop/mobile gallery layouts, touch and reduced motion.

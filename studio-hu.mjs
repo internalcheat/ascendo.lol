@@ -550,3 +550,5 @@ Object.assign(HU,{
 Object.assign(HU,{'Jump to section':'Ugrás egy szakaszhoz','Jump to section…':'Ugrás egy szakaszhoz…'});
 
 Object.assign(HU,{'Cursor test area':'Kurzor kipróbálása','Try it here':'Próbáld ki itt','Move, click, or select this text.':'Mozgasd az egeret, kattints, vagy jelöld ki ezt a szöveget.','Test click':'Próbakattintás'});
+
+Object.assign(HU,{'Find a cursor':'Kurzor keresése','Find a cursor…':'Kurzor keresése…','No cursors found.':'Nincs ilyen kurzor.','Artwork by Sweezy':'A kurzorokat a Sweezy készítette','Sweezy packs keep their original colors. Animated packs use still cursor images.':'A Sweezy-kurzorok megőrzik eredeti színeiket. Az animált csomagokból állóképet használunk.','Cursor artwork unavailable. Using Arrow.':'A kurzorkép nem érhető el. Az alap nyilat használjuk.'});

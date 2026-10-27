@@ -21,8 +21,8 @@ try{
  await page.emulateMediaFeatures([{name:'prefers-reduced-motion',value:'reduce'}]);
  await page.goto('https://ascendo.lol/share-fixture/',{waitUntil:'networkidle0'});
  await page.evaluate(async()=>{
-  const {renderProfile}=await import('/profile-view.mjs?v=20261027-1');
-  const {createProfileEffects}=await import('/profile-effects.mjs?v=20261027-1');
+  const {renderProfile}=await import('/profile-view.mjs?v=20261027-5');
+  const {createProfileEffects}=await import('/profile-effects.mjs?v=20261027-5');
   const panel=document.querySelector('.profile__panel'),scope=panel.closest('.profile'),effects=createProfileEffects(panel,{scope});
   window.layoutFixture={panel,effects,apply(config){renderProfile(panel,config);effects.update(config);}};
  });

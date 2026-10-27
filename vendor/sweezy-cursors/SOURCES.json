@@ -1,0 +1,998 @@
+{
+  "ranking": "https://sweezy-cursors.com/top-cursors/?filter=top",
+  "snapshotDate": "2026-10-27",
+  "nativeMode": "Supplied static PNG cursor/pointer pairs; original colors and proportions",
+  "permission": "Site owner confirmed written redistribution permission in the task on 2026-10-27.",
+  "packs": [
+    {
+      "rank": 1,
+      "id": "sweezy-12273",
+      "name": "Minecraft Enchanted Netherite Sword Animated",
+      "source": "https://sweezy-cursors.com/cursor/minecraft-enchanted-netherite-sword-animated/",
+      "animatedSource": true,
+      "assets": {
+        "cursor": {
+          "url": "https://cdn.sweezy-cursors.com/cursor_packs/0a2f47bd-c88d-4978-a29c-a32216d4df5b/minecraft-enchanted-netherite-sword-animated--cursor-image.png",
+          "path": "/assets/cursors/sweezy/sweezy-12273/normal.png",
+          "bytes": 4506,
+          "sha256": "4a88781aa7ce701260a494c8bee960d1bbf5560de75752d3c02a71c9dec68dd1",
+          "width": 128,
+          "height": 128,
+          "hotspot": [
+            4,
+            4
+          ]
+        },
+        "pointer": {
+          "url": "https://cdn.sweezy-cursors.com/cursor_packs/0a2f47bd-c88d-4978-a29c-a32216d4df5b/minecraft-enchanted-netherite-sword-animated--pointer-image.png",
+          "path": "/assets/cursors/sweezy/sweezy-12273/pointer.png",
+          "bytes": 400,
+          "sha256": "6f72ba25fcc42dfb15842be939139406918ececd0a89f36c38986a0329f0218c",
+          "width": 128,
+          "height": 128,
+          "hotspot": [
+            4,
+            4
+          ]
+        }
+      }
+    },
+    {
+      "rank": 2,
+      "id": "sweezy-12721",
+      "name": "Minecraft Enchanted Diamond Sword Animated",
+      "source": "https://sweezy-cursors.com/cursor/minecraft-enchanted-diamond-sword-animated/",
+      "animatedSource": true,
+      "assets": {
+        "cursor": {
+          "url": "https://cdn.sweezy-cursors.com/cursor_packs/3a291ca2-bdf8-4346-8584-3901f1e49588/minecraft-enchanted-diamond-sword-animated--cursor-image.png",
+          "path": "/assets/cursors/sweezy/sweezy-12721/normal.png",
+          "bytes": 4610,
+          "sha256": "265a0ee66ab0460b91167c33aaadf5b6d25b06f074b76f3fdb223264d3534a6f",
+          "width": 128,
+          "height": 128,
+          "hotspot": [
+            2,
+            2
+          ]
+        },
+        "pointer": {
+          "url": "https://cdn.sweezy-cursors.com/cursor_packs/3a291ca2-bdf8-4346-8584-3901f1e49588/minecraft-enchanted-diamond-sword-animated--pointer-image.png",
+          "path": "/assets/cursors/sweezy/sweezy-12721/pointer.png",
+          "bytes": 1461,
+          "sha256": "754f3ac2f0eda66035ef1bb3d234c995d9f7e539f547ba218dc514f95d8a22cb",
+          "width": 128,
+          "height": 128,
+          "hotspot": [
+            4,
+            2
+          ]
+        }
+      }
+    },
+    {
+      "rank": 3,
+      "id": "sweezy-25136",
+      "name": "Among Us Yellow Twerk Animated",
+      "source": "https://sweezy-cursors.com/cursor/among-us-yellow-twerk-animated/",
+      "animatedSource": true,
+      "assets": {
+        "cursor": {
+          "url": "https://cdn.sweezy-cursors.com/cursor_packs/f18886bc-7f71-4243-a0b7-25c635687a37/among-us-yellow-twerk-animated--cursor-image.png",
+          "path": "/assets/cursors/sweezy/sweezy-25136/normal.png",
+          "bytes": 2054,
+          "sha256": "68e9c9511eb06f26464679fb5ed9d52968a0c964f94b3e259285ecd063184f26",
+          "width": 128,
+          "height": 128,
+          "hotspot": [
+            18,
+            12
+          ]
+        },
+        "pointer": {
+          "url": "https://cdn.sweezy-cursors.com/cursor_packs/f18886bc-7f71-4243-a0b7-25c635687a37/among-us-yellow-twerk-animated--pointer-image.png",
+          "path": "/assets/cursors/sweezy/sweezy-25136/pointer.png",
+          "bytes": 2105,
+          "sha256": "ad9464027885c480eda30d702649cb9b1e3311e675ac4822800dd876bb6e7265",
+          "width": 128,
+          "height": 128,
+          "hotspot": [
+            18,
+            14
+          ]
+        }
+      }
+    },
+    {
+      "rank": 4,
+      "id": "sweezy-20338",
+      "name": "Black & Rainbow Stroke Gradient Animated",
+      "source": "https://sweezy-cursors.com/cursor/black-rainbow-stroke-gradient-animated/",
+      "animatedSource": true,
+      "assets": {
+        "cursor": {
+          "url": "https://cdn.sweezy-cursors.com/cursor_packs/a02b8346-75ad-457a-bb69-714da16d10e6/black-rainbow-stroke-gradient-animated--cursor-image.png",
+          "path": "/assets/cursors/sweezy/sweezy-20338/normal.png",
+          "bytes": 2792,
+          "sha256": "4ddef867f067b22c8a01a67b3e777b6dd838d767de1d5a09e3aca92ec1cbeb99",
+          "width": 128,
+          "height": 128,
+          "hotspot": [
+            4,
+            2
+          ]
+        },
+        "pointer": {
+          "url": "https://cdn.sweezy-cursors.com/cursor_packs/a02b8346-75ad-457a-bb69-714da16d10e6/black-rainbow-stroke-gradient-animated--pointer-image.png",
+          "path": "/assets/cursors/sweezy/sweezy-20338/pointer.png",
+          "bytes": 3031,
+          "sha256": "7639fd43fc997f4107364d52d4518ea74fcb44ee7c14e320ac3c9e4ea1da3d21",
+          "width": 128,
+          "height": 128,
+          "hotspot": [
+            32,
+            6
+          ]
+        }
+      }
+    },
+    {
+      "rank": 5,
+      "id": "sweezy-88138",
+      "name": "Jujutsu Kaisen Sukuna Flame Arrow & Hand",
+      "source": "https://sweezy-cursors.com/cursor/jujutsu-kaisen-sukuna-flame-arrow-hand/",
+      "animatedSource": false,
+      "assets": {
+        "cursor": {
+          "url": "https://cdn.sweezy-cursors.com/cursor_packs/e2480c34-0381-48cf-aaf1-66b1c8950b44/jujutsu-kaisen-sukuna-flame-arrow-hand--cursor-image.png",
+          "path": "/assets/cursors/sweezy/sweezy-88138/normal.png",
+          "bytes": 6764,
+          "sha256": "9c4fc4b02237b736e19a6f73282ccc6b89242d5d991a0a10f58cbe44a279ff87",
+          "width": 128,
+          "height": 128,
+          "hotspot": [
+            10,
+            2
+          ]
+        },
+        "pointer": {
+          "url": "https://cdn.sweezy-cursors.com/cursor_packs/e2480c34-0381-48cf-aaf1-66b1c8950b44/jujutsu-kaisen-sukuna-flame-arrow-hand--pointer-image.png",
+          "path": "/assets/cursors/sweezy/sweezy-88138/pointer.png",
+          "bytes": 5524,
+          "sha256": "51866e2b54fb51ce5ed3fc3eafa8e8a6a84d02455c70d221c9cd57b3a1de71e6",
+          "width": 128,
+          "height": 128,
+          "hotspot": [
+            10,
+            6
+          ]
+        }
+      }
+    },
+    {
+      "rank": 6,
+      "id": "sweezy-63666",
+      "name": "Oo Ee A E A Cat Meme Animated",
+      "source": "https://sweezy-cursors.com/cursor/oo-ee-a-e-a-cat-meme-animated/",
+      "animatedSource": true,
+      "assets": {
+        "cursor": {
+          "url": "https://cdn.sweezy-cursors.com/cursor_packs/16fd3da3-92d2-4005-a075-f45ed8bfefee/oo-ee-a-e-a-cat-meme-animated--cursor-image.png",
+          "path": "/assets/cursors/sweezy/sweezy-63666/normal.png",
+          "bytes": 4614,
+          "sha256": "5f055a755b078aed52372b6207e5b46e8d68f3e4af89daa9c69b5e7b6b6ccd93",
+          "width": 128,
+          "height": 128,
+          "hotspot": [
+            32,
+            8
+          ]
+        },
+        "pointer": {
+          "url": "https://cdn.sweezy-cursors.com/cursor_packs/16fd3da3-92d2-4005-a075-f45ed8bfefee/oo-ee-a-e-a-cat-meme-animated--pointer-image.png",
+          "path": "/assets/cursors/sweezy/sweezy-63666/pointer.png",
+          "bytes": 6972,
+          "sha256": "3b3b0d440b1bd8dc7788c47efffc209fe6b7bca78383c4e5b3332677aaa64a36",
+          "width": 128,
+          "height": 128,
+          "hotspot": [
+            4,
+            4
+          ]
+        }
+      }
+    },
+    {
+      "rank": 7,
+      "id": "sweezy-82534",
+      "name": "Solo Leveling Sung Jin-Woo Dark Flames Animated",
+      "source": "https://sweezy-cursors.com/cursor/solo-leveling-sung-jin-woo-dark-flames-animated/",
+      "animatedSource": true,
+      "assets": {
+        "cursor": {
+          "url": "https://cdn.sweezy-cursors.com/cursor_packs/4c87af54-aa31-46f1-8a49-819590e7d683/solo-leveling-sung-jin-woo-dark-flames-animated--cursor-image.png",
+          "path": "/assets/cursors/sweezy/sweezy-82534/normal.png",
+          "bytes": 16269,
+          "sha256": "af6cbfde0fa127efb48be3e7bf3f190f885339548a94880eaca4749ba7b29197",
+          "width": 128,
+          "height": 128,
+          "hotspot": [
+            6,
+            30
+          ]
+        },
+        "pointer": {
+          "url": "https://cdn.sweezy-cursors.com/cursor_packs/4c87af54-aa31-46f1-8a49-819590e7d683/solo-leveling-sung-jin-woo-dark-flames-animated--pointer-image.png",
+          "path": "/assets/cursors/sweezy/sweezy-82534/pointer.png",
+          "bytes": 8284,
+          "sha256": "c17da92a7b4327aabba40ea65a2de3db4516578ebf7a34844b387916ddf49a8d",
+          "width": 128,
+          "height": 128,
+          "hotspot": [
+            42,
+            8
+          ]
+        }
+      }
+    },
+    {
+      "rank": 8,
+      "id": "sweezy-95648",
+      "name": "Solo Leveling Shadow Arrow & Monarch Hand Animated",
+      "source": "https://sweezy-cursors.com/cursor/solo-leveling-shadow-arrow-monarch-hand-animated-cursor/",
+      "animatedSource": true,
+      "assets": {
+        "cursor": {
+          "url": "https://cdn.sweezy-cursors.com/cursor_packs/1d289a82-7769-4cf5-9896-496fe55a528e/solo-leveling-shadow-arrow-monarch-hand-animated-cursor--cursor-image.png",
+          "path": "/assets/cursors/sweezy/sweezy-95648/normal.png",
+          "bytes": 5049,
+          "sha256": "493f92f5087fbdec4da80633e063432ee17cb16e8046b72d12791307175bc1eb",
+          "width": 128,
+          "height": 128,
+          "hotspot": [
+            31,
+            8
+          ]
+        },
+        "pointer": {
+          "url": "https://cdn.sweezy-cursors.com/cursor_packs/1d289a82-7769-4cf5-9896-496fe55a528e/solo-leveling-shadow-arrow-monarch-hand-animated-cursor--pointer-image.png",
+          "path": "/assets/cursors/sweezy/sweezy-95648/pointer.png",
+          "bytes": 6359,
+          "sha256": "1d74669ce14fe08e5536087d43376b09f72c452bb17fb4a1bf8697a7035985f0",
+          "width": 128,
+          "height": 128,
+          "hotspot": [
+            38,
+            20
+          ]
+        }
+      }
+    },
+    {
+      "rank": 9,
+      "id": "sweezy-19329",
+      "name": "Hello Kitty & Hearts Pixel Animated",
+      "source": "https://sweezy-cursors.com/cursor/hello-kitty-hearts-pixel-animated/",
+      "animatedSource": true,
+      "assets": {
+        "cursor": {
+          "url": "https://cdn.sweezy-cursors.com/cursor_packs/adfb90c9-9048-43a5-a715-1d1f9ee0ff8e/hello-kitty-hearts-pixel-animated--cursor-image.png",
+          "path": "/assets/cursors/sweezy/sweezy-19329/normal.png",
+          "bytes": 4944,
+          "sha256": "e6c31a27cd6b33790157b0fea798e7809e53582cfdbeb7d56865cb6af6d5f6b7",
+          "width": 128,
+          "height": 128,
+          "hotspot": [
+            32,
+            4
+          ]
+        },
+        "pointer": {
+          "url": "https://cdn.sweezy-cursors.com/cursor_packs/adfb90c9-9048-43a5-a715-1d1f9ee0ff8e/hello-kitty-hearts-pixel-animated--pointer-image.png",
+          "path": "/assets/cursors/sweezy/sweezy-19329/pointer.png",
+          "bytes": 5475,
+          "sha256": "746a10962393f4739076111d7bfcf5fa2cd402b41a2f5e141d325c3fa7a7493c",
+          "width": 128,
+          "height": 128,
+          "hotspot": [
+            8,
+            12
+          ]
+        }
+      }
+    },
+    {
+      "rank": 10,
+      "id": "sweezy-67219",
+      "name": "Sanrio Hello Kitty White Arrow",
+      "source": "https://sweezy-cursors.com/cursor/sanrio-hello-kitty-white-arrow/",
+      "animatedSource": false,
+      "assets": {
+        "cursor": {
+          "url": "https://cdn.sweezy-cursors.com/cursor_packs/b8369696-18ca-424b-8102-67fc020ea3ee/sanrio-hello-kitty-white-arrow--cursor-image.png",
+          "path": "/assets/cursors/sweezy/sweezy-67219/normal.png",
+          "bytes": 4630,
+          "sha256": "67a7d5efd46cc1cd507fa09eac032bca172a706df5df255a0c4d383047a73fe4",
+          "width": 128,
+          "height": 128,
+          "hotspot": [
+            8,
+            4
+          ]
+        },
+        "pointer": {
+          "url": "https://cdn.sweezy-cursors.com/cursor_packs/b8369696-18ca-424b-8102-67fc020ea3ee/sanrio-hello-kitty-white-arrow--pointer-image.png",
+          "path": "/assets/cursors/sweezy/sweezy-67219/pointer.png",
+          "bytes": 6529,
+          "sha256": "da5c213306b1c3580533fe5afa1c1901d41f8cc1781dc7a2b401426e5962d89a",
+          "width": 128,
+          "height": 128,
+          "hotspot": [
+            50,
+            8
+          ]
+        }
+      }
+    },
+    {
+      "rank": 11,
+      "id": "sweezy-15726",
+      "name": "Demon Slayer Water Breathing Sword Animated",
+      "source": "https://sweezy-cursors.com/cursor/demon-slayer-water-breathing-sword-animated/",
+      "animatedSource": true,
+      "assets": {
+        "cursor": {
+          "url": "https://cdn.sweezy-cursors.com/cursor_packs/d64b4387-dd7f-41c5-b160-47ea96ba402a/demon-slayer-water-breathing-sword-animated--cursor-image.png",
+          "path": "/assets/cursors/sweezy/sweezy-15726/normal.png",
+          "bytes": 3890,
+          "sha256": "80727fe71d3829ba1508e9cd8f1639806729b8c6e2ef0b1ab83aa34d58d061e1",
+          "width": 128,
+          "height": 128,
+          "hotspot": [
+            6,
+            4
+          ]
+        },
+        "pointer": {
+          "url": "https://cdn.sweezy-cursors.com/cursor_packs/d64b4387-dd7f-41c5-b160-47ea96ba402a/demon-slayer-water-breathing-sword-animated--pointer-image.png",
+          "path": "/assets/cursors/sweezy/sweezy-15726/pointer.png",
+          "bytes": 6642,
+          "sha256": "ad39559f670c021c6ca6821aca44117bf298bd12aab5611c1e4414df87815396",
+          "width": 128,
+          "height": 128,
+          "hotspot": [
+            2,
+            20
+          ]
+        }
+      }
+    },
+    {
+      "rank": 12,
+      "id": "sweezy-81712",
+      "name": "Sanrio Cinnamoroll White Arrow & Head",
+      "source": "https://sweezy-cursors.com/cursor/sanrio-cinnamoroll-white-arrow-head/",
+      "animatedSource": false,
+      "assets": {
+        "cursor": {
+          "url": "https://cdn.sweezy-cursors.com/cursor_packs/f6961a84-ad49-4635-a6ed-acbd16f391f3/sanrio-cinnamoroll-white-arrow-head--cursor-image.png",
+          "path": "/assets/cursors/sweezy/sweezy-81712/normal.png",
+          "bytes": 3942,
+          "sha256": "9d3d445942da01b2df9b218090235ffdeba9666c34c4681bbd3c452b90b680e2",
+          "width": 128,
+          "height": 128,
+          "hotspot": [
+            10,
+            4
+          ]
+        },
+        "pointer": {
+          "url": "https://cdn.sweezy-cursors.com/cursor_packs/f6961a84-ad49-4635-a6ed-acbd16f391f3/sanrio-cinnamoroll-white-arrow-head--pointer-image.png",
+          "path": "/assets/cursors/sweezy/sweezy-81712/pointer.png",
+          "bytes": 3780,
+          "sha256": "3fa35c318ff734ed0fa142e93bd7ee83ea94ba3c0c33a35bdea926b8c3625b9a",
+          "width": 128,
+          "height": 128,
+          "hotspot": [
+            6,
+            6
+          ]
+        }
+      }
+    },
+    {
+      "rank": 13,
+      "id": "sweezy-4900",
+      "name": "Lava",
+      "source": "https://sweezy-cursors.com/cursor/lava/",
+      "animatedSource": false,
+      "assets": {
+        "cursor": {
+          "url": "https://cdn.sweezy-cursors.com/cursor_packs/10463af6-3ae8-4c48-bbdd-968e87dc2e94/lava--cursor-image.png",
+          "path": "/assets/cursors/sweezy/sweezy-4900/normal.png",
+          "bytes": 6652,
+          "sha256": "dca0f357670b1fb38adfcc9b655cb657ac590b86ca00e3b7244b03dcc27202cb",
+          "width": 128,
+          "height": 128,
+          "hotspot": [
+            2,
+            6
+          ]
+        },
+        "pointer": {
+          "url": "https://cdn.sweezy-cursors.com/cursor_packs/10463af6-3ae8-4c48-bbdd-968e87dc2e94/lava--pointer-image.png",
+          "path": "/assets/cursors/sweezy/sweezy-4900/pointer.png",
+          "bytes": 7258,
+          "sha256": "9ca7fc575a95481e02610aa159e68666f80717bc8244997fa2d1f849143156e7",
+          "width": 128,
+          "height": 128,
+          "hotspot": [
+            12,
+            8
+          ]
+        }
+      }
+    },
+    {
+      "rank": 14,
+      "id": "sweezy-61971",
+      "name": "Old Roblox",
+      "source": "https://sweezy-cursors.com/cursor/old-roblox/",
+      "animatedSource": false,
+      "assets": {
+        "cursor": {
+          "url": "https://cdn.sweezy-cursors.com/cursor_packs/aaadb71b-66cb-4e02-a339-cde8d692b22d/old-roblox--cursor-image.png",
+          "path": "/assets/cursors/sweezy/sweezy-61971/normal.png",
+          "bytes": 3382,
+          "sha256": "01472371380bf792e4d807f24a16947711674889bb7ebc52ec1b10e943d8cfb3",
+          "width": 128,
+          "height": 128,
+          "hotspot": [
+            10,
+            6
+          ]
+        },
+        "pointer": {
+          "url": "https://cdn.sweezy-cursors.com/cursor_packs/aaadb71b-66cb-4e02-a339-cde8d692b22d/old-roblox--pointer-image.png",
+          "path": "/assets/cursors/sweezy/sweezy-61971/pointer.png",
+          "bytes": 3636,
+          "sha256": "f78eb4e68a89e94026c329c378f36080c7359e7c6a0fd3795bf772412010adb1",
+          "width": 128,
+          "height": 128,
+          "hotspot": [
+            14,
+            6
+          ]
+        }
+      }
+    },
+    {
+      "rank": 15,
+      "id": "sweezy-55257",
+      "name": "Jujutsu Kaisen Satoru Gojo Infinity Animated",
+      "source": "https://sweezy-cursors.com/cursor/jujutsu-kaisen-satoru-gojo-infinity-animated/",
+      "animatedSource": true,
+      "assets": {
+        "cursor": {
+          "url": "https://cdn.sweezy-cursors.com/cursor_packs/897fb155-839c-4a80-ac8f-fc0a631398d6/jujutsu-kaisen-satoru-gojo-infinity-animated--cursor-image.png",
+          "path": "/assets/cursors/sweezy/sweezy-55257/normal.png",
+          "bytes": 5460,
+          "sha256": "ac54c4d58b102840b91495c887db82e4b943fcd59b6b6f38b3d5710d82cd1daf",
+          "width": 128,
+          "height": 128,
+          "hotspot": [
+            6,
+            2
+          ]
+        },
+        "pointer": {
+          "url": "https://cdn.sweezy-cursors.com/cursor_packs/897fb155-839c-4a80-ac8f-fc0a631398d6/jujutsu-kaisen-satoru-gojo-infinity-animated--pointer-image.png",
+          "path": "/assets/cursors/sweezy/sweezy-55257/pointer.png",
+          "bytes": 2997,
+          "sha256": "eb19aa51a29f42ecca5c5aacb7639db1d30d19b75b5196828b06d3f01ae3b3ad",
+          "width": 128,
+          "height": 128,
+          "hotspot": [
+            2,
+            2
+          ]
+        }
+      }
+    },
+    {
+      "rank": 16,
+      "id": "sweezy-59686",
+      "name": "Purple Electric Animated",
+      "source": "https://sweezy-cursors.com/cursor/purple-electric-animated/",
+      "animatedSource": true,
+      "assets": {
+        "cursor": {
+          "url": "https://cdn.sweezy-cursors.com/cursor_packs/5089c86a-3695-4971-8a24-17945f821179/purple-electric-animated--cursor-image.png",
+          "path": "/assets/cursors/sweezy/sweezy-59686/normal.png",
+          "bytes": 8723,
+          "sha256": "c1ef5b80df2a6b238f6ef34270b6ede9ce9e3d3f54cb778aff3cdabde9d28b19",
+          "width": 128,
+          "height": 128,
+          "hotspot": [
+            40,
+            18
+          ]
+        },
+        "pointer": {
+          "url": "https://cdn.sweezy-cursors.com/cursor_packs/5089c86a-3695-4971-8a24-17945f821179/purple-electric-animated--pointer-image.png",
+          "path": "/assets/cursors/sweezy/sweezy-59686/pointer.png",
+          "bytes": 7056,
+          "sha256": "f5d182bfdd9e548b8a1ba9f4d85f811942e15858aec46d90ba465a432830e76d",
+          "width": 128,
+          "height": 128,
+          "hotspot": [
+            50,
+            20
+          ]
+        }
+      }
+    },
+    {
+      "rank": 17,
+      "id": "sweezy-12415",
+      "name": "Pusheen the Cat Animated",
+      "source": "https://sweezy-cursors.com/cursor/pusheen-the-cat-animated/",
+      "animatedSource": true,
+      "assets": {
+        "cursor": {
+          "url": "https://cdn.sweezy-cursors.com/cursor_packs/6192bfe2-ee71-4b16-8a47-696ac472a990/pusheen-the-cat-animated--cursor-image.png",
+          "path": "/assets/cursors/sweezy/sweezy-12415/normal.png",
+          "bytes": 4774,
+          "sha256": "e0f84daf8fe33e6e944b22d524d4e015a0be873a51976f633c6d0cb7ef295a27",
+          "width": 128,
+          "height": 128,
+          "hotspot": [
+            36,
+            4
+          ]
+        },
+        "pointer": {
+          "url": "https://cdn.sweezy-cursors.com/cursor_packs/6192bfe2-ee71-4b16-8a47-696ac472a990/pusheen-the-cat-animated--pointer-image.png",
+          "path": "/assets/cursors/sweezy/sweezy-12415/pointer.png",
+          "bytes": 4212,
+          "sha256": "a78d4218471a4f74a64581fe0f8b2f7c6c9e924434897ac8ef83308f1556b944",
+          "width": 128,
+          "height": 128,
+          "hotspot": [
+            30,
+            4
+          ]
+        }
+      }
+    },
+    {
+      "rank": 18,
+      "id": "sweezy-7779",
+      "name": "Mickey Mouse Hand F-You",
+      "source": "https://sweezy-cursors.com/cursor/mickey-mouse-hand-f-you/",
+      "animatedSource": false,
+      "assets": {
+        "cursor": {
+          "url": "https://cdn.sweezy-cursors.com/cursor_packs/0b3df924-3c94-45d3-8faa-d2355313de9c/mickey-mouse-hand-f-you--cursor-image.png",
+          "path": "/assets/cursors/sweezy/sweezy-7779/normal.png",
+          "bytes": 3775,
+          "sha256": "f2e424230318b2fdcc53ebae8677c0de31b736d940421a79ec37fc47abc23faf",
+          "width": 128,
+          "height": 128,
+          "hotspot": [
+            4,
+            6
+          ]
+        },
+        "pointer": {
+          "url": "https://cdn.sweezy-cursors.com/cursor_packs/0b3df924-3c94-45d3-8faa-d2355313de9c/mickey-mouse-hand-f-you--pointer-image.png",
+          "path": "/assets/cursors/sweezy/sweezy-7779/pointer.png",
+          "bytes": 3855,
+          "sha256": "ce8e02465336637d30e30418cc9cc6c3b342b962e023abd44e9ba8f536deb603",
+          "width": 128,
+          "height": 128,
+          "hotspot": [
+            16,
+            10
+          ]
+        }
+      }
+    },
+    {
+      "rank": 19,
+      "id": "sweezy-14266",
+      "name": "Sanrio Cinnamoroll & Strawberry",
+      "source": "https://sweezy-cursors.com/cursor/sanrio-cinnamoroll-strawberry/",
+      "animatedSource": false,
+      "assets": {
+        "cursor": {
+          "url": "https://cdn.sweezy-cursors.com/cursor_packs/ab31aa46-256e-4592-bd52-37c17a7b79c1/sanrio-cinnamoroll-strawberry--cursor-image.png",
+          "path": "/assets/cursors/sweezy/sweezy-14266/normal.png",
+          "bytes": 2492,
+          "sha256": "e53f3fa666741f7c688ad7e0679e17fe97709fe2e978056423c28d6d20689e2c",
+          "width": 128,
+          "height": 128,
+          "hotspot": [
+            8,
+            4
+          ]
+        },
+        "pointer": {
+          "url": "https://cdn.sweezy-cursors.com/cursor_packs/ab31aa46-256e-4592-bd52-37c17a7b79c1/sanrio-cinnamoroll-strawberry--pointer-image.png",
+          "path": "/assets/cursors/sweezy/sweezy-14266/pointer.png",
+          "bytes": 2435,
+          "sha256": "76d4fb66384b32e337d50097b863ad0e963f3fec7e4eae0c33096ba75bf86789",
+          "width": 128,
+          "height": 128,
+          "hotspot": [
+            14,
+            4
+          ]
+        }
+      }
+    },
+    {
+      "rank": 20,
+      "id": "sweezy-12805",
+      "name": "Naruto Sharingan Eye Animated",
+      "source": "https://sweezy-cursors.com/cursor/naruto-sharingan-eye-animated/",
+      "animatedSource": true,
+      "assets": {
+        "cursor": {
+          "url": "https://cdn.sweezy-cursors.com/cursor_packs/5c3f3e67-7e62-430f-8e9d-94cee4395c3a/naruto-sharingan-eye-animated--cursor-image.png",
+          "path": "/assets/cursors/sweezy/sweezy-12805/normal.png",
+          "bytes": 8285,
+          "sha256": "a6df03b58cdaa009356e1df842a54e2c61fff68b4533352b3dcf729879d7f824",
+          "width": 128,
+          "height": 128,
+          "hotspot": [
+            2,
+            4
+          ]
+        },
+        "pointer": {
+          "url": "https://cdn.sweezy-cursors.com/cursor_packs/5c3f3e67-7e62-430f-8e9d-94cee4395c3a/naruto-sharingan-eye-animated--pointer-image.png",
+          "path": "/assets/cursors/sweezy/sweezy-12805/pointer.png",
+          "bytes": 14098,
+          "sha256": "22db28bac0803c9237c7e0e44fec8df3ee05a2d497a5d4e1f9ad972c3f9295e8",
+          "width": 128,
+          "height": 128,
+          "hotspot": [
+            34,
+            2
+          ]
+        }
+      }
+    },
+    {
+      "rank": 21,
+      "id": "sweezy-83143",
+      "name": "Pixel BMW M4 Racing Car",
+      "source": "https://sweezy-cursors.com/cursor/pixel-bmw-m4-racing-car/",
+      "animatedSource": false,
+      "assets": {
+        "cursor": {
+          "url": "https://cdn.sweezy-cursors.com/cursor_packs/89c6a89b-e881-4c2a-8dc4-eec6fbbf6983/pixel-bmw-m4-racing-car--cursor-image.png",
+          "path": "/assets/cursors/sweezy/sweezy-83143/normal.png",
+          "bytes": 8628,
+          "sha256": "b268aa7cfb0ee6bccb6f80ebfd33037cd645fa745d109d42133b71ac2eba0a54",
+          "width": 128,
+          "height": 128,
+          "hotspot": [
+            2,
+            2
+          ]
+        },
+        "pointer": {
+          "url": "https://cdn.sweezy-cursors.com/cursor_packs/89c6a89b-e881-4c2a-8dc4-eec6fbbf6983/pixel-bmw-m4-racing-car--pointer-image.png",
+          "path": "/assets/cursors/sweezy/sweezy-83143/pointer.png",
+          "bytes": 9846,
+          "sha256": "a8e1272aa2465ad9a4753326641f370bc497b81e42a67b73f54125cdd63c7108",
+          "width": 128,
+          "height": 128,
+          "hotspot": [
+            32,
+            2
+          ]
+        }
+      }
+    },
+    {
+      "rank": 22,
+      "id": "sweezy-60940",
+      "name": "Grey Electric Animated",
+      "source": "https://sweezy-cursors.com/cursor/grey-electric-animated/",
+      "animatedSource": true,
+      "assets": {
+        "cursor": {
+          "url": "https://cdn.sweezy-cursors.com/cursor_packs/a5983b94-4a06-4bf2-bba2-40d60f731151/grey-electric-animated--cursor-image.png",
+          "path": "/assets/cursors/sweezy/sweezy-60940/normal.png",
+          "bytes": 6859,
+          "sha256": "c66ab5d42e718f21179327d84e9517364ff3b254eb479464f57c6f0e1200efe5",
+          "width": 128,
+          "height": 128,
+          "hotspot": [
+            40,
+            18
+          ]
+        },
+        "pointer": {
+          "url": "https://cdn.sweezy-cursors.com/cursor_packs/a5983b94-4a06-4bf2-bba2-40d60f731151/grey-electric-animated--pointer-image.png",
+          "path": "/assets/cursors/sweezy/sweezy-60940/pointer.png",
+          "bytes": 6111,
+          "sha256": "473ee05faa6e529cda3ff38babf7f525dc20848574d49176c77d81009b1e85d3",
+          "width": 128,
+          "height": 128,
+          "hotspot": [
+            50,
+            20
+          ]
+        }
+      }
+    },
+    {
+      "rank": 23,
+      "id": "sweezy-33968",
+      "name": "Dancing Toothless Meme Animated",
+      "source": "https://sweezy-cursors.com/cursor/dancing-toothless-meme-animated/",
+      "animatedSource": true,
+      "assets": {
+        "cursor": {
+          "url": "https://cdn.sweezy-cursors.com/cursor_packs/a792603e-2559-4101-8adb-7598cf23bda3/dancing-toothless-meme-animated--cursor-image.png",
+          "path": "/assets/cursors/sweezy/sweezy-33968/normal.png",
+          "bytes": 1830,
+          "sha256": "6bb9a7e15df3a65679e50cb817556cd02ab01ebfe50169d91a299f8720af3cad",
+          "width": 128,
+          "height": 128,
+          "hotspot": [
+            24,
+            8
+          ]
+        },
+        "pointer": {
+          "url": "https://cdn.sweezy-cursors.com/cursor_packs/a792603e-2559-4101-8adb-7598cf23bda3/dancing-toothless-meme-animated--pointer-image.png",
+          "path": "/assets/cursors/sweezy/sweezy-33968/pointer.png",
+          "bytes": 1980,
+          "sha256": "7df0dd4028b204bad0fc1ae34afa5151d40c0238699d35152532e5096dd37f26",
+          "width": 128,
+          "height": 128,
+          "hotspot": [
+            4,
+            10
+          ]
+        }
+      }
+    },
+    {
+      "rank": 24,
+      "id": "sweezy-16984",
+      "name": "Cristiano Ronaldo Siuuuu Meme Animated",
+      "source": "https://sweezy-cursors.com/cursor/cristiano-ronaldo-siuuuu-meme-animated/",
+      "animatedSource": true,
+      "assets": {
+        "cursor": {
+          "url": "https://cdn.sweezy-cursors.com/cursor_packs/f287395f-7824-48b4-ba63-fcb93663ae7f/cristiano-ronaldo-siuuuu-meme-animated--cursor-image.png",
+          "path": "/assets/cursors/sweezy/sweezy-16984/normal.png",
+          "bytes": 1507,
+          "sha256": "b03199b272dd030859e901192132f2cc0d642626eb14dd3050a77b8b8a71cc90",
+          "width": 128,
+          "height": 128,
+          "hotspot": [
+            2,
+            4
+          ]
+        },
+        "pointer": {
+          "url": "https://cdn.sweezy-cursors.com/cursor_packs/f287395f-7824-48b4-ba63-fcb93663ae7f/cristiano-ronaldo-siuuuu-meme-animated--pointer-image.png",
+          "path": "/assets/cursors/sweezy/sweezy-16984/pointer.png",
+          "bytes": 3306,
+          "sha256": "6ab86d6295c3f1dd054ad0b68957f18038443a71a05ac19f6367dc0f454b2c3e",
+          "width": 128,
+          "height": 128,
+          "hotspot": [
+            8,
+            6
+          ]
+        }
+      }
+    },
+    {
+      "rank": 25,
+      "id": "sweezy-19480",
+      "name": "Sanrio Cinnamoroll & Ice Cream Pixel Animated",
+      "source": "https://sweezy-cursors.com/cursor/sanrio-cinnamoroll-ice-cream-pixel-animated/",
+      "animatedSource": true,
+      "assets": {
+        "cursor": {
+          "url": "https://cdn.sweezy-cursors.com/cursor_packs/308a400a-8e10-4299-b319-6fdee25abedb/sanrio-cinnamoroll-ice-cream-pixel-animated--cursor-image.png",
+          "path": "/assets/cursors/sweezy/sweezy-19480/normal.png",
+          "bytes": 4247,
+          "sha256": "819a630cfbf36d0a6170e353890cd940582647dd9ba8da8c06d2ad5d245f313e",
+          "width": 128,
+          "height": 128,
+          "hotspot": [
+            6,
+            2
+          ]
+        },
+        "pointer": {
+          "url": "https://cdn.sweezy-cursors.com/cursor_packs/308a400a-8e10-4299-b319-6fdee25abedb/sanrio-cinnamoroll-ice-cream-pixel-animated--pointer-image.png",
+          "path": "/assets/cursors/sweezy/sweezy-19480/pointer.png",
+          "bytes": 4756,
+          "sha256": "a49a83d0804799d9e7400174a891dcfbdc3078658ecbcd2b2ad69f49498efe80",
+          "width": 128,
+          "height": 128,
+          "hotspot": [
+            8,
+            2
+          ]
+        }
+      }
+    },
+    {
+      "rank": 26,
+      "id": "sweezy-24918",
+      "name": "Black & Police Lights Stroke Gradient Animated",
+      "source": "https://sweezy-cursors.com/cursor/black-police-lights-stroke-gradient-animated/",
+      "animatedSource": true,
+      "assets": {
+        "cursor": {
+          "url": "https://cdn.sweezy-cursors.com/cursor_packs/665bc110-ad3d-4089-86bb-938e57ba6c3f/black-police-lights-stroke-gradient-animated--cursor-image.png",
+          "path": "/assets/cursors/sweezy/sweezy-24918/normal.png",
+          "bytes": 2719,
+          "sha256": "dfed1219b5f15ef3f3653a40ebe7ca1f80a3fd357a40cd5bd3ef85ef6dac8d54",
+          "width": 128,
+          "height": 128,
+          "hotspot": [
+            6,
+            4
+          ]
+        },
+        "pointer": {
+          "url": "https://cdn.sweezy-cursors.com/cursor_packs/665bc110-ad3d-4089-86bb-938e57ba6c3f/black-police-lights-stroke-gradient-animated--pointer-image.png",
+          "path": "/assets/cursors/sweezy/sweezy-24918/pointer.png",
+          "bytes": 2418,
+          "sha256": "121414299df9367f28b0e8f2c621a9bd856a27b375f0893bbbc1913884d36163",
+          "width": 128,
+          "height": 128,
+          "hotspot": [
+            32,
+            4
+          ]
+        }
+      }
+    },
+    {
+      "rank": 27,
+      "id": "sweezy-82452",
+      "name": "Jujutsu Kaisen Sukuna Arrow Animated",
+      "source": "https://sweezy-cursors.com/cursor/jujutsu-kaisen-sukuna-arrow-animated/",
+      "animatedSource": true,
+      "assets": {
+        "cursor": {
+          "url": "https://cdn.sweezy-cursors.com/cursor_packs/91eed6f2-aed5-428e-afcc-775f7c16e3f3/jujutsu-kaisen-sukuna-arrow-animated--cursor-image.png",
+          "path": "/assets/cursors/sweezy/sweezy-82452/normal.png",
+          "bytes": 4600,
+          "sha256": "a44dbf6a7cafcc123c6d01265d6580fae18c708fa185005e94d0733fe04716c4",
+          "width": 128,
+          "height": 128,
+          "hotspot": [
+            2,
+            2
+          ]
+        },
+        "pointer": {
+          "url": "https://cdn.sweezy-cursors.com/cursor_packs/91eed6f2-aed5-428e-afcc-775f7c16e3f3/jujutsu-kaisen-sukuna-arrow-animated--pointer-image.png",
+          "path": "/assets/cursors/sweezy/sweezy-82452/pointer.png",
+          "bytes": 7547,
+          "sha256": "33cf2179e53d08b96da12980908bbf1087eeee1ee2da971aeb862851d4bb063e",
+          "width": 128,
+          "height": 128,
+          "hotspot": [
+            16,
+            14
+          ]
+        }
+      }
+    },
+    {
+      "rank": 28,
+      "id": "sweezy-12770",
+      "name": "Star Wars Obi-Wan Kenobi Lightsaber Animated",
+      "source": "https://sweezy-cursors.com/cursor/star-wars-obi-wan-kenobi-lightsaber-animated/",
+      "animatedSource": true,
+      "assets": {
+        "cursor": {
+          "url": "https://cdn.sweezy-cursors.com/cursor_packs/70beaa1d-9c8b-4425-a2ab-78358660b4bb/star-wars-obi-wan-kenobi-lightsaber-animated--cursor-image.png",
+          "path": "/assets/cursors/sweezy/sweezy-12770/normal.png",
+          "bytes": 3402,
+          "sha256": "62244259c9f4b215bbd289eb282d5955205450902f4de65d067bf58a6f08d564",
+          "width": 128,
+          "height": 128,
+          "hotspot": [
+            20,
+            12
+          ]
+        },
+        "pointer": {
+          "url": "https://cdn.sweezy-cursors.com/cursor_packs/70beaa1d-9c8b-4425-a2ab-78358660b4bb/star-wars-obi-wan-kenobi-lightsaber-animated--pointer-image.png",
+          "path": "/assets/cursors/sweezy/sweezy-12770/pointer.png",
+          "bytes": 3949,
+          "sha256": "3205ccb5ed7d6631027fd05eca744d73095f0a5c19d93b020a697e63e3ed8846",
+          "width": 128,
+          "height": 128,
+          "hotspot": [
+            20,
+            12
+          ]
+        }
+      }
+    },
+    {
+      "rank": 29,
+      "id": "sweezy-7009",
+      "name": "Swole Doge vs. Cheems Meme",
+      "source": "https://sweezy-cursors.com/cursor/swole-doge-vs-cheems-meme/",
+      "animatedSource": false,
+      "assets": {
+        "cursor": {
+          "url": "https://cdn.sweezy-cursors.com/cursor_packs/be0916a2-70e7-46a8-b14c-c849db15a569/swole-doge-vs-cheems-meme--cursor-image.png",
+          "path": "/assets/cursors/sweezy/sweezy-7009/normal.png",
+          "bytes": 14030,
+          "sha256": "95de2c944b3e18ae667f5d324d130f65a4acf0f0f30a65bf89eafa1f477f4262",
+          "width": 128,
+          "height": 128,
+          "hotspot": [
+            6,
+            4
+          ]
+        },
+        "pointer": {
+          "url": "https://cdn.sweezy-cursors.com/cursor_packs/be0916a2-70e7-46a8-b14c-c849db15a569/swole-doge-vs-cheems-meme--pointer-image.png",
+          "path": "/assets/cursors/sweezy/sweezy-7009/pointer.png",
+          "bytes": 20801,
+          "sha256": "626bf7423efc52edef7e55fbf9f2734de11407a5ca39f5ed10074e2ccbf0e9e8",
+          "width": 128,
+          "height": 128,
+          "hotspot": [
+            56,
+            8
+          ]
+        }
+      }
+    },
+    {
+      "rank": 30,
+      "id": "sweezy-73581",
+      "name": "Jujutsu Kaisen Gojo Cat & Chibi Satoru Gojo",
+      "source": "https://sweezy-cursors.com/cursor/jujutsu-kaisen-gojo-cat-chibi-satoru-gojo/",
+      "animatedSource": false,
+      "assets": {
+        "cursor": {
+          "url": "https://cdn.sweezy-cursors.com/cursor_packs/6dc09662-98e8-414a-a251-9d749ad2125d/jujutsu-kaisen-gojo-cat-chibi-satoru-gojo--cursor-image.png",
+          "path": "/assets/cursors/sweezy/sweezy-73581/normal.png",
+          "bytes": 4393,
+          "sha256": "fc0d40aac34e07eca4b0d7f441f391985fdfb7686996e820808993af86c3a028",
+          "width": 128,
+          "height": 128,
+          "hotspot": [
+            34,
+            10
+          ]
+        },
+        "pointer": {
+          "url": "https://cdn.sweezy-cursors.com/cursor_packs/6dc09662-98e8-414a-a251-9d749ad2125d/jujutsu-kaisen-gojo-cat-chibi-satoru-gojo--pointer-image.png",
+          "path": "/assets/cursors/sweezy/sweezy-73581/pointer.png",
+          "bytes": 6777,
+          "sha256": "46d295109270ec524826a279b76ec49ed4953d84f40d0c8926aa8a324828582b",
+          "width": 128,
+          "height": 128,
+          "hotspot": [
+            20,
+            22
+          ]
+        }
+      }
+    }
+  ]
+}

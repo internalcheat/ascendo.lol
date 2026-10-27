@@ -1,7 +1,7 @@
 import {applyAppearanceStyles} from './profile-appearance.mjs?v=20261027-1';
 import {appendRichBio} from './rich-bio.mjs?v=20261027-1';
 import {applyExpressionStyles} from './expression-view.mjs?v=20261027-1';
-import { normalizeProfile, safeUrl } from './profile-schema.mjs?v=20261027-1';
+import { normalizeProfile, safeUrl } from './profile-schema.mjs?v=20261027-5';
 import { FONTS, TEXT_SIZES, isTiledLayout } from './visual-schema.mjs?v=20261027-1';
 import {renderWidgets} from './profile-widgets.mjs?v=20261027-1';
 import {themePalette,channels} from './profile-palette.mjs?v=20261027-1';
