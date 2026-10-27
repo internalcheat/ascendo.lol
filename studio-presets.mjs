@@ -20,11 +20,12 @@ export function createStudioPresets({request,getDraft,loadDraft,getPreviewUrls=(
  let busy=false,writing=false,ticket=0,items=[],returnFocus,pending,confirmReturn,menuState;let menuSerial=0,cacheEpoch=0;const cache=new Map(),cacheVersions=new Map(),thumbnails=[];
  function message(text,error=false){status.textContent=tr(text);status.dataset.error=String(error);}
  function controls(){trigger.disabled=isBusy();save.disabled=busy||!!pending||isBusy();name.disabled=writing||!!pending;for(const b of list.querySelectorAll('button'))b.disabled=busy||!!pending||isBusy();dialog.setAttribute('aria-busy',String(busy));}
- function cancelConfirmation(focus=true){pending=undefined;confirmation.hidden=true;renameLabel.hidden=true;renameInput.disabled=true;controls();if(focus)confirmReturn?.focus({preventScroll:true});}
+ function reveal(node){node?.scrollIntoView({block:'nearest',behavior:win.matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});}
+ function cancelConfirmation(focus=true){pending=undefined;confirmation.hidden=true;renameLabel.hidden=true;renameInput.disabled=true;controls();if(focus){confirmReturn?.focus({preventScroll:true});reveal(confirmReturn);}}
  function ask(text,label,run,renameValue){confirmReturn=menuState?.trigger||doc.activeElement;closeMenu();pending=run;confirmationText.textContent=tr(text);accept.textContent=tr(label);confirmation.hidden=false;renameLabel.hidden=renameValue===undefined;renameInput.disabled=renameLabel.hidden;if(renameValue!==undefined){renameInput.value=renameValue;renameInput.setCustomValidity('');}controls();confirmation.scrollIntoView({block:'nearest',behavior:win.matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});if(renameValue===undefined)cancel.focus({preventScroll:true});else{renameInput.focus({preventScroll:true});renameInput.select();}}
  function closeMenu(focus=false){if(!menuState)return;const {trigger,menu}=menuState;menu.hidden=true;trigger.setAttribute('aria-expanded','false');menuState=undefined;if(focus&&trigger.isConnected)trigger.focus({preventScroll:true});}
  function openMenu(trigger,menu,last=false){closeMenu();menu.hidden=false;trigger.setAttribute('aria-expanded','true');menuState={trigger,menu};const buttons=menu.querySelectorAll('button');buttons[last?buttons.length-1:0]?.focus({preventScroll:true});}
- function focusPreset(id){const row=[...list.children].find(node=>node.dataset.presetId===id);row?.querySelector('[data-preset-menu]')?.focus({preventScroll:true});}
+ function focusPreset(id){const row=[...list.children].find(node=>node.dataset.presetId===id);row?.querySelector('[data-preset-menu]')?.focus({preventScroll:true});reveal(row);}
  async function mutate(item,method,body,success,config){
   const generation=++ticket;busy=true;controls();message('');
   try{
