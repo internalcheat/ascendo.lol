@@ -57,7 +57,10 @@ try{
   await page.click('.studio-jump .studio-select');await page.keyboard.type('Fonts');await page.keyboard.press('Enter');
   await page.waitForFunction(()=>{const section=document.getElementById('studio-section-fonts'),box=section.getBoundingClientRect(),nav=document.querySelector('.studio-navigation').getBoundingClientRect(),clearance=matchMedia('(max-width:1100px)').matches?nav.bottom+8:16;return !section.hidden&&section.dataset.expanded==='true'&&box.top>=clearance&&box.top<innerHeight;});
   assert.equal(await page.$eval('#studioSectionJump',node=>node.form===null),true);
-  await page.screenshot({path:`test-results/capture/studio-navigation-${width}.png`,fullPage:true});
+  await page.waitForFunction(()=>[...document.querySelectorAll('.studio-section')].every(node=>node.getAnimations().length===0));
+  await page.evaluate(()=>new Promise(resolve=>{let last=scrollY,stable=0,frames=0;function tick(){stable=Math.abs(scrollY-last)<.5?stable+1:0;last=scrollY;if(stable>=6&&frames>10||frames>120)resolve();else{frames++;requestAnimationFrame(tick);}}requestAnimationFrame(tick);}));
+  assert.equal(await page.evaluate(()=>{const box=document.getElementById('studio-section-fonts').getBoundingClientRect(),nav=document.querySelector('.studio-navigation').getBoundingClientRect();return box.top>=(matchMedia('(max-width:1100px)').matches?nav.bottom+6:14)&&box.top<innerHeight;}),true,'Jumped section remains clear after scrolling settles');
+  await page.screenshot({path:`test-results/capture/studio-navigation-${width}.png`});
   await page.click('#studioSearch');await page.type('#studioSearch','cursor');await page.waitForFunction(()=>!document.getElementById('studio-section-cursor').hidden);await page.click('#studioClearSearch');assert.equal(await page.$eval('#studioSearch',node=>node.value),'');
   await page.evaluate(()=>{for(const category of ['effects','backgrounds','widgets','profile','appearance'])document.querySelector(`[data-category="${category}"]`).click();});
   await page.waitForFunction(()=>document.querySelectorAll('.studio-section').length>0&&[...document.querySelectorAll('.studio-section')].every(node=>node.getAnimations().length===0));
