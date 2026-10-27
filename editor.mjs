@@ -1,6 +1,6 @@
 import {createAppearanceEditor} from './editor-appearance.mjs?v=20261027-1';
 import {applyBackgroundAppearance} from './profile-appearance.mjs?v=20261027-1';
-import {createStudioPresets} from './studio-presets.mjs?v=20261027-1';
+import {createStudioPresets} from './studio-presets.mjs?v=20261027-2';
 import {createExpressionEditor} from './editor-expression.mjs?v=20261027-1';
 import {createProfileExpression} from './profile-expression.mjs?v=20261027-1';
 import { request, session, storeSession, freshSession } from './editor-api.mjs';
@@ -18,9 +18,9 @@ import {createStudioControls} from './studio-controls.mjs?v=20261025-15';
 import {applyStudioPalette} from './profile-palette.mjs?v=20261027-1';
 import {BACKGROUNDS} from './background-catalog.mjs?v=20261025-15';
 import {createProfilePlayer} from './profile-music.mjs?v=20261027-1';
-import {createStudioLanguage,tr} from './studio-i18n.mjs?v=20261027-1';
-import {createQuickGuide} from './studio-guide.mjs?v=20261027-1';
-import {createStudioShare} from './studio-share.mjs?v=20261027-1';
+import {createStudioLanguage,tr} from './studio-i18n.mjs?v=20261027-2';
+import {createQuickGuide} from './studio-guide.mjs?v=20261027-2';
+import {createStudioShare} from './studio-share.mjs?v=20261027-2';
 
 const byId = id => document.getElementById(id);
 const form = byId('profileForm');

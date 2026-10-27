@@ -538,3 +538,11 @@ Object.assign(HU,{
 });
 
 HU['This file is used by a saved profile or preset. Remove that reference first.']='Ezt a fájlt mentett profil vagy profilváltozat használja. Először távolítsd el belőle.';
+
+Object.assign(HU,{
+ 'Rename':'Átnevezés','Update':'Frissítés','Rename preset':'Sablon átnevezése','Update preset':'Sablon frissítése','Preset actions':'Sablon műveletei','New preset name':'Sablon új neve','Preset renamed.':'Sablon átnevezve.','Preset updated. Your public profile is unchanged.':'Sablon frissítve. A nyilvános profilod nem változott.',
+ 'Replace this preset with your current preview? Your public profile will not change.':'Lecseréled ezt a sablont a jelenlegi előnézetre? A nyilvános profilod nem változik.',
+ 'Check the preset changes.':'Ellenőrizd a sablon módosításait.','Check the preset version.':'Ellenőrizd a sablon verzióját.',
+ 'This preset changed in another tab. Reopen Presets and try again.':'Ez a sablon egy másik lapon megváltozott. Nyisd meg újra a Sablonokat, és próbáld újra.',
+ 'Could not verify the updated preset. Reopen Presets and try again.':'A frissített sablont nem sikerült ellenőrizni. Nyisd meg újra a Sablonokat, és próbáld újra.'
+});
