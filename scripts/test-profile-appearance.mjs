@@ -75,7 +75,10 @@ try{
   await page.click('[data-cursor-style=ring]');await page.keyboard.press('ArrowRight');assert.equal(await page.$eval('#cursorStyle',node=>node.value),'crosshair');
   await page.waitForFunction(()=>[...document.querySelectorAll('.cursor-choice img')].every(node=>node.complete&&node.naturalWidth));
   if(width===1280){
-   const box=await page.$eval('#cursorTestArea',node=>{node.scrollIntoView({block:'center'});const r=node.getBoundingClientRect();return {x:r.left,y:r.top,width:r.width,height:r.height};});
+   await page.$eval('#cursorTestArea',node=>node.scrollIntoView({block:'center',behavior:'instant'}));
+   await page.waitForFunction(()=>document.getElementById('cursorTestArea').classList.contains('profile-custom-cursor'));
+   await page.evaluate(()=>new Promise(resolve=>{let previous='',stable=0;function tick(){const r=document.getElementById('cursorTestArea').getBoundingClientRect(),now=[r.left,r.top,r.width,r.height,scrollY].map(n=>Math.round(n*10)).join();stable=now===previous?stable+1:0;previous=now;if(stable>=8)resolve();else requestAnimationFrame(tick);}requestAnimationFrame(tick);}));
+   const box=await page.$eval('#cursorTestArea',node=>{const r=node.getBoundingClientRect();return {x:r.left,y:r.top,width:r.width,height:r.height};});
    await page.mouse.move(box.x+15,box.y+25);await page.mouse.move(box.x+box.width-15,box.y+box.height-25,{steps:12});
    await page.waitForFunction(()=>[...document.querySelectorAll('#cursorTestArea .profile-cursor-point')].some(node=>Number(node.style.opacity)>0));
    await page.click('#cursorTestArea button');await page.waitForFunction(()=>document.querySelectorAll('#cursorTestArea [data-kind=ripple]').length===2);
@@ -108,5 +111,5 @@ try{
   await page.screenshot({path:`test-results/capture/appearance-${width}.png`,fullPage:true});results.push({width,navigation:true,reducedMotion:true,restoredVideo:true,restoredAvatar:true,completeSnapshot:true,rename:true,update:true,privateOnly:true});
  }
  assert.deepEqual(errors,[]);await page.close();
-}catch(error){for(const p of await browser.pages())if(!p.isClosed())await p.screenshot({path:'test-results/capture/appearance-failure.png',fullPage:true}).catch(()=>{});console.error(JSON.stringify({errors,calls:calls.slice(-12)}));for(const p of await browser.pages())if(!p.isClosed())console.error(JSON.stringify(await p.evaluate(()=>({presetStatus:document.querySelector('.studio-presets .studio-status')?.textContent,name:document.querySelector('.studio-presets input')?.value,busy:document.querySelector('.studio-presets')?.getAttribute('aria-busy')})).catch(()=>({}))));throw error;}finally{await browser.close();}
+}catch(error){for(const p of await browser.pages())if(!p.isClosed())await p.screenshot({path:'test-results/capture/appearance-failure.png',fullPage:true}).catch(()=>{});console.error(JSON.stringify({errors,calls:calls.slice(-12)}));for(const p of await browser.pages())if(!p.isClosed())console.error(JSON.stringify(await p.evaluate(()=>({presetStatus:document.querySelector('.studio-presets .studio-status')?.textContent,name:document.querySelector('.studio-presets input')?.value,busy:document.querySelector('.studio-presets')?.getAttribute('aria-busy'),cursor:{fine:matchMedia('(hover: hover) and (pointer: fine)').matches,reduced:matchMedia('(prefers-reduced-motion: reduce)').matches,active:document.getElementById('cursorTestArea')?.classList.contains('profile-custom-cursor'),points:[...document.querySelectorAll('#cursorTestArea .profile-cursor-point')].map(n=>n.style.opacity)}})).catch(()=>({}))));throw error;}finally{await browser.close();}
 fs.writeFileSync('test-results/capture/appearance-results.json',JSON.stringify(results));console.log(JSON.stringify({appearanceAndPresetBrowserChecks:results}));
