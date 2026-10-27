@@ -4,9 +4,9 @@ if(process.env.GITHUB_ACTIONS!=='true')throw Error('Creative browser checks run 
 const root=process.cwd(),seed=JSON.parse(fs.readFileSync('supabase/seed-profiles.json','utf8')).internalcheats,template=fs.readFileSync('profile-shell.html','utf8');
 const fixture={flipCard:{enabled:true,title:'After hours',text:'A different side.\nSame person.',artwork:'https://ascendo.lol/assets/k3rlsen-avatar.png',color:'#8be0c2',links:[{label:'Explore my work',url:'https://github.com/internalcheat'}],duration:500},constellation:{enabled:true,spread:100,nodeSize:48,lineOpacity:45},stickers:{enabled:true,items:[{id:'star',kind:'emoji',text:'✦',edge:'top',position:75,size:48},{id:'note',kind:'note',text:'stay curious',edge:'right',position:70,size:80,rotation:12},{id:'image',kind:'image',url:'https://ascendo.lol/assets/ascendo-icon-32.png',edge:'left',size:48}]}};
 let config=normalizeProfile({...seed,...fixture,background:{kind:'black'},badge:'Moonlight'}),saved=normalizeProfile({...seed,background:{kind:'black'},badge:''}),html,revision=5,preset,putCount=0;
-const browser=await launchCaptureBrowser(),reports=[],errors=[];fs.mkdirSync('test-results/creative',{recursive:true});
+const browser=await launchCaptureBrowser(),reports=[],errors=[];let page;fs.mkdirSync('test-results/creative',{recursive:true});
 try{
- const page=await browser.newPage();page.on('pageerror',e=>errors.push(e.message));page.on('dialog',d=>d.accept());
+ page=await browser.newPage();page.on('pageerror',e=>errors.push(e.message));page.on('dialog',d=>d.accept());
  await page.evaluateOnNewDocument(()=>sessionStorage.setItem('ascendo-editor-session',JSON.stringify({access_token:'isolated-ci-fixture',refresh_token:'isolated-ci-fixture',expires_at:Date.now()/1000+3600})));
  await page.setRequestInterception(true);page.on('request',request=>{(async()=>{
   const u=new URL(request.url());
@@ -26,7 +26,7 @@ try{
   if(request.isNavigationRequest())return request.respond({status:200,contentType:'text/html',body:u.pathname==='/customize/'?fs.readFileSync('customize/index.html','utf8'):html});
   const asset=publicAsset(root,u.pathname);return asset?request.respond({status:200,contentType:asset.mime,body:fs.readFileSync(asset.target)}):request.abort();
  })().catch(e=>{errors.push(e.message);request.abort().catch(()=>{});});});
- for(const width of [1280,768,390,320])for(const cardLayout of LAYOUTS){
+ for(const width of process.env.CREATIVE_EDITOR_ONLY?[]:[1280,768,390,320])for(const cardLayout of LAYOUTS){
   const long=cardLayout==='bento'||cardLayout==='portrait',socials=long?Array.from({length:16},(_,i)=>({...seed.socials[i%3],label:seed.socials[i%3].label+' '+(i+1),handle:'long_handle_'+i})):seed.socials;
   config=normalizeProfile({...seed,...fixture,badge:'Moonlight',background:{kind:'black'},cardLayout,socials,cardEffects:{enabled:true},electricBorder:{enabled:true,intensity:20},socialStyle:{enabled:true,layout:'icons'},typography:long?{sizes:{name:72,bio:24,socialHandle:26}}:undefined,name:long?'A longer display name':'InternalCheats'});
   html=renderProfileDocument(template,'creative-fixture',{config,revision:1});await page.setViewport({width,height:1000});await page.goto('https://ascendo.lol/creative-fixture/',{waitUntil:'networkidle0'});
@@ -41,11 +41,11 @@ try{
   assert.deepEqual(reverse,{frontInert:true,backInert:false,title:'After hours',href:'https://github.com/internalcheat',newTab:'_blank',rel:'noopener noreferrer',overflow:false,mediaSame:true,avatarSame:true});
   if((width===1280&&cardLayout==='classic')||(width===320&&cardLayout==='bento'))await page.screenshot({path:`test-results/creative/reverse-${width}.png`,fullPage:true});
   await page.keyboard.press('Escape');assert.equal(await page.$eval('.profile__panel',n=>n.inert),false);
-  if(['classic','bento'].includes(cardLayout)){await page.evaluate(()=>new Promise(r=>setTimeout(r,550)));await page.screenshot({path:`test-results/creative/front-${cardLayout}-${width}.png`,fullPage:true});}
+  if(['classic','bento'].includes(cardLayout)){await page.evaluate(()=>new Promise(r=>setTimeout(r,550)));if(width===1280&&cardLayout==='classic')console.log('tooltip after flip',JSON.stringify(await page.$$eval('.social-link__info',nodes=>nodes.map(n=>({opacity:getComputedStyle(n).opacity,visibility:getComputedStyle(n).visibility,hover:n.parentElement.matches(':hover'),focus:n.parentElement.matches(':focus-visible')})))));await page.screenshot({path:`test-results/creative/front-${cardLayout}-${width}.png`,fullPage:true});}
   reports.push({width,cardLayout,...state});
  }
  // No-JavaScript remains a complete front profile, with working ordinary social links.
- await page.setJavaScriptEnabled(false);await page.goto('https://ascendo.lol/creative-fixture/',{waitUntil:'networkidle0'});assert.equal(await page.$$eval('.social-link',n=>n.length),config.socials.length);await page.setJavaScriptEnabled(true);
+ html??=renderProfileDocument(template,'creative-fixture',{config,revision:1});await page.setJavaScriptEnabled(false);await page.goto('https://ascendo.lol/creative-fixture/',{waitUntil:'networkidle0'});assert.equal(await page.$$eval('.social-link',n=>n.length),config.socials.length);await page.setJavaScriptEnabled(true);
  // Test the real editor using isolated saved settings and a simulated authenticated API.
  await page.setViewport({width:1280,height:900});await page.goto('https://ascendo.lol/customize/',{waitUntil:'networkidle0'});await page.waitForFunction(()=>!document.getElementById('editorContent').hidden);
  for(const id of ['flipEnabled','constellationEnabled','stickersEnabled'])assert.equal(await page.$eval('#'+id,n=>n.checked),false);
@@ -54,12 +54,12 @@ try{
  await page.evaluate(()=>[...document.querySelectorAll('button')].find(n=>n.textContent==='Add sticker').click());
  await page.waitForSelector('#previewCard .profile-sticker');assert.equal(putCount,0);assert.equal(await page.$eval('#displayName',n=>n.value),saved.name);
  // Save and load an entire private preset, including all three new groups.
- await page.click('#profilePresets');await page.waitForSelector('.studio-presets input');await page.type('.studio-presets input','Creative preset');
+ await page.click('#profilePresets');await page.waitForSelector('.studio-presets input');await page.waitForFunction(()=>document.querySelector('.studio-presets').getAttribute('aria-busy')==='false');await page.type('.studio-presets input','Creative preset');
  await page.evaluate(()=>[...document.querySelectorAll('.studio-presets button')].find(n=>n.textContent==='Save preset').click());
  await page.waitForFunction(()=>document.querySelector('.studio-presets__row'));assert.equal(preset.config.flipCard.title,'Private reverse');assert.equal(preset.config.stickers.items.length,1);assert.equal(putCount,0);await page.keyboard.press('Escape');
  await page.click('#saveChanges');await page.waitForFunction(()=>document.getElementById('saveState').textContent==='All changes saved');assert.equal(putCount,1);assert.equal(saved.flipCard.title,'Private reverse');assert.equal(saved.constellation.enabled,true);assert.equal(saved.stickers.items.length,1);
  await page.reload({waitUntil:'networkidle0'});await page.waitForFunction(()=>!document.getElementById('editorContent').hidden);assert.equal(await page.$eval('#flipTitle',n=>n.value),'Private reverse');assert.equal(await page.$eval('#stickersEnabled',n=>n.checked),true);
  await page.emulateMediaFeatures([{name:'prefers-reduced-motion',value:'reduce'}]);await page.click('#previewTab');await page.click('.profile-flip-toggle');assert.equal(await page.$eval('.profile-flip-stage',n=>n.dataset.reduced),'true');await page.keyboard.press('Escape');
  assert.deepEqual(errors,[]);await page.close();
-}finally{await browser.close();}
+}catch(error){console.log('browser errors',JSON.stringify(errors));if(page&&!page.isClosed()){await page.screenshot({path:'test-results/creative/failure.png',fullPage:true}).catch(()=>{});console.log('failure state',JSON.stringify(await page.evaluate(()=>({editorStatus:document.getElementById('editorStatus')?.textContent,previewHint:document.getElementById('previewHint')?.textContent,presetStatus:document.querySelector('.studio-presets .studio-status')?.textContent,saveDisabled:document.querySelector('.studio-presets__save button')?.disabled,presetName:document.querySelector('.studio-presets__save input')?.value})).catch(()=>({}))));}throw error;}finally{await browser.close();}
 fs.writeFileSync('test-results/creative/results.json',JSON.stringify({layouts:reports.length,reports,editor:{privatePreview:true,preset:true,persisted:true,publicFixtureSaves:putCount}},null,2));console.log(JSON.stringify({creativeLayouts:reports.length,passed:true,editorPersistence:true}));
