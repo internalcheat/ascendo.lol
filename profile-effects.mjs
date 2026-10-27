@@ -37,11 +37,12 @@ export function createProfileEffects(panel, { scope, preview = false } = {}) {
   let config, entranceKey, bounds, scopeBounds, pendingEntrance;
   let frame = 0, lastTime = 0, slowFrames = 0, limited = false, onscreen = true;
   let painted = !preview && (doc.readyState === 'complete' || (win.performance.getEntriesByType?.('paint') || []).some(entry => entry.name === 'first-contentful-paint'));
-  let mouseX = 0, mouseY = 0, lastMove = -Infinity, trailStarted = false;
+  let mouseX = 0, mouseY = 0, lastMove = -Infinity, trailStarted = false, pointerKind;
   const animations = new Set();
   const firstPaint = clock.request(() => { painted = true; });
-  const interactive = () => !!config && fine.matches && !reduced.matches && !limited && onscreen && !doc.hidden;
-  const cursorEnabled = () => !!config?.cursorEffects.enabled && fine.matches && onscreen && !doc.hidden;
+  const hasMouse = () => pointerKind==='mouse'||pointerKind===undefined&&fine.matches;
+  const interactive = () => !!config && hasMouse() && !reduced.matches && !limited && onscreen && !doc.hidden;
+  const cursorEnabled = () => !!config?.cursorEffects.enabled && hasMouse() && onscreen && !doc.hidden;
   const cardEnabled = () => interactive() && config.cardEffects.enabled;
 
   function geometry() {
@@ -140,6 +141,7 @@ export function createProfileEffects(panel, { scope, preview = false } = {}) {
     if (unsettled) schedule(); else lastTime = 0;
   }
   function pointer(event) {
+    if(pointerKind!==event.pointerType){pointerKind=event.pointerType;syncCursor();if(pointerKind!=='mouse')neutral();}
     if (event.pointerType !== 'mouse' || !interactive()) return;
     if (!bounds || !scopeBounds) geometry();
     if (cardEnabled()) for (const record of cards.values()) {
@@ -159,6 +161,7 @@ export function createProfileEffects(panel, { scope, preview = false } = {}) {
   }
   function leave() { for (const record of cards.values()) record.targetX = record.targetY = record.targetOpacity = 0; if (trailStarted) lastMove = win.performance.now() - 100; schedule(); }
   function click(event) {
+    if(pointerKind!==event.pointerType){pointerKind=event.pointerType;syncCursor();if(pointerKind!=='mouse')neutral();}
     if (event.pointerType !== 'mouse' || !interactive() || !config.cursorEffects.enabled || config.cursorEffects.clickEffect === 'none' || typeof entry.animate !== 'function') return;
     if (!scopeBounds) geometry();
     const ripple = config.cursorEffects.clickEffect === 'ripple';
@@ -236,7 +239,7 @@ export function createProfileEffects(panel, { scope, preview = false } = {}) {
   }
   function suspend() { neutral(); clearEntrances(); syncCursor(); atmosphere.setActive(false); }
   function visibility() { if (doc.hidden) suspend(); else { geometry(); syncCursor(); atmosphere.setActive(onscreen); if (pendingEntrance !== undefined) replay({full:pendingEntrance}); } }
-  function preferences() { suspend(); pendingEntrance = undefined; geometry(); atmosphere.setActive(!doc.hidden && onscreen); }
+  function preferences() { pointerKind=undefined;suspend(); pendingEntrance = undefined; geometry(); atmosphere.setActive(!doc.hidden && onscreen); }
   listen(scope,'pointermove',pointer,{passive:true});
   listen(scope,'pointerleave',leave,{passive:true});
   listen(scope,'pointerdown',click,{passive:true});

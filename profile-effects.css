@@ -4,12 +4,12 @@
 .profile-effects-surface > .profile__panel { width: 100%; }
 .profile-effects-light { position: absolute; inset: 0; border-radius: 28px; overflow: hidden; pointer-events: none; opacity: 0; }
 .profile-effects-orb { position: absolute; top: 0; left: 0; width: 260px; height: 260px; background: radial-gradient(circle,rgba(var(--accent-rgb,193,154,255),.5),transparent 68%); }
-.profile-cursor-decorations { position: absolute; inset: 0; overflow: clip; pointer-events: none; z-index: 7; }
+.profile-cursor-decorations { position: absolute; inset: 0; overflow: clip; pointer-events: none; z-index: 7; display:none; }
+.profile-custom-cursor > .profile-cursor-decorations {display:block}
 .profile-cursor-point, .profile-click-particle { position: absolute; left: 0; top: 0; opacity: 0; pointer-events: none; }
 .profile-cursor-point { width:12px;height:2px;margin-top:-1px;border-radius:2px;transform-origin:0 50%;background:linear-gradient(90deg,var(--cursor-color),var(--cursor-color));box-shadow:0 0 5px color-mix(in srgb,var(--cursor-color),transparent 65%); }
 .profile-click-particle { width:9px;height:2px;margin:-1px 0 0 -4.5px;border-radius:2px;background:var(--cursor-color);box-shadow:0 0 6px color-mix(in srgb,var(--cursor-color),transparent 60%); }
 .profile-click-particle[data-kind='ripple'] { width:24px;height:24px;margin:-12px;border:1px solid var(--cursor-color);border-radius:50%;background:transparent;box-shadow:0 0 5px color-mix(in srgb,var(--cursor-color),transparent 75%); }
-@media (hover: hover) and (pointer: fine) {
   .profile-custom-cursor { cursor: var(--custom-cursor,auto); }
   .profile-custom-cursor :where(a,button,summary,[role='button'],label) { cursor: var(--custom-pointer,pointer); }
   .profile-custom-cursor :where(p,h1,.profile-badge) { cursor: text; }
@@ -17,9 +17,10 @@
   .profile-custom-cursor :where(input[type='range'],input[type='checkbox'],input[type='radio']) { cursor: pointer; }
   .profile-custom-cursor :disabled, .profile-custom-cursor [aria-disabled='true'] { cursor: not-allowed; }
   .profile-custom-cursor textarea { cursor: auto; }
+@media (prefers-reduced-motion: reduce) {
+  .profile-custom-cursor > .profile-cursor-decorations {display:none}
 }
 @media (prefers-reduced-motion: reduce), (hover: none), (pointer: coarse) {
-  .profile-cursor-decorations { display: none; }
   .profile-effects-surface, .profile-tile-surface { transform: none !important; }
   .profile-effects-surface .avatar { translate: none !important; }
   .profile-effects-light { display: none; }

@@ -76,10 +76,9 @@ try{
   await page.waitForFunction(()=>[...document.querySelectorAll('.cursor-choice img')].every(node=>node.complete&&node.naturalWidth));
   if(width===1280){
    await page.$eval('#cursorTestArea',node=>node.scrollIntoView({block:'center',behavior:'instant'}));
-   await page.waitForFunction(()=>document.getElementById('cursorTestArea').classList.contains('profile-custom-cursor'));
    await page.evaluate(()=>new Promise(resolve=>{let previous='',stable=0;function tick(){const r=document.getElementById('cursorTestArea').getBoundingClientRect(),now=[r.left,r.top,r.width,r.height,scrollY].map(n=>Math.round(n*10)).join();stable=now===previous?stable+1:0;previous=now;if(stable>=8)resolve();else requestAnimationFrame(tick);}requestAnimationFrame(tick);}));
    const box=await page.$eval('#cursorTestArea',node=>{const r=node.getBoundingClientRect();return {x:r.left,y:r.top,width:r.width,height:r.height};});
-   await page.mouse.move(box.x+15,box.y+25);await page.mouse.move(box.x+box.width-15,box.y+box.height-25,{steps:12});
+   await page.mouse.move(box.x+15,box.y+25);await page.waitForFunction(()=>document.getElementById('cursorTestArea').classList.contains('profile-custom-cursor'));await page.mouse.move(box.x+box.width-15,box.y+box.height-25,{steps:12});
    await page.waitForFunction(()=>[...document.querySelectorAll('#cursorTestArea .profile-cursor-point')].some(node=>Number(node.style.opacity)>0));
    await page.click('#cursorTestArea button');await page.waitForFunction(()=>document.querySelectorAll('#cursorTestArea [data-kind=ripple]').length===2);
    const states=await page.evaluate(()=>({native:getComputedStyle(document.getElementById('cursorTestArea')).cursor,link:getComputedStyle(document.querySelector('#cursorTestArea button')).cursor,text:getComputedStyle(document.querySelector('#cursorTestArea p')).cursor}));assert.ok(states.native.startsWith('url('));assert.ok(states.link.endsWith('pointer'));assert.equal(states.text,'text');
