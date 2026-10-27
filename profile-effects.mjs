@@ -167,7 +167,7 @@ export function createProfileEffects(panel, { scope, preview = false } = {}) {
   function leave() { for (const record of cards.values()) record.targetX = record.targetY = record.targetOpacity = 0; if (trailStarted) lastMove = win.performance.now() - 100; schedule(); }
   function click(event) {
     if(pointerKind!==event.pointerType){pointerKind=event.pointerType;syncCursor();if(pointerKind!=='mouse')neutral();}
-    if (event.pointerType !== 'mouse' || !interactive() || !config.cursorEffects.enabled || config.cursorEffects.clickEffect === 'none' || typeof entry.animate !== 'function') return;
+    if (event.pointerType !== 'mouse' || !config || !hasMouse() || reduced.matches || !onscreen || doc.hidden || !config.cursorEffects.enabled || config.cursorEffects.clickEffect === 'none' || typeof entry.animate !== 'function') return;
     if (!scopeBounds) geometry();
     const ripple = config.cursorEffects.clickEffect === 'ripple';
     if(event.button!==0)return;
