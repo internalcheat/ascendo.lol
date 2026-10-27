@@ -161,6 +161,8 @@
   if (!video) return;
   if(video.dataset.playerReady==='true')return;
   video.dataset.playerReady='true';
+  // Continuous pointer travel; keyboard adjustments retain whole-percent steps.
+  if(volumeControl){volumeControl.max='70';volumeControl.step='any';}
 
   if (mediaControls && volumeButton && volumePanel) {
     let pinned = false;
@@ -233,13 +235,26 @@
 
   import('./profile-music.mjs?v=20261027-1').then(({createProfilePlayer})=>{
     const player=createProfilePlayer(video,{onState:media=>{
-      const percentage=Math.round(media.muted?0:media.volume*100);
-      if(volumeControl){volumeControl.max='70';volumeControl.value=String(percentage);volumeControl.style.setProperty('--volume',`${percentage/70*100}%`);volumeControl.setAttribute('aria-valuetext',percentage===0?'Muted':`${percentage} percent`);}
-      if(volumeValue)volumeValue.textContent=`${percentage}%`;
-      if(mediaControls){mediaControls.hidden=!media.getAttribute('src');mediaControls.classList.toggle('is-muted',percentage===0);}
+      const volume=Math.max(0,Math.min(70,media.muted?0:media.volume*100)),percentage=Math.round(volume);
+      if(volumeControl){
+        if(Math.abs(Number(volumeControl.value)-volume)>.00001)volumeControl.value=String(volume);
+        const fill=`${volume/70*100}%`,label=volume===0?'Muted':`${percentage} percent`;
+        if(volumeControl.style.getPropertyValue('--volume')!==fill)volumeControl.style.setProperty('--volume',fill);
+        if(volumeControl.getAttribute('aria-valuetext')!==label)volumeControl.setAttribute('aria-valuetext',label);
+      }
+      if(volumeValue&&volumeValue.textContent!==`${percentage}%`)volumeValue.textContent=`${percentage}%`;
+      if(mediaControls){mediaControls.hidden=!media.getAttribute('src');mediaControls.classList.toggle('is-muted',volume===0);}
     }});
     player.fromDataset();
     volumeControl?.addEventListener('input',()=>player.volume(Number(volumeControl.value)));
+    volumeControl?.addEventListener('keydown',event=>{
+      const delta={ArrowLeft:-1,ArrowDown:-1,ArrowRight:1,ArrowUp:1,PageDown:-10,PageUp:10}[event.key];
+      if(delta===undefined&&event.key!=='Home'&&event.key!=='End')return;
+      event.preventDefault();
+      const value=event.key==='Home'?0:event.key==='End'?70:Math.round(Number(volumeControl.value))+delta;
+      volumeControl.value=String(Math.max(0,Math.min(70,value)));
+      volumeControl.dispatchEvent(new Event('input',{bubbles:true}));
+    });
     document.addEventListener('pointerdown',()=>player.start(true),{once:true});
     document.addEventListener('keydown',()=>player.start(true),{once:true});
   });
