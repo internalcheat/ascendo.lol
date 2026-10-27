@@ -50,12 +50,12 @@ try{
   const state=await page.evaluate(()=>({video:document.getElementById('previewVideo').getAttribute('src'),avatar:document.querySelector('#previewCard .avatar img').src,volume:document.getElementById('previewVideo').volume,videoSaved:document.getElementById('videoUrl').value,avatarSaved:document.getElementById('avatarUrl').value}));
   assert.ok(state.video.endsWith('token=fixture-'+lease));assert.ok(state.avatar.endsWith('token=fixture-'+lease));assert.equal(state.videoSaved,expected.background.url);assert.equal(state.avatarSaved,expected.avatar.url);assert.equal(state.volume,.31);return state;
  }
- for(const width of [1280,390,320]){
+ for(const width of [1280,1024,390,320]){
   await page.setViewport({width,height:900,isMobile:width<500,hasTouch:width<500});await page.goto('https://ascendo.lol/customize/',{waitUntil:'networkidle0'});await page.waitForFunction(()=>!document.getElementById('editorContent').hidden);
   await page.evaluate(()=>{window.navigationFixture={video:document.getElementById('previewVideo'),draft:sessionStorage.getItem('ascendo-editor-draft')};});
   const navigationVisible=await page.$$eval('.studio-nav-button',nodes=>nodes.every(node=>{const r=node.getBoundingClientRect();return r.left>=0&&r.right<=innerWidth;}));assert.ok(navigationVisible,'All six categories fit without horizontal scrolling');
   await page.click('.studio-jump .studio-select');await page.keyboard.type('Fonts');await page.keyboard.press('Enter');
-  await page.waitForFunction(()=>{const section=document.getElementById('studio-section-fonts'),box=section.getBoundingClientRect(),nav=document.querySelector('.studio-navigation').getBoundingClientRect();return !section.hidden&&section.dataset.expanded==='true'&&box.top>=nav.bottom+8&&box.top<innerHeight;});
+  await page.waitForFunction(()=>{const section=document.getElementById('studio-section-fonts'),box=section.getBoundingClientRect(),nav=document.querySelector('.studio-navigation').getBoundingClientRect(),clearance=matchMedia('(max-width:1100px)').matches?nav.bottom+8:16;return !section.hidden&&section.dataset.expanded==='true'&&box.top>=clearance&&box.top<innerHeight;});
   assert.equal(await page.$eval('#studioSectionJump',node=>node.form===null),true);
   await page.screenshot({path:`test-results/capture/studio-navigation-${width}.png`,fullPage:true});
   await page.click('#studioSearch');await page.type('#studioSearch','cursor');await page.waitForFunction(()=>!document.getElementById('studio-section-cursor').hidden);await page.click('#studioClearSearch');assert.equal(await page.$eval('#studioSearch',node=>node.value),'');
