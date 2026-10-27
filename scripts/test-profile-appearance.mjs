@@ -41,7 +41,7 @@ try{
  })().catch(error=>{errors.push(error.message);request.abort().catch(()=>{});});});
  async function load(index){
   await page.click('#profilePresets');await page.waitForSelector('.studio-presets__row');
-  await page.evaluate(i=>document.querySelectorAll('.studio-presets__row')[i].querySelector('button').click(),index);
+  await page.evaluate(i=>document.querySelectorAll('.studio-presets__row')[i].querySelector('.studio-presets__body .studio-presets__actions button').click(),index);
   await page.click('.studio-presets__confirm button:last-child');await page.waitForFunction(()=>!document.querySelector('.studio-presets').open);
   const expected=items[index].config;
   await page.waitForFunction(name=>document.getElementById('displayName').value===name,{},expected.name);
@@ -59,5 +59,5 @@ try{
   await page.screenshot({path:`test-results/capture/appearance-${width}.png`,fullPage:true});results.push({width,restoredVideo:true,restoredAvatar:true,completeSnapshot:true,privateOnly:true});
  }
  assert.deepEqual(errors,[]);await page.close();
-}finally{await browser.close();}
+}catch(error){for(const p of await browser.pages())if(!p.isClosed())await p.screenshot({path:'test-results/capture/appearance-failure.png',fullPage:true}).catch(()=>{});console.error(JSON.stringify({errors,calls:calls.slice(-12)}));throw error;}finally{await browser.close();}
 fs.writeFileSync('test-results/capture/appearance-results.json',JSON.stringify(results));console.log(JSON.stringify({appearanceAndPresetBrowserChecks:results}));

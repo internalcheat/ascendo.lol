@@ -8,7 +8,7 @@ export function createAvatarFrames(panel,{reduced,onResize=()=>{}}){
   config=next.avatarFrame;active=visible;const target=config.enabled?panel.querySelector('.avatar'):null;
   if(record?.target!==target)release();if(!target)return;
   if(!record){const svg=doc.createElementNS('http://www.w3.org/2000/svg','svg');svg.classList.add('profile-avatar-frame');svg.setAttribute('aria-hidden','true');const paths=Array.from({length:3},()=>doc.createElementNS(svg.namespaceURI,'path'));svg.append(...paths);target.classList.add('profile-avatar-frame-target');target.append(svg);record={target,svg,paths};resize?.observe(target);}
-  record.svg.hidden=!active;record.svg.style.display=active?'':'none';geometry();
+  record.svg.dataset.frameStyle=config.style;record.svg.hidden=!active;record.svg.style.display=active?'':'none';geometry();
  }
  function geometry(){
   if(!record)return;const {target,svg,paths}=record,w=target.offsetWidth,h=target.offsetHeight;if(!w||!h)return;
@@ -17,7 +17,7 @@ export function createAvatarFrames(panel,{reduced,onResize=()=>{}}){
   const d=outline(electricContour(w+gap*2,h+gap*2,radii));paths[0].setAttribute('d',d);paths[1].setAttribute('d',d);
   paths[2].setAttribute('d',outline(electricContour(w+gap*2-5,h+gap*2-5,radii.map(v=>Math.max(0,v-2.5)))));paths[2].setAttribute('transform','translate(2.5 2.5)');
   for(const path of paths){path.setAttribute('stroke',config.color);path.setAttribute('stroke-width',String(config.width));path.setAttribute('opacity','1');}
-  paths[0].setAttribute('stroke-width',String(config.width+5+config.glow/20));paths[0].setAttribute('opacity',String(config.glow/500));
+  paths[0].setAttribute('stroke-width',String(config.width+5+config.glow/20));paths[0].setAttribute('opacity',String(config.glow/250));
   paths[1].setAttribute('stroke-dasharray',config.style==='dashed'?'8 12':'');
   paths[2].setAttribute('stroke',config.secondary);paths[2].setAttribute('opacity',config.style==='double'?'1':'0');draw(0);
  }

@@ -52,7 +52,7 @@ export function createStudioPresets({request,getDraft,loadDraft,getPreviewUrls=(
   const generation=++ticket;busy=true;controls();message('Saving preset…');
   try{
    const created=await request('/presets',{method:'POST',body:{name:name.value.trim(),config}});cache.delete(created.id);const stored=await read(created.id);
-   if(!sameSnapshot(config,stored.config))throw Error('This preset did not keep every setting. Nothing was published. Please try saving it again.');
+   if(!sameSnapshot(config,stored.config)){await request('/presets/'+created.id,{method:'DELETE'}).catch(()=>{});cache.delete(created.id);throw Error('This preset did not keep every setting. Nothing was published. Please try saving it again.');}
    if(generation!==ticket||!dialog.open)return;name.value='';await refresh();message('Preset saved. Your public profile is unchanged.');
   }catch(error){if(generation===ticket)message(error.message,true);}finally{if(generation===ticket){busy=false;controls();}}
  });

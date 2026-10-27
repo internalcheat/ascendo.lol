@@ -74,7 +74,7 @@ export function createProfileExpression(panel,{scope=panel,video,onStatus=()=>{}
    moving||=Math.abs(r.tx-r.x)+Math.abs(r.ty-r.y)>.05;
   }
   const live=canDraw()&&analyser&&audioContext?.state==='running';
-  if(live&&time-lastDraw>=(limited?66:33)){draw(true);if(config.electricBorder.reactive){analyser.getByteFrequencyData(frequency);let total=0;for(let i=0;i<frequency.length;i++)total+=frequency[i];panel.dispatchEvent(new win.CustomEvent('ascendo:music-energy',{detail:{energy:total/frequency.length/255}}));}lastDraw=time;}
+  if(live&&time-lastDraw>=(limited?66:33)){draw(true);if(config.electricBorder.reactive){analyser.getByteFrequencyData(frequency);let total=0;for(let i=0;i<frequency.length;i++)total+=frequency[i];panel.dispatchEvent(new win.CustomEvent('ascendo:music-energy',{detail:{energy:total/frequency.length/255*Math.min(1,(current()?.volume||0)/.7)}}));}lastDraw=time;}
   if(moving||live)frame=win.requestAnimationFrame(tick);
  }
  function wake(){if(!frame&&active()&&!reduced.matches&&!capture())frame=win.requestAnimationFrame(tick);}
