@@ -480,3 +480,9 @@ Search and keyboard navigation cover all 34 choices. Search never changes a draf
 Only the selected enabled cursor pair is decoded for native use. Thumbnails load as their gallery rows enter view. Native image and size caches are bounded, stale asynchronous completions cannot overwrite a newer selection, unavailable artwork falls back to Arrow, and touch/reduced-motion cleanup is retained. Settings remain private until Save changes; saved presets retain the pack choice.
 
 The compatible backend adds an allowlisted cursor ID catalog to existing JSON validation. No database migration, profile rewrite, permission or authentication change is required. Tests cover all 60 original hashes and 30 stored IDs, backend private-preset persistence, invalid IDs, search isolation, 90 native size/pointer pairs, desktop/mobile gallery layouts, touch and reduced motion.
+
+### Volume control motion
+
+The expanding sound control reveals a fixed-width slider so its track and thumb do not resize during the disclosure animation. Rapid reversals continue from the current width. Native pointer input retains fractional precision; the track fill and actual volume update together without a trailing CSS transition. Percent labels remain rounded, arrows adjust one percent, Page Up/Down adjust ten, and Home/End select mute/70%. Unchanged playback notifications do not rewrite slider values or labels.
+
+Native browser checks cover desktop/tablet/390px/320px, stable geometry during expansion, rapid reversals, fractional dragging, immediate audio/fill synchronization, keyboard limits, mute, Escape focus, touch dismissal, reduced motion and unchanged media elements/sources. Profile settings and saved volume defaults remain unchanged.
