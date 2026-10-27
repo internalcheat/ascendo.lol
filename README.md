@@ -460,3 +460,13 @@ The editor keeps category navigation and mobile Edit/Preview controls in reach w
 Category/view reveals are short, interruptible transform/opacity animations. Accordion motion reverses naturally; reduced motion skips it. There is no idle animation loop. Geometry updates on navigation resize, and effects cancel when hidden or leaving the page. Navigation never remounts the preview or writes a draft/profile. No backend or stored profile changes.
 
 Validation includes the full automated suite and isolated native Chrome checks at 1280, 390 and 320 pixels: keyboard section jumping, sticky-header clearance, all category targets visible, rapid navigation, reduced motion, modal shortcuts, unchanged draft/media DOM and existing private preset workflows.
+
+### Refined custom cursors
+
+Custom Cursors keeps the existing Arrow, Dot, Ring and Crosshair identifiers and all saved settings. Shapes now have light/dark contrast outlines, exact native hotspots and a matching link pointer. The arrow uses pinned Lucide artwork (ISC); original source, full license and SHA-256 provenance are in vendor/lucide-cursors/. No remote cursor or font requests are made.
+
+The editor has keyboard-accessible visual choices and a private test area for movement, clicking and text selection. Colors, size, trail length/smoothing and click choices remain independently saved through the current settings/preset system. Existing profiles remain off unless their owner enables cursors; publication still requires Save changes.
+
+The tapered trail reuses at most 12 transform-only segments. Primary-click rings use two staggered outlines; sparks use a capped 24-particle pool. The shared on-demand scheduler stops at rest, when hidden or offscreen, and on navigation. Reduced motion suppresses decorations; touch uses native cursors. Text, disabled controls and resize affordances remain native.
+
+Validation covers normalized settings, hotspots and contrast at 12/24/40px, source provenance, editor selection and draft preservation, desktop/tablet/mobile layouts, reduced motion, touch, primary clicks, bounded animation cleanup and light/dark native artwork screenshots on isolated GitHub Actions fixtures.

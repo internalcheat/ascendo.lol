@@ -2,7 +2,7 @@ name: Profile sharing
 
 on:
   push:
-    branches: [profile-sharing, profile-expression, saved-profile-presets, fix-layout-social-borders, profile-appearance-presets, codex/preset-management, codex/studio-navigation-polish, main]
+    branches: [profile-sharing, profile-expression, saved-profile-presets, fix-layout-social-borders, profile-appearance-presets, codex/preset-management, codex/studio-navigation-polish, codex/cursor-refinement, main]
   workflow_dispatch:
   schedule:
     - cron: '2-59/5 * * * *'
@@ -34,9 +34,10 @@ jobs:
       - run: node scripts/test-profile-expression.mjs
       - run: node scripts/test-layout-social-borders.mjs
       - run: node scripts/test-studio-presets.mjs
+      - run: node scripts/test-cursors.mjs
       - run: node scripts/test-profile-appearance.mjs
       - run: node scripts/share-runner.mjs health
-        if: github.ref != 'refs/heads/saved-profile-presets' && github.ref != 'refs/heads/fix-layout-social-borders' && github.ref != 'refs/heads/profile-appearance-presets' && github.ref != 'refs/heads/codex/preset-management' && github.ref != 'refs/heads/codex/studio-navigation-polish'
+        if: github.ref != 'refs/heads/saved-profile-presets' && github.ref != 'refs/heads/fix-layout-social-borders' && github.ref != 'refs/heads/profile-appearance-presets' && github.ref != 'refs/heads/codex/preset-management' && github.ref != 'refs/heads/codex/studio-navigation-polish' && github.ref != 'refs/heads/codex/cursor-refinement'
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:

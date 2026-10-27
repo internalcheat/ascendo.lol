@@ -51,7 +51,7 @@ export function createStudioControls(form){
     if(destroyed)return;
     for(const [source,record]of selects)if(!form.contains(source)){if(current===record)close();record.events.abort();record.button.remove();selects.delete(source);}
     for(const [source,record]of colors)if(!form.contains(source)){record.events.abort();record.shell.remove();record.error.remove();colors.delete(source);}
-    for(const source of form.querySelectorAll('select'))if(!selects.has(source))enhanceSelect(source);
+    for(const source of form.querySelectorAll('select'))if(!source.hasAttribute('data-visual-picker')&&!selects.has(source))enhanceSelect(source);
     for(const source of form.querySelectorAll('input[type=color]'))if(!colors.has(source))enhanceColor(source);
     for(const record of selects.values())sync(record);
     for(const record of colors.values()){if(record.hex.disabled!==record.source.disabled)record.hex.disabled=record.source.disabled;if(record.error.hidden!==record.source.disabled)record.error.hidden=record.source.disabled;const value=record.source.value.toUpperCase();if(force||record.lastSource!==value){if(force||doc.activeElement!==record.hex){record.hex.value=value;record.hex.setCustomValidity('');if(record.error.textContent)record.error.textContent='';record.hex.setAttribute('aria-invalid','false');}record.lastSource=value;}}

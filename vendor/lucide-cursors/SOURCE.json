@@ -1,0 +1,11 @@
+{
+  "project": "Lucide",
+  "source": "https://github.com/lucide-icons/lucide",
+  "revision": "2ca268e74888d3506b3319fb8f94aaaaf70ceca9",
+  "license": "ISC (full upstream notice included)",
+  "files": {
+    "LICENSE.txt": "b495047bd93a9b06913511076f504daba17d5bbeb3e0650f3bb53a4220329c57",
+    "mouse-pointer-2.svg": "a87128b1d33024c22ab598d1ce313081ce8942efd1a70274215bcc53421b7c7e"
+  },
+  "adaptation": "Mouse-pointer-2 outline used for the native arrow; resized, given a contrast outline and a configurable fill. Other cursor artwork is authored for Ascendo."
+}

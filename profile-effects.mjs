@@ -1,21 +1,8 @@
 import { createProfileClock } from './profile-clock.mjs?v=20261025-6';
 import { createProfileAtmosphere } from './profile-atmosphere.mjs?v=20261027-1';
 import {isTiledLayout,layoutWidth} from './visual-schema.mjs?v=20261027-1';
-
-const templates = Object.freeze({
-  arrow: '<path d="M5 3v24l6-7 5 11 5-2-5-11 10-1Z"/>',
-  dot: '<circle cx="18" cy="18" r="7"/>',
-  ring: '<circle cx="18" cy="18" r="11" fill="none" stroke-width="3"/>',
-  crosshair: '<path d="M18 3v11m0 8v11M3 18h11m8 0h11" fill="none" stroke-width="2"/>'
-});
-
-export function nativeCursor(config) {
-  if (!Object.hasOwn(templates,config.style) || !/^#[0-9a-f]{6}$/i.test(config.color) || !Number.isFinite(config.size) || config.size < 12 || config.size > 40) throw new Error('Invalid native cursor.');
-  const size = Math.round(config.size);
-  const hotspot = config.style === 'arrow' ? Math.round(size * 5 / 36) : Math.round(size / 2);
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 36 36" fill="${config.color}" stroke="${config.color}" stroke-linecap="round" stroke-linejoin="round">${templates[config.style]}</svg>`;
-  return `url("data:image/svg+xml,${encodeURIComponent(svg)}") ${hotspot} ${config.style === 'arrow' ? Math.round(size * 3 / 36) : hotspot}, auto`;
-}
+import {nativeCursor} from './cursor-art.mjs?v=20261027-4';
+export {nativeCursor};
 
 export function createProfileEffects(panel, { scope, preview = false } = {}) {
   const doc = panel.ownerDocument;
@@ -50,11 +37,12 @@ export function createProfileEffects(panel, { scope, preview = false } = {}) {
   let config, entranceKey, bounds, scopeBounds, pendingEntrance;
   let frame = 0, lastTime = 0, slowFrames = 0, limited = false, onscreen = true;
   let painted = !preview && (doc.readyState === 'complete' || (win.performance.getEntriesByType?.('paint') || []).some(entry => entry.name === 'first-contentful-paint'));
-  let mouseX = 0, mouseY = 0, lastMove = -Infinity, trailStarted = false;
+  let mouseX = 0, mouseY = 0, lastMove = -Infinity, trailStarted = false, pointerKind;
   const animations = new Set();
   const firstPaint = clock.request(() => { painted = true; });
-  const interactive = () => !!config && fine.matches && !reduced.matches && !limited && onscreen && !doc.hidden;
-  const cursorEnabled = () => !!config?.cursorEffects.enabled && fine.matches && onscreen && !doc.hidden;
+  const hasMouse = () => pointerKind==='mouse'||pointerKind===undefined&&fine.matches;
+  const interactive = () => !!config && hasMouse() && !reduced.matches && !limited && onscreen && !doc.hidden;
+  const cursorEnabled = () => !!config?.cursorEffects.enabled && hasMouse() && onscreen && !doc.hidden;
   const cardEnabled = () => interactive() && config.cardEffects.enabled;
 
   function geometry() {
@@ -106,8 +94,8 @@ export function createProfileEffects(panel, { scope, preview = false } = {}) {
   function syncCursor() {
     const enabled = cursorEnabled();
     scope.classList.toggle('profile-custom-cursor',enabled);
-    if (enabled) scope.style.setProperty('--custom-cursor',nativeCursor(config.cursorEffects));
-    else scope.style.removeProperty('--custom-cursor');
+    if (enabled) {scope.style.setProperty('--custom-cursor',nativeCursor(config.cursorEffects));scope.style.setProperty('--custom-pointer',nativeCursor(config.cursorEffects,{pointer:true}));}
+    else {scope.style.removeProperty('--custom-cursor');scope.style.removeProperty('--custom-pointer');}
   }
   function schedule() { if (!frame && interactive()) frame = clock.request(step); }
   function step(time) {
@@ -135,15 +123,16 @@ export function createProfileEffects(panel, { scope, preview = false } = {}) {
     const cursor = config.cursorEffects;
     if (cursor.enabled && cursor.trail && trailStarted) {
       const age = time - lastMove;
-      const opacity = Math.max(0,1 - Math.max(0,age - 100) / 450);
-      const response = 1 - Math.exp(-Math.min(elapsed,40) / (14 + cursor.trailSmoothness * .9));
+      const opacity = Math.max(0,1 - Math.max(0,age - 60) / 280);
+      const response = 1 - Math.exp(-Math.min(elapsed,40) / (10 + cursor.trailSmoothness * .42));
       let previousX = mouseX, previousY = mouseY;
       trail.forEach((point,index) => {
         if (index >= cursor.trailLength) { point.node.style.opacity = '0'; return; }
         point.x += (previousX - point.x) * response;
         point.y += (previousY - point.y) * response;
-        point.node.style.transform = `translate3d(${point.x}px,${point.y}px,0) scale(${1 - index / (cursor.trailLength + 2)})`;
-        point.node.style.opacity = String(opacity * (1-index/cursor.trailLength) * .42);
+        const dx=previousX-point.x,dy=previousY-point.y,length=Math.min(64,Math.hypot(dx,dy));
+        point.node.style.transform = `translate3d(${point.x}px,${point.y}px,0) rotate(${Math.atan2(dy,dx)}rad) scale(${length/12},${.3+(1-index/cursor.trailLength)*.7})`;
+        point.node.style.opacity = String(opacity * Math.pow(1-index/cursor.trailLength,1.4) * .62);
         previousX = point.x; previousY = point.y;
       });
       unsettled ||= opacity > 0;
@@ -152,6 +141,7 @@ export function createProfileEffects(panel, { scope, preview = false } = {}) {
     if (unsettled) schedule(); else lastTime = 0;
   }
   function pointer(event) {
+    if(pointerKind!==event.pointerType){pointerKind=event.pointerType;syncCursor();if(pointerKind!=='mouse')neutral();}
     if (event.pointerType !== 'mouse' || !interactive()) return;
     if (!bounds || !scopeBounds) geometry();
     if (cardEnabled()) for (const record of cards.values()) {
@@ -171,17 +161,19 @@ export function createProfileEffects(panel, { scope, preview = false } = {}) {
   }
   function leave() { for (const record of cards.values()) record.targetX = record.targetY = record.targetOpacity = 0; if (trailStarted) lastMove = win.performance.now() - 100; schedule(); }
   function click(event) {
+    if(pointerKind!==event.pointerType){pointerKind=event.pointerType;syncCursor();if(pointerKind!=='mouse')neutral();}
     if (event.pointerType !== 'mouse' || !interactive() || !config.cursorEffects.enabled || config.cursorEffects.clickEffect === 'none' || typeof entry.animate !== 'function') return;
     if (!scopeBounds) geometry();
     const ripple = config.cursorEffects.clickEffect === 'ripple';
-    const available = particles.filter(particle => !particle.animation).slice(0,ripple ? 1 : 6);
+    if(event.button!==0)return;
+    const available = particles.filter(particle => !particle.animation).slice(0,ripple ? 2 : 6);
     available.forEach((particle,index) => {
       const x = event.clientX - scopeBounds.left, y = event.clientY - scopeBounds.top;
-      const angle = index / 6 * Math.PI * 2;
+      const angle = index / 6 * Math.PI * 2+Math.PI/6;
       particle.node.dataset.kind = ripple ? 'ripple' : 'spark';
-      const from = `translate(${x}px,${y}px) scale(${ripple ? .2 : 1})`;
-      const to = ripple ? `translate(${x}px,${y}px) scale(2.6)` : `translate(${x+Math.cos(angle)*22}px,${y+Math.sin(angle)*22}px) scale(.2)`;
-      const animation = particle.node.animate([{transform:from,opacity:.7},{transform:to,opacity:0}],{duration:ripple?480:380,easing:'cubic-bezier(.2,.7,.3,1)'});
+      const from = ripple?`translate(${x}px,${y}px) scale(${index ? .12 : .25})`:`translate(${x+Math.cos(angle)*4}px,${y+Math.sin(angle)*4}px) rotate(${angle}rad) scale(1)`;
+      const to = ripple ? `translate(${x}px,${y}px) scale(${index?1.8:2.5})` : `translate(${x+Math.cos(angle)*29}px,${y+Math.sin(angle)*29}px) rotate(${angle}rad) scale(.15)`;
+      const animation = particle.node.animate([{transform:from,opacity:index&&ripple ? .4 : .8},{transform:to,opacity:0}],{duration:ripple?520:420,delay:ripple?index*55:0,easing:'cubic-bezier(.16,1,.3,1)'});
       particle.animation = animation;
       const finish = () => { if (particle.animation === animation) { particle.animation = null; particle.node.style.opacity = '0'; } };
       animation.finished.then(finish,finish);
@@ -247,7 +239,7 @@ export function createProfileEffects(panel, { scope, preview = false } = {}) {
   }
   function suspend() { neutral(); clearEntrances(); syncCursor(); atmosphere.setActive(false); }
   function visibility() { if (doc.hidden) suspend(); else { geometry(); syncCursor(); atmosphere.setActive(onscreen); if (pendingEntrance !== undefined) replay({full:pendingEntrance}); } }
-  function preferences() { suspend(); pendingEntrance = undefined; geometry(); atmosphere.setActive(!doc.hidden && onscreen); }
+  function preferences() { pointerKind=undefined;suspend(); pendingEntrance = undefined; geometry(); atmosphere.setActive(!doc.hidden && onscreen); }
   listen(scope,'pointermove',pointer,{passive:true});
   listen(scope,'pointerleave',leave,{passive:true});
   listen(scope,'pointerdown',click,{passive:true});
@@ -271,7 +263,7 @@ export function createProfileEffects(panel, { scope, preview = false } = {}) {
     suspend(); abort.abort(); observer?.disconnect(); resize?.disconnect(); clock.cancel(firstPaint); atmosphere.destroy();
     for (const [node,record] of cards) if (node !== panel) { record.boundary.before(node); record.boundary.remove(); }
     cards.clear(); clock.destroy();
-    scope.classList.remove('profile-custom-cursor'); scope.style.removeProperty('--custom-cursor');
+    scope.classList.remove('profile-custom-cursor'); scope.style.removeProperty('--custom-cursor');scope.style.removeProperty('--custom-pointer');
     decorations.remove(); boundary.before(panel); boundary.remove();
   }
   return {update,replay,destroy};

@@ -548,3 +548,5 @@ Object.assign(HU,{
 });
 
 Object.assign(HU,{'Jump to section':'Ugrás egy szakaszhoz','Jump to section…':'Ugrás egy szakaszhoz…'});
+
+Object.assign(HU,{'Cursor test area':'Kurzor kipróbálása','Try it here':'Próbáld ki itt','Move, click, or select this text.':'Mozgasd az egeret, kattints, vagy jelöld ki ezt a szöveget.','Test click':'Próbakattintás'});
