@@ -23,6 +23,7 @@
 .profile-flip-stage[data-reduced='true']:not(.is-back) .profile-flip-back, .profile-flip-stage[data-reduced='true'].is-back .profile__panel { visibility:hidden; }
 
 .custom-profile[data-constellation='true'] .profile-identity { container-type:inline-size; container-name:identity; display:flex; flex-direction:column; }
+.custom-profile[data-constellation='true'][data-tiled='true'][data-has-widgets='false'] > .profile-tile-boundary { width:100%; flex:0 0 100%; }
 .profile-constellation { width:100%; min-width:0; display:flex; flex-direction:column; align-items:center; gap:20px; margin-bottom:24px; }
 .profile-constellation .constellation-lines { display:none; }
 .custom-profile[data-constellation='true'] .profile-constellation .avatar { width:112px; height:112px; border-radius:50%; margin:0; }
