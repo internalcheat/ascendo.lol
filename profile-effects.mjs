@@ -4,7 +4,7 @@ import {isTiledLayout,layoutWidth} from './visual-schema.mjs?v=20261027-9';
 import {nativeCursor} from './cursor-art.mjs?v=20261027-5';
 import {prepareNativeCursor} from './cursor-pack-runtime.mjs?v=20261027-5';
 import {CURSOR_PACKS} from './cursor-packs.mjs?v=20261027-5';
-import {createProfileCreative} from './profile-creative.mjs?v=20261027-9';
+import {createProfileCreative} from './profile-creative.mjs?v=20261028-1';
 export {nativeCursor};
 
 export function createProfileEffects(panel, { scope, preview = false } = {}) {
