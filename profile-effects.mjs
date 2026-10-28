@@ -4,7 +4,7 @@ import {isTiledLayout,layoutWidth} from './visual-schema.mjs?v=20261027-9';
 import {nativeCursor} from './cursor-art.mjs?v=20261027-5';
 import {prepareNativeCursor} from './cursor-pack-runtime.mjs?v=20261027-5';
 import {CURSOR_PACKS} from './cursor-packs.mjs?v=20261027-5';
-import {createProfileCreative} from './profile-creative.mjs?v=20261028-1';
+import {createProfileCreative} from './profile-creative.mjs?v=20261028-2';
 export {nativeCursor};
 
 export function createProfileEffects(panel, { scope, preview = false } = {}) {
@@ -20,7 +20,7 @@ export function createProfileEffects(panel, { scope, preview = false } = {}) {
   const entry = make('profile-effects-entry');
   const surface = make('profile-effects-surface');
   panel.before(boundary); boundary.append(entry); entry.append(surface); surface.append(panel);
-  const creative=panel.classList.contains('profile__panel')?createProfileCreative(panel,{surface}):{update(){},destroy(){}};
+  const creative=panel.classList.contains('profile__panel')?createProfileCreative(panel,{surface,clock}):{update(){},destroy(){}};
   scope ||= boundary;
   const atmosphere = createProfileAtmosphere(panel,scope,{clock,preview});
   const cards = new Map();

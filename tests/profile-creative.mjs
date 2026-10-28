@@ -1,6 +1,7 @@
 import fs from 'node:fs';import assert from 'node:assert/strict';import {Window} from 'happy-dom';
 import {normalizeProfile,profileMedia} from '../profile-schema.mjs';import {preserveVisualGroups,LAYOUTS} from '../visual-schema.mjs';
 import {renderProfile} from '../profile-view.mjs';import {createProfileEffects} from '../profile-effects.mjs';import {createCreativeEditor} from '../editor-creative.mjs';import {constellationPoints} from '../creative-view.mjs';import {sameSnapshot} from '../studio-presets.mjs';
+import {constellationTooltipPosition,createConstellationTooltip} from '../constellation-tooltip.mjs';
 const seed=JSON.parse(fs.readFileSync('supabase/seed-profiles.json','utf8')).internalcheats,base=normalizeProfile(seed),windows=[],checks=[];
 const check=async(name,fn)=>{await fn();checks.push(name);};
 export const creativeFixture={flipCard:{enabled:true,title:'The other side',text:'A second story\nWithout changing the first.',artwork:'https://ascendo.lol/assets/k3rlsen-avatar.png',color:'#71dcc5',links:[{label:'My work',url:'https://github.com/internalcheat'}]},constellation:{enabled:true},stickers:{enabled:true,items:[{id:'star',kind:'emoji',text:'✦',edge:'top'},{id:'note',kind:'note',text:'stay curious',edge:'right',rotation:12},{id:'photo',kind:'image',url:'https://ascendo.lol/assets/k3rlsen-avatar.png',poster:'https://ascendo.lol/assets/mypfp-poster.jpg',edge:'bottom'}]}};
@@ -45,6 +46,24 @@ await check('preview flip belongs to its toolbar, follows expanded preview and c
  const panel=doc.querySelector('.profile__panel'),scope=doc.querySelector('.preview-card'),toolbar=doc.querySelector('.preview-toolbar'),runtime=createProfileEffects(panel,{scope,preview:true}),config=normalizeProfile({...seed,...creativeFixture});renderProfile(panel,config);runtime.update(config);
  const flip=doc.querySelector('.profile-flip-toggle');assert.equal(flip.parentElement,toolbar);assert.equal(toolbar.classList.contains('preview-toolbar--flip'),true);assert.equal(scope.querySelector('.profile-flip-toggle'),null);doc.querySelector('dialog').append(doc.querySelector('.studio-preview'));assert.equal(doc.querySelector('dialog .profile-flip-toggle'),flip);flip.click();flip.focus();flip.dispatchEvent(new win.KeyboardEvent('keydown',{key:'Escape',bubbles:true}));assert.equal(panel.inert,false);assert.equal(doc.activeElement,flip);
  runtime.update(normalizeProfile({...config,flipCard:{...config.flipCard,enabled:false}}));assert.equal(doc.querySelector('.profile-flip-toggle'),null);assert.equal(toolbar.classList.contains('preview-toolbar--flip'),false);runtime.destroy();
+});
+await check('constellation labels stay inside viewport bounds and choose an unobstructed side',()=>{
+ const bounds={left:12,top:12,right:788,bottom:588};
+ for(const x of [12,350,740])for(const y of [12,260,540])for(const width of [100,280]){
+  const anchor={left:x,top:y,right:x+36,bottom:y+36},p=constellationTooltipPosition(anchor,{width,height:100},bounds);
+  assert.ok(p.left>=bounds.left&&p.right<=bounds.right&&p.top>=bounds.top&&p.bottom<=bounds.bottom);assert.equal(p.left<anchor.right&&p.right>anchor.left&&p.top<anchor.bottom&&p.bottom>anchor.top,false);
+ }
+ const p=constellationTooltipPosition({left:350,top:260,right:398,bottom:308},{width:160,height:80},bounds,[{left:250,top:160,right:480,bottom:250}]);assert.equal(p.side,'bottom');
+});
+await check('one shared constellation tooltip preserves accessible actions and cleans up on Escape, toggles and destruction',()=>{
+ const {doc,win,panel}=environment(),config=normalizeProfile({...seed,...creativeFixture});renderProfile(panel,config);
+ const computed=win.getComputedStyle.bind(win);win.getComputedStyle=node=>node.matches?.('.social-link')?{position:'absolute'}:computed(node);
+ const runtime=createConstellationTooltip(panel);runtime.update();const links=[...panel.querySelectorAll('.social-link')];links.forEach((node,i)=>{node.getBoundingClientRect=()=>({left:200+i*60,top:200,right:248+i*60,bottom:248,width:48,height:48});});
+ links[0].setAttribute('aria-describedby','existing-hint');links[0].dispatchEvent(new win.FocusEvent('focusin',{bubbles:true}));
+ const tip=doc.querySelector('.constellation-tooltip');assert.ok(tip);assert.equal(tip.parentElement,doc.body);assert.equal(tip.getAttribute('role'),'tooltip');assert.equal(tip.hidden,false);assert.equal(tip.querySelector('.constellation-tooltip__handle').textContent,config.socials[0].handle);assert.ok(links[0].getAttribute('aria-describedby').includes(tip.id));
+ links[1].dispatchEvent(new win.FocusEvent('focusin',{bubbles:true}));assert.equal(doc.querySelectorAll('.constellation-tooltip').length,1);assert.equal(links[0].getAttribute('aria-describedby'),'existing-hint');assert.equal(tip.querySelector('.constellation-tooltip__handle').textContent,config.socials[1].handle);
+ doc.dispatchEvent(new win.KeyboardEvent('keydown',{key:'Escape',bubbles:true,cancelable:true}));assert.equal(tip.hidden,true);assert.equal(links[1].hasAttribute('aria-describedby'),false);assert.equal(links[0].dataset.copy,'internalcheats');
+ renderProfile(panel,base);runtime.update();assert.equal(doc.querySelector('.constellation-tooltip'),null);runtime.destroy();assert.equal(doc.querySelector('[data-tooltip-ready]'),null);
 });
 console.log(JSON.stringify({passed:checks.length,checks}));
 }finally{for(const win of windows)await win.happyDOM.close();}
