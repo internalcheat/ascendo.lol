@@ -1,4 +1,4 @@
-@import url('./profile-creative.css?v=20261028-1');
+@import url('./profile-creative.css?v=20261028-2');
 .custom-profile:where([data-social-style]:not([data-social-style=default])) .social-list{gap:var(--social-gap)}
 .custom-profile[data-social-style=rows] .social-list{display:grid}
 .custom-profile:where([data-social-style]:not([data-social-style=default])) .social-link{border-radius:var(--social-radius);min-width:0;transition:background .24s,border-color .24s,transform .24s}

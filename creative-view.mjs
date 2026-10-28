@@ -21,14 +21,14 @@ export function applyCreativeView(panel,{identity,summary,avatar,socials,config,
   if(sky.dataset.key!==key){
    sky.dataset.key=key;sky.querySelector('svg')?.remove();const svg=doc.createElementNS(NS,'svg');svg.classList.add('constellation-lines');svg.setAttribute('viewBox','0 0 400 400');svg.setAttribute('aria-hidden','true');
    const points=constellationPoints(config.socials.length,stars.spread);
-   points.forEach((point,i)=>{const line=doc.createElementNS(NS,'path');line.setAttribute('d',`M200 200 L${point.x*4} ${point.y*4}`);svg.append(line);const link=socials.children[i];if(!link)return;link.style.setProperty('--star-x',point.x+'%');link.style.setProperty('--star-y',point.y+'%');link.dataset.starMotion=String(stars.motion);});sky.prepend(svg);
+   points.forEach((point,i)=>{const line=doc.createElementNS(NS,'path');line.setAttribute('d',`M200 200 L${point.x*4} ${point.y*4}`);svg.append(line);const link=socials.children[i];if(!link)return;link.style.setProperty('--star-x',point.x+'%');link.style.setProperty('--star-y',point.y+'%');link.dataset.starMotion=String(stars.motion);link.dataset.starAlign=point.x<30?'start':point.x>70?'end':'center';});sky.prepend(svg);
   }
   sky.style.setProperty('--star-line-opacity',String(stars.lineOpacity/100));sky.style.setProperty('--star-size',stars.nodeSize+'px');
   if(avatar.parentElement!==sky)sky.append(avatar);if(socials.parentElement!==sky)sky.append(socials);
   if(summary.parentElement!==identity)identity.append(summary);
  }else{
   if(sky){sky.before(avatar);sky.remove();}
-  for(const link of socials.children){link.style.removeProperty('--star-x');link.style.removeProperty('--star-y');delete link.dataset.starMotion;}
+  for(const link of socials.children){link.style.removeProperty('--star-x');link.style.removeProperty('--star-y');delete link.dataset.starMotion;delete link.dataset.starAlign;}
  }
  let layer=panel.querySelector(':scope > .profile-stickers');const stickerKey=JSON.stringify([config.stickers,...config.stickers.items.flatMap(item=>[resolve(item.url),resolve(item.poster)])]);
  if(!config.stickers.enabled||!config.stickers.items.length){layer?.remove();panel.removeAttribute('data-stickers');return;}

@@ -1,7 +1,9 @@
-import {creativeImage} from './creative-view.mjs?v=20261027-9';
-export function createProfileCreative(panel,{surface}={}){
+import {creativeImage} from './creative-view.mjs?v=20261028-2';
+import {createConstellationTooltip} from './constellation-tooltip.mjs?v=20261028-2';
+export function createProfileCreative(panel,{surface,clock}={}){
  const doc=panel.ownerDocument,win=doc.defaultView,abort=new win.AbortController(),signal=abort.signal;
  const toolbar=panel.closest('.preview-card')?.closest('.studio-preview')?.querySelector('.preview-toolbar');
+ const tooltip=createConstellationTooltip(panel,{clock});
  const make=(tag,cls,text)=>{const n=doc.createElement(tag);n.className=cls;if(text!==undefined)n.textContent=text;return n;};
  let stage,rotor,back,toggle,config,key='',backVisible=false,destroyed=false;
  const reduced=win.matchMedia('(prefers-reduced-motion: reduce)');
@@ -16,7 +18,7 @@ export function createProfileCreative(panel,{surface}={}){
   if(!stage)return;panel.inert=false;panel.removeAttribute('aria-hidden');stage.before(panel);toggle.remove();toolbar?.classList.remove('preview-toolbar--flip');stage.remove();stage=rotor=back=toggle=null;backVisible=false;key='';
  }
  function update(next,{previewUrls}={}){
-  if(destroyed)return;config=next;
+  if(destroyed)return;config=next;tooltip.update();
   if(!config.flipCard.enabled){remove();return;}
   const value=config.flipCard,resolve=url=>previewUrls?.get(url)||url;
   if(!stage){
@@ -46,6 +48,6 @@ export function createProfileCreative(panel,{surface}={}){
  doc.addEventListener('keydown',event=>{if(event.key==='Escape'&&backVisible&&(doc.activeElement===toggle||stage?.contains(doc.activeElement))){event.preventDefault();setSide(false,true);}},{signal});
  reduced.addEventListener('change',()=>{if(stage)stage.dataset.reduced=String(reduced.matches);},{signal});
  win.addEventListener('pagehide',event=>{if(event.persisted)setSide(false);else destroy();},{signal});
- function destroy(){if(destroyed)return;destroyed=true;abort.abort();remove();}
+ function destroy(){if(destroyed)return;destroyed=true;tooltip.destroy();abort.abort();remove();}
  return{update,destroy,front:()=>setSide(false)};
 }

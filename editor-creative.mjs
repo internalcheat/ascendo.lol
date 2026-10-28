@@ -1,4 +1,4 @@
-import {element} from './profile-view.mjs?v=20261027-9';
+import {element} from './profile-view.mjs?v=20261028-2';
 export function createCreativeEditor({onChange,isBusy=()=>false,uploadImage}){
  const doc=document,host=doc.getElementById('controlsPanel'),byId=id=>doc.getElementById(id),groups=[],stickerRows=[],linkRows=[];
  const button=(label,fn)=>{const b=element('button','studio-button',label);b.type='button';b.addEventListener('click',()=>{if(!isBusy())fn();});return b;};

@@ -5,7 +5,7 @@ import { normalizeProfile, safeUrl } from './profile-schema.mjs?v=20261027-9';
 import { FONTS, TEXT_SIZES, isTiledLayout } from './visual-schema.mjs?v=20261027-9';
 import {renderWidgets} from './profile-widgets.mjs?v=20261027-1';
 import {themePalette,channels} from './profile-palette.mjs?v=20261027-1';
-import {applyCreativeView} from './creative-view.mjs?v=20261027-9';
+import {applyCreativeView} from './creative-view.mjs?v=20261028-2';
 
 export function element(tag, className = '', content) {
   const node = document.createElement(tag);

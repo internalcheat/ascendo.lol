@@ -1,5 +1,5 @@
 import {ENTRY_SOUNDS} from './feature-schema.mjs?v=20261025-11';
-import {element} from './profile-view.mjs?v=20261027-9';
+import {element} from './profile-view.mjs?v=20261028-2';
 
 export function createAdditionalEditor({onChange,isBusy,previewSound,replayEntry,replayTitle}){
   const byId=id=>document.getElementById(id),host=byId('controlsPanel'),groups=new Map();

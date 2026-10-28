@@ -1,4 +1,4 @@
-import {element} from './profile-view.mjs?v=20261027-9';
+import {element} from './profile-view.mjs?v=20261028-2';
 
 const categories=[
   {id:'profile',name:'Profile',help:'Your name, picture and the places people can find you.',icon:'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM5 21v-2a7 7 0 0 1 14 0v2'},
