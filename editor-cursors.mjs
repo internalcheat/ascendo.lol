@@ -1,6 +1,6 @@
 import {cursorImage} from './cursor-art.mjs?v=20261027-5';
 import {CURSOR_IDS,CURSOR_PACKS} from './cursor-packs.mjs?v=20261027-5';
-import {createProfileEffects} from './profile-effects.mjs?v=20261027-9';
+import {createProfileEffects} from './profile-effects.mjs?v=20261028-1';
 export function createCursorEditor({isBusy=()=>false}={}){
  const doc=document,win=doc.defaultView,source=doc.getElementById('cursorStyle'),label=source.closest('label'),abort=new win.AbortController(),signal=abort.signal;
  const make=(tag,cls,text)=>{const node=doc.createElement(tag);node.className=cls;if(text)node.textContent=text;return node;};

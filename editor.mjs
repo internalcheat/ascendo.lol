@@ -1,6 +1,6 @@
 import {createAppearanceEditor} from './editor-appearance.mjs?v=20261027-9';
 import {createCreativeEditor} from './editor-creative.mjs?v=20261027-9';
-import {createCursorEditor} from './editor-cursors.mjs?v=20261027-9';
+import {createCursorEditor} from './editor-cursors.mjs?v=20261028-1';
 import {CURSOR_PACKS} from './cursor-packs.mjs?v=20261027-5';
 import {applyBackgroundAppearance} from './profile-appearance.mjs?v=20261027-1';
 import {createStudioPresets} from './studio-presets.mjs?v=20261027-9';
@@ -10,7 +10,7 @@ import { request, session, storeSession, freshSession } from './editor-api.mjs';
 import { normalizeProfile, ICONS, MAX_IMAGE, MAX_VIDEO } from './profile-schema.mjs?v=20261027-9';
 import { renderProfile, bindMusic, element, replayNameEffect, bindNameEffectVisibility } from './profile-view.mjs?v=20261027-9';
 import { PUBLISHABLE_KEY } from './customizer-config.mjs';
-import { createProfileEffects } from './profile-effects.mjs?v=20261027-9';
+import { createProfileEffects } from './profile-effects.mjs?v=20261028-1';
 import { badgeError } from './badge-policy.mjs?v=20261025-4';
 import { createVisualEditor } from './editor-visual.mjs?v=20261027-9';
 import { createProfileBackground } from './profile-background.mjs?v=20261026-1';
