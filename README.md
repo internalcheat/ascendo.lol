@@ -55,6 +55,9 @@ The owner-supplied JARs are hosted unchanged under `/downloads/`. Their metadata
 | --- | ---: | --- |
 | `AscendOSit-26.3-v0.4.2-RIGHTCLICK-HOTFIX.jar` | 35,871 | `b9899302d5533089fb168886b11c895304d833e1c7a159e0154fe1fc843a26fd` |
 | `AscendOEnchants-v1.0.0-EXPERIMENTAL.jar` | 40,472 | `8cf1f5f06a4aa056db826080f7fd399247cc8b53a77254b9b2a1c7f2daa5348f` |
+| `AscendOChestLog-1.0.0.jar` | 14,390,239 | `d8c7f4374063fe1df3575e7b5f3ad928616f5c1c7696c34ca4df6b784ce96a00` |
+| `AscendODeath-1.0.0.jar` | 25,935 | `a12acf8299fe016878892babd138de32f3487e303b08026fd09c23c6bbdfdf3e` |
+| `AscendoProtection-1.0.0.jar` | 6,843 | `e4d68ec04d0d2aebe4b65754b162606a33083c96ef7d295ffaac18921ecf945b` |
 
 To add a curated profile, copy an existing profile directory and edit the identity, optional bio, links, and canonical URL. Add a founder card only for profiles intended to be listed publicly. Provision its owner privately; never embed access codes in HTML, scripts, seed files, or Git history. The studio remains invite-only, with no public signup form. `/Szikraaaa/` is an additional curated profile with a case-preserving canonical route. Its ordinary account has no reserved-badge privileges and is absent from the homepage founder list.
 
