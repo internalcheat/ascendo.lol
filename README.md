@@ -5,13 +5,28 @@ A curated GitHub Pages site with a private, invite-only profile studio. There is
 ## Pages
 
 - `/`: the real Ascendo logo, Client 26.3 Discord link, founder cards, and decorative floating phrases on black.
-- `/plugins/`: AscendOSit and AscendOEnchants experimental builds for Paper 26.3, with direct JAR downloads.
+- `/plugins/`: five Paper 26.3 plugins, with direct JAR downloads and build information.
+- `/chess/`: private two-player guest chess, with invitation links and optional clocks.
 - `/internalcheats/`: InternalCheats; Discord `internalcheats`; Minecraft IGN `InternalCheat`.
 - `/k3rlsen/`: k3rlsen; TikTok `@ferenckop`; Instagram `@_shewantss.csxngi`; Discord `27ia`.
 - `/nagyorru/`: compatibility redirect to `/internalcheats/`, with a visible fallback link.
 - `/404.html`: minimal custom 404 preview. GitHub Pages serves the same hero for unknown routes while retaining HTTP 404.
 
 Profiles open immediately. The existing video attempts playback with audio, falls back to muted playback when required by the browser, and has an accessible sound control. Hover or focus the sound button to expand the slider; tap/click to pin it open or close it. Escape or an outside tap closes it. Adjusting the slider is a user interaction that can enable audio. Content remains visible if JavaScript or media is unavailable.
+
+## Private chess
+
+Open `/chess/`, choose a nickname, pieces and clock, then send the invitation to a friend. Guests do not need a profile account. The invitation opens the unoccupied seat; it is not a spectator link. Only two seats can join. Drag pieces, tap/click a piece and destination, or navigate the board with arrow keys and Enter/Space. Promotion has an accessible piece picker. Draw offers, resignation confirmation, color-swapping consensual rematches and PGN downloads are available. Timed games start when the second player joins; options are 3 minutes + 2 seconds per move, 5 minutes, 10 minutes and untimed.
+
+The standalone `chess-api` function verifies high-entropy per-game bearer capabilities and validates every move with pinned `chess.js@1.4.0`. Client-submitted state, FEN, clocks, owners and sides are rejected. Only seat-token hashes are stored server-side. Seats are stored separately in this browser's local storage (last eight games) so refreshing restores the game. They do not reuse, expose or change profile logins. Clearing browser storage or changing devices loses that seat; keep the original browser available. Waiting invitations expire after 24 hours; joined games expire seven days after the last game action. No public game directory, chat, ranking, engine opponent or spectators are added.
+
+Clocks and results are authoritative on the server, including refresh/hidden-tab time. Atomic revision comparisons prevent double moves and concurrent joins. Realtime broadcasts carry revision hints only; clients refetch authenticated snapshots and never trust broadcast moves. A bundled `@supabase/realtime-js@2.118.0` client reconnects automatically; periodic resynchronization and a faster polling fallback cover unavailable sockets. Hidden tabs disconnect and suspend rendering/polling until restored. Reduced motion removes entrances and piece movement. Chess CSS/scripts and dependencies load only at `/chess/`; existing pages are unchanged.
+
+These are casual friend-game rules: checkmate, stalemate, insufficient material, automatically adjudicated threefold repetition and fifty-move draws, agreed draws, resignation and clock expiry. A bare king on the winning side causes a draw on time; other timeouts award the opponent the win. No tournament arbiter or anti-engine detection is claimed. A 1,000-ply safety limit draws exceptionally long games. The display includes check and legal moves; the server always decides the final result.
+
+Migration `20261031231302_private_chess.sql` adds only private, deny-all-to-client chess/rate tables, a service-role-only invoker RPC, hourly expired-chess cleanup and reservation of the `chess` handle. It never writes existing profile, credential, media or preset records. Creation/request limits bound abuse without adding paid services. The function has gateway JWT checking off because its own handler authenticates guest seats; never remove its bearer validation. CORS accepts the Ascendo origin, requests have size/time limits, responses are non-cacheable, seat tokens stay out of links and referrers, and RPC/table access is revoked from public/anon/authenticated roles.
+
+Run `npm run build:chess` to rebuild local browser bundles. Dependency versions and integrity hashes are locked; licenses are in `chess/vendor/LICENSES.txt`. `npm test` includes rules, server clocks, forged requests, concurrent writes and seat recovery. The **Private chess** workflow runs real Chrome in isolated contexts with desktop/tablet/320–390px, drag, keyboard, touch, refresh, rematch and reduced-motion checks; artifacts include screenshots. This fixture does not touch profile accounts or drafts. Rollback: remove/disable the separate chess page/function and cleanup job; preserve existing profile functions/tables and `CNAME`.
 
 ## Design and motion
 

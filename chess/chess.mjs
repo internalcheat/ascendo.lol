@@ -1,0 +1,238 @@
+import {Chess,TIME_CONTROLS,clockAt,gameMessage,nickname,opposite} from './game.mjs?v=20261101-1';
+import {pieceMarkup,pieceNames} from './pieces.mjs?v=20261101-1';
+import {BACKEND_URL,PUBLISHABLE_KEY} from '../customizer-config.mjs';
+
+const $=id=>document.getElementById(id),api=`${BACKEND_URL}/functions/v1/chess-api`;
+const reduced=matchMedia('(prefers-reduced-motion: reduce)'),storageKey='ascendo-chess-seats-v1';
+const roomPattern=/^[a-f0-9]{32}$/,tokenPattern=/^[a-f0-9]{64}$/;
+const random=bytes=>[...crypto.getRandomValues(new Uint8Array(bytes))].map(n=>n.toString(16).padStart(2,'0')).join('');
+let seats={},game=null,seat=null,pending=false,selected=null,legal=[],orientation='w',poll=null,clockTimer=null,creationRoom=null;
+let syncInFlight=null,syncAgain=false,realtime=null,channel=null,subscribed=false,connecting=false,syncAfter=0,hintTimer=null,timeoutSyncAt=0,anchor=null,drag=null,promotionMove=null,lastFocus='e2',destroyed=false;
+try{const parsed=JSON.parse(localStorage.getItem(storageKey)||'{}');for(const [room,value] of Object.entries(parsed))if(roomPattern.test(room)&&tokenPattern.test(value?.token||''))seats[room]={token:value.token,at:Number(value.at)||0};}catch{}
+function saveSeat(room,token){
+  seats[room]={token,at:Date.now()};seats=Object.fromEntries(Object.entries(seats).sort((a,b)=>b[1].at-a[1].at).slice(0,8));
+  try{localStorage.setItem(storageKey,JSON.stringify(seats));}catch{message('Browser storage is unavailable. Keep this tab open to keep your seat.',true);}
+}
+function message(text,error=false){$('message').textContent=text;$('message').classList.toggle('error',error);}
+function connection(text,state){$('connection').textContent=text;$('connection').dataset.state=state;}
+function roomFromUrl(){return new URL(location.href).searchParams.get('room');}
+async function request(path,{method='GET',body,token=seat?.token}={}){
+  const started=performance.now();
+  const response=await fetch(`${api}/${path}`,{method,headers:{Authorization:`Bearer ${token}`,apikey:PUBLISHABLE_KEY,...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined,cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer',signal:AbortSignal.timeout(12000)});
+  const data=await response.json();
+  if(!response.ok){const error=Error(data.error||'Could not connect. Please try again.');error.status=response.status;error.game=data.game;throw error;}
+  return {data,elapsed:performance.now()-started};
+}
+function activeRoom(){return game?.room||roomFromUrl();}
+function inviteUrl(room){return `${location.origin}/chess/?room=${room}`;}
+function snapshot({data,elapsed=0}){
+  if(destroyed||!data?.state||data.room!==activeRoom()&&game)return;
+  if(game&&data.room===game.room&&data.revision<game.revision)return;
+  const changed=!game||game.revision!==data.revision||game.room!==data.room,previous=game;
+  if(!game||game.side!==data.side)orientation=data.side;
+  game=data;anchor={at:performance.now(),remaining:clockAt(data.state,data.serverNow+elapsed/2)};
+  $('lobby').hidden=true;$('game').hidden=false;
+  document.title=`${data.state.status==='finished'?'Game over':data.state.turn===data.side?'Your move':'Chess'} | Ascendo`;
+  if(changed){selected=null;legal=[];cancelDrag();closePromotion();render(previous);}
+  updateActions();updateClocks();startClock();schedulePoll();
+  void connectRealtime();
+}
+function render(previous){
+  const state=game.state,self=game.side,enemy=opposite(self);
+  $('selfName').textContent=state.players[self]||'You';$('opponentName').textContent=state.players[enemy]||'Your friend';
+  $('selfColor').textContent=`${self==='w'?'White':'Black'} pieces · You`;$('opponentColor').textContent=`${enemy==='w'?'White':'Black'} pieces`;
+  for(const [id,color] of [['selfBar',self],['opponentBar',enemy]])$(id).querySelector('.player-avatar').textContent=color==='w'?'♙':'♟';
+  $('gameStatus').textContent=gameMessage(state,self);$('roundLabel').textContent=state.round>1?`FRIENDLY MATCH · ROUND ${state.round}`:'FRIENDLY MATCH';
+  $('matchDetail').textContent=state.status==='waiting'?`You have the ${self==='w'?'white':'black'} pieces.`:state.status==='finished'?'Good game. There is always another opening.':`${state.players.w} vs ${state.players.b}`;
+  $('invitePanel').hidden=state.status!=='waiting';$('inviteUrl').value=inviteUrl(game.room);$('boardNotice').hidden=state.status!=='waiting';
+  $('boardHint').textContent=state.status==='waiting'?'Only your friend needs the invitation link.':state.status==='finished'?'The game is finished. Start a rematch to switch colors.':'Drag a piece or select it, then choose a square.';
+  $('clockLabel').textContent=TIME_CONTROLS[state.time].label;
+  renderBoard(previous);renderMoves();
+}
+function renderBoard(previous){
+  const engine=new Chess(game.state.fen),board=$('board'),files=orientation==='w'?'abcdefgh':'hgfedcba',ranks=orientation==='w'?'87654321':'12345678';
+  const focused=board.contains(document.activeElement)?document.activeElement?.dataset.square:null;
+  const oldRects=new Map([...board.querySelectorAll('.square')].map(n=>[n.dataset.square,n.getBoundingClientRect()]));
+  board.replaceChildren();
+  for(const rank of ranks){const row=document.createElement('div');row.className='board-row';row.setAttribute('role','row');
+    for(const file of files){const square=file+rank,piece=engine.get(square),cell=document.createElement('button');
+      cell.type='button';cell.className=`square${('abcdefgh'.indexOf(file)+Number(rank))%2===1?' dark':''}`;cell.dataset.square=square;cell.setAttribute('role','gridcell');cell.setAttribute('aria-label',`${square}${piece?`, ${piece.color==='w'?'white':'black'} ${pieceNames[piece.type]}`:', empty'}`);cell.tabIndex=square===(focused||lastFocus)?0:-1;
+      if(piece){cell.insertAdjacentHTML('afterbegin',pieceMarkup(piece));cell.classList.add('occupied');}
+      if(file===files[0]){const label=document.createElement('span');label.className='coordinate rank';label.textContent=rank;label.setAttribute('aria-hidden','true');cell.append(label);}
+      if(rank===ranks[7]){const label=document.createElement('span');label.className='coordinate file';label.textContent=file;label.setAttribute('aria-hidden','true');cell.append(label);}
+      if(game.state.lastMove&&(game.state.lastMove.from===square||game.state.lastMove.to===square))cell.classList.add('last');
+      if(piece?.type==='k'&&piece.color===game.state.turn&&engine.inCheck())cell.classList.add('check');
+      row.append(cell);
+    }board.append(row);
+  }
+  updateSelection();if(focused)board.querySelector(`[data-square=${focused}]`)?.focus({preventScroll:true});
+  if(previous&&previous.state.round===game.state.round&&previous.state.moves.length+1===game.state.moves.length&&!reduced.matches){
+    const move=game.state.lastMove,to=board.querySelector(`[data-square=${move.to}]`),fromRect=oldRects.get(move.from),toRect=to?.getBoundingClientRect();
+    if(fromRect&&toRect)to.querySelector('.piece')?.animate([{transform:`translate(${fromRect.left-toRect.left}px,${fromRect.top-toRect.top}px)`},{transform:'translate(0,0)'}],{duration:190,easing:'cubic-bezier(.2,.7,.25,1)'});
+  }
+}
+function renderMoves(){
+  const list=$('moveList'),nearBottom=$('moveScroll').scrollHeight-$('moveScroll').scrollTop-$('moveScroll').clientHeight<40;list.replaceChildren();
+  for(let i=0;i<game.state.moves.length;i+=2){const row=document.createElement('li');for(const move of game.state.moves.slice(i,i+2)){const span=document.createElement('span');span.textContent=move;row.append(span);}list.append(row);}
+  $('movesEmpty').hidden=game.state.moves.length>0;$('downloadPgn').disabled=game.state.moves.length===0;
+  if(nearBottom)$('moveScroll').scrollTop=$('moveScroll').scrollHeight;
+}
+function canMove(){return game?.state.status==='active'&&game.state.turn===game.side&&!pending;}
+function updateSelection(){
+  const engine=game?new Chess(game.state.fen):null;
+  for(const cell of $('board').querySelectorAll('.square')){
+    const square=cell.dataset.square;cell.classList.toggle('selected',square===selected);cell.setAttribute('aria-selected',String(square===selected));
+    cell.classList.toggle('legal',legal.some(move=>move.to===square));cell.classList.toggle('can-select',canMove()&&engine.get(square)?.color===game.side);
+  }
+}
+function updateActions(){
+  if(!game)return;const state=game.state,active=state.status==='active';
+  $('gameActions').hidden=!active;$('finishedActions').hidden=state.status!=='finished';
+  $('offerDraw').disabled=pending||Boolean(state.drawOffer);$('offerDraw').textContent=state.drawOffer===game.side?'Draw offered':'Offer draw';$('resign').disabled=pending;
+  $('drawPanel').hidden=state.drawOffer!==opposite(game.side)||!active;
+  $('drawText').textContent=`${state.players[opposite(game.side)]} offered a draw.`;
+  for(const id of ['acceptDraw','declineDraw'])$(id).disabled=pending;
+  $('rematch').disabled=pending||state.rematch.includes(game.side);$('rematch').textContent=state.rematch.includes(game.side)?'Waiting for your friend…':state.rematch.length?'Accept rematch':'Play again';
+  updateSelection();
+}
+function updateClocks(){
+  if(!game||!anchor)return;const state=game.state,remaining={...anchor.remaining};
+  if(state.status==='active'&&TIME_CONTROLS[state.time].base)remaining[state.turn]=Math.max(0,remaining[state.turn]-(performance.now()-anchor.at));
+  if(state.status==='active'&&TIME_CONTROLS[state.time].base&&remaining[state.turn]===0&&performance.now()>timeoutSyncAt){timeoutSyncAt=performance.now()+1500;void sync();}
+  for(const [id,side] of [['selfClock',game.side],['opponentClock',opposite(game.side)]]){
+    const n=$(id),seconds=Math.ceil(remaining[side]/1000);n.textContent=TIME_CONTROLS[state.time].base?`${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,'0')}`:'∞';
+    n.classList.toggle('running',state.status==='active'&&state.turn===side);n.classList.toggle('low',TIME_CONTROLS[state.time].base>0&&seconds<30);
+  }
+}
+function startClock(){clearInterval(clockTimer);if(game?.state.status==='active'&&TIME_CONTROLS[game.state.time].base&&!document.hidden)clockTimer=setInterval(updateClocks,200);}
+function schedulePoll(){
+  clearTimeout(poll);if(!game||document.hidden||destroyed)return;
+  poll=setTimeout(()=>void sync(),subscribed?15000:2500);
+}
+async function sync(){
+  if(!seat||!activeRoom()||document.hidden||destroyed)return;
+  if(syncInFlight){syncAgain=true;return syncInFlight;}
+  syncInFlight=(async()=>{
+    try{snapshot(await request(`games/${activeRoom()}`));connection(subscribed?'Live':'Connected',subscribed?'live':'connected');}
+    catch(error){connection(navigator.onLine?'Reconnecting':'Offline','offline');if(error.status===404||error.status===403)message(error.message,true);}
+    finally{syncInFlight=null;schedulePoll();if(syncAgain){syncAgain=false;queueHint();}}
+  })();return syncInFlight;
+}
+async function connectRealtime(){
+  if(!game||document.hidden||connecting||channel||destroyed)return;connecting=true;
+  try{
+    const {RealtimeClient}=await import('./vendor/realtime.mjs?v=20261101-1');
+    if(document.hidden||destroyed)return;
+    realtime=new RealtimeClient(`${BACKEND_URL.replace('https:','wss:')}/realtime/v1`,{params:{apikey:PUBLISHABLE_KEY}});
+    channel=realtime.channel(`chess:${game.channel}`,{config:{broadcast:{self:false}}});
+    channel.on('broadcast',{event:'changed'},event=>{
+      // Hints never supply state. Ignore old/duplicate messages; coalesce new hints
+      // with a trailing fetch so fast replies are not lost inside a throttle window.
+      const revision=event?.payload?.revision;
+      if(!Number.isSafeInteger(revision)||revision<=game.revision)return;queueHint();
+    }).subscribe(status=>{subscribed=status==='SUBSCRIBED';connection(subscribed?'Live':'Connected',subscribed?'live':'connected');schedulePoll();if(subscribed)void sync();});
+  }catch{connection('Connected','connected');}finally{connecting=false;}
+}
+function queueHint(){
+  if(hintTimer!==null||document.hidden||destroyed)return;
+  hintTimer=setTimeout(()=>{hintTimer=null;syncAfter=performance.now()+1000;void sync();},Math.max(0,syncAfter-performance.now()));
+}
+function disconnectRealtime(){clearTimeout(hintTimer);hintTimer=null;syncAgain=false;subscribed=false;if(channel)void channel.unsubscribe();channel=null;realtime?.disconnect();realtime=null;}
+async function act(action,fields={}){
+  if(pending||!game)return;pending=true;updateActions();message('');
+  try{
+    const round=game.state.round;
+    try{snapshot(await request(`games/${game.room}/${action}`,{method:'POST',body:{revision:game.revision,...fields}}));}
+    catch(error){
+      // Simultaneous rematch requests may race. Retry only this same finished round,
+      // never a move, resignation, draw acceptance or a different game.
+      if(action!=='rematch'||error.status!==409||error.game?.state.round!==round||error.game?.state.status!=='finished'||error.game.state.rematch.includes(error.game.side))throw error;
+      snapshot({data:error.game});snapshot(await request(`games/${game.room}/rematch`,{method:'POST',body:{revision:game.revision}}));
+    }
+  }
+  catch(error){if(error.game)snapshot({data:error.game});message(error.message||'Connection interrupted. Reconnecting before your next move.',true);await sync();}
+  finally{pending=false;selected=null;legal=[];updateActions();}
+}
+function choose(square){
+  if(!canMove())return;const engine=new Chess(game.state.fen),piece=engine.get(square),destination=legal.filter(move=>move.to===square);
+  if(selected&&destination.length){void moveTo(selected,square,destination);return;}
+  if(piece?.color===game.side){selected=selected===square?null:square;legal=selected?engine.moves({square:selected,verbose:true}):[];updateSelection();}
+  else {selected=null;legal=[];updateSelection();}
+}
+async function moveTo(from,to,options){
+  if(options.some(move=>move.promotion)){
+    promotionMove={from,to,revision:game.revision};$('promotionChoices').replaceChildren();
+    for(const type of ['q','r','b','n']){const button=document.createElement('button');button.type='button';button.setAttribute('aria-label',`Promote to ${pieceNames[type]}`);button.innerHTML=pieceMarkup({type,color:game.side});button.addEventListener('click',()=>{const move=promotionMove;closePromotion();if(move?.revision===game.revision)void act('move',{from:move.from,to:move.to,promotion:type});});$('promotionChoices').append(button);}
+    $('promotion').showModal();return;
+  }
+  await act('move',{from,to});
+}
+function closePromotion(){if($('promotion').open)$('promotion').close();promotionMove=null;}
+function cancelDrag(){if(!drag)return;drag.ghost?.remove();drag.cell.classList.remove('drag-source');$('board').querySelector('.drop-target')?.classList.remove('drop-target');drag=null;}
+function pointerDown(event){
+  const cell=event.target.closest('.square');if(!cell||event.button!==0||!canMove())return;
+  const engine=new Chess(game.state.fen),piece=engine.get(cell.dataset.square);if(piece?.color!==game.side)return;
+  drag={cell,square:cell.dataset.square,x:event.clientX,y:event.clientY,piece,id:event.pointerId,ghost:null,moved:false,wasSelected:selected===cell.dataset.square};
+  cell.setPointerCapture?.(event.pointerId);
+}
+function pointerMove(event){
+  if(!drag||event.pointerId!==drag.id)return;
+  if(!drag.moved&&Math.hypot(event.clientX-drag.x,event.clientY-drag.y)<7)return;
+  if(!drag.moved){drag.moved=true;selected=drag.square;legal=new Chess(game.state.fen).moves({square:selected,verbose:true});updateSelection();drag.cell.classList.add('drag-source');drag.ghost=document.createElement('div');drag.ghost.className='drag-piece';drag.ghost.innerHTML=pieceMarkup(drag.piece);drag.ghost.setAttribute('aria-hidden','true');const size=drag.cell.getBoundingClientRect().width;drag.ghost.style.width=drag.ghost.style.height=`${size}px`;document.body.append(drag.ghost);}
+  event.preventDefault();drag.ghost.style.left=`${event.clientX}px`;drag.ghost.style.top=`${event.clientY}px`;
+  const target=document.elementFromPoint(event.clientX,event.clientY)?.closest('.square');$('board').querySelector('.drop-target')?.classList.remove('drop-target');
+  if(target&&legal.some(move=>move.to===target.dataset.square))target.classList.add('drop-target');
+}
+let ignoreClickUntil=0;
+function pointerUp(event){
+  if(!drag||event.pointerId!==drag.id)return;const current=drag;
+  if(current.moved){ignoreClickUntil=performance.now()+300;const target=document.elementFromPoint(event.clientX,event.clientY)?.closest('.square'),options=legal.filter(move=>move.to===target?.dataset.square);cancelDrag();if(options.length)void moveTo(current.square,target.dataset.square,options);}
+  else cancelDrag();
+}
+function keyboard(event){
+  const cell=event.target.closest('.square');if(!cell)return;const cells=[...$('board').querySelectorAll('.square')],index=cells.indexOf(cell),delta={ArrowRight:1,ArrowLeft:-1,ArrowDown:8,ArrowUp:-8}[event.key];
+  if(delta){event.preventDefault();let next=index+delta;if((event.key==='ArrowLeft'&&index%8===0)||(event.key==='ArrowRight'&&index%8===7)||next<0||next>63)return;cells.forEach(n=>n.tabIndex=-1);cells[next].tabIndex=0;lastFocus=cells[next].dataset.square;cells[next].focus();}
+  else if(event.key==='Escape'){selected=null;legal=[];updateSelection();}
+}
+function showLobby(){
+  const room=roomFromUrl();if(room&&!roomPattern.test(room)){message('This invitation is not valid. Ask your friend for a fresh link.',true);$('startButton').disabled=true;return;}
+  if(room){$('gameOptions').hidden=true;$('setupTitle').textContent='Join your friend';$('startButton').firstElementChild.textContent='Join game';$('setupNote').textContent='Your friend has saved you a seat.';$('lobbyTitle').textContent='Your table awaits.';$('lobbyDescription').textContent='A private game. Just the two of you.';}
+  else {const last=Object.keys(seats)[0];if(last){$('resumeButton').hidden=false;$('resumeButton').onclick=()=>location.assign(`?room=${last}`);}}
+  $('startButton').disabled=false;
+}
+$('setup').addEventListener('submit',async event=>{
+  event.preventDefault();if(pending)return;let name;
+  try{name=nickname($('nickname').value);}catch(error){message(error.message,true);$('nickname').focus();return;}
+  let room=roomFromUrl(),joining=Boolean(room);room||=(creationRoom??=random(16));seat=seats[room]||{token:random(32)};saveSeat(room,seat.token);
+  pending=true;$('startButton').disabled=true;message('');
+  try{
+    const result=await request(joining?`games/${room}/join`:'games',{method:'POST',body:joining?{nickname:name}:{room,nickname:name,time:$('setup').elements.time.value,color:$('setup').elements.color.value}});
+    history.replaceState(null,'',`?room=${room}`);snapshot(result);connection('Connected','connected');
+  }catch(error){message(error.message||'Could not connect. Try again; your invitation is kept safe.',true);}
+  finally{pending=false;$('startButton').disabled=false;updateActions();}
+});
+$('board').addEventListener('click',event=>{if(performance.now()<ignoreClickUntil)return;const cell=event.target.closest('.square');if(cell){lastFocus=cell.dataset.square;choose(cell.dataset.square);}});
+$('board').addEventListener('keydown',keyboard);$('board').addEventListener('pointerdown',pointerDown);$('board').addEventListener('pointermove',pointerMove);$('board').addEventListener('pointerup',pointerUp);$('board').addEventListener('pointercancel',cancelDrag);
+$('rotateBoard').onclick=()=>{if(game){cancelDrag();orientation=opposite(orientation);renderBoard();}};
+$('offerDraw').onclick=()=>void act('offer-draw');$('acceptDraw').onclick=()=>void act('accept-draw');$('declineDraw').onclick=()=>void act('decline-draw');$('rematch').onclick=()=>void act('rematch');
+$('resign').onclick=()=>$('confirmResign').showModal();$('cancelResign').onclick=()=>$('confirmResign').close();$('confirmResignButton').onclick=()=>{$('confirmResign').close();void act('resign');};$('cancelPromotion').onclick=closePromotion;
+$('promotion').addEventListener('cancel',()=>{promotionMove=null;});
+$('copyInvite').onclick=async()=>{try{await navigator.clipboard.writeText(inviteUrl(game.room));message('Invitation copied. Send it to your friend.');}catch{$('inviteUrl').select();message('Select and copy the invitation link above.');}};
+$('downloadPgn').onclick=()=>{
+  if(!game)return;const state=game.state,engine=new Chess();for(const move of state.moves)engine.move(move);
+  const result=state.result?(state.result.winner===null?'1/2-1/2':state.result.winner==='w'?'1-0':'0-1'):'*';
+  engine.setHeader('Event','Ascendo friendly game','Site','https://ascendo.lol/chess/','White',state.players.w,'Black',state.players.b,'Result',result);
+  const blob=new Blob([engine.pgn()],{type:'application/x-chess-pgn'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='ascendo-chess.pgn';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+};
+document.addEventListener('visibilitychange',()=>{if(document.hidden){clearTimeout(poll);clearInterval(clockTimer);disconnectRealtime();cancelDrag();}else{startClock();void sync();void connectRealtime();}});
+window.addEventListener('offline',()=>connection('Offline','offline'));window.addEventListener('online',()=>{void sync();void connectRealtime();});
+window.addEventListener('pagehide',()=>{destroyed=true;clearTimeout(poll);clearInterval(clockTimer);disconnectRealtime();cancelDrag();closePromotion();});
+window.addEventListener('pageshow',event=>{if(event.persisted){destroyed=false;void sync();void connectRealtime();startClock();}});
+showLobby();
+const initialRoom=roomFromUrl();
+if(roomPattern.test(initialRoom||'')&&seats[initialRoom]){
+  seat=seats[initialRoom];$('startButton').disabled=true;
+  try{snapshot(await request(`games/${initialRoom}`));connection('Connected','connected');}
+  catch(error){if(error.status!==403&&error.status!==404)message(error.message||'Could not reconnect. Try again.',true);}
+  finally{$('startButton').disabled=false;}
+}
