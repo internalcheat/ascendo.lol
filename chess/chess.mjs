@@ -7,7 +7,7 @@ const reduced=matchMedia('(prefers-reduced-motion: reduce)'),storageKey='ascendo
 const roomPattern=/^[a-f0-9]{32}$/,tokenPattern=/^[a-f0-9]{64}$/;
 const random=bytes=>[...crypto.getRandomValues(new Uint8Array(bytes))].map(n=>n.toString(16).padStart(2,'0')).join('');
 let seats={},game=null,seat=null,pending=false,selected=null,legal=[],orientation='w',poll=null,clockTimer=null,creationRoom=null;
-let syncInFlight=null,realtime=null,channel=null,subscribed=false,connecting=false,syncAfter=0,timeoutSyncAt=0,anchor=null,drag=null,promotionMove=null,lastFocus='e2',destroyed=false;
+let syncInFlight=null,syncAgain=false,realtime=null,channel=null,subscribed=false,connecting=false,syncAfter=0,hintTimer=null,timeoutSyncAt=0,anchor=null,drag=null,promotionMove=null,lastFocus='e2',destroyed=false;
 try{const parsed=JSON.parse(localStorage.getItem(storageKey)||'{}');for(const [room,value] of Object.entries(parsed))if(roomPattern.test(room)&&tokenPattern.test(value?.token||''))seats[room]={token:value.token,at:Number(value.at)||0};}catch{}
 function saveSeat(room,token){
   seats[room]={token,at:Date.now()};seats=Object.fromEntries(Object.entries(seats).sort((a,b)=>b[1].at-a[1].at).slice(0,8));
@@ -111,11 +111,11 @@ function schedulePoll(){
 }
 async function sync(){
   if(!seat||!activeRoom()||document.hidden||destroyed)return;
-  if(syncInFlight)return syncInFlight;
+  if(syncInFlight){syncAgain=true;return syncInFlight;}
   syncInFlight=(async()=>{
     try{snapshot(await request(`games/${activeRoom()}`));connection(subscribed?'Live':'Connected',subscribed?'live':'connected');}
     catch(error){connection(navigator.onLine?'Reconnecting':'Offline','offline');if(error.status===404||error.status===403)message(error.message,true);}
-    finally{syncInFlight=null;schedulePoll();}
+    finally{syncInFlight=null;schedulePoll();if(syncAgain){syncAgain=false;queueHint();}}
   })();return syncInFlight;
 }
 async function connectRealtime(){
@@ -125,13 +125,19 @@ async function connectRealtime(){
     if(document.hidden||destroyed)return;
     realtime=new RealtimeClient(`${BACKEND_URL.replace('https:','wss:')}/realtime/v1`,{params:{apikey:PUBLISHABLE_KEY}});
     channel=realtime.channel(`chess:${game.channel}`,{config:{broadcast:{self:false}}});
-    channel.on('broadcast',{event:'changed'},()=>{
-      // Broadcasts are hints, never trusted moves. Bound refetches even for forged hints.
-      if(performance.now()<syncAfter)return;syncAfter=performance.now()+350;void sync();
+    channel.on('broadcast',{event:'changed'},event=>{
+      // Hints never supply state. Ignore old/duplicate messages; coalesce new hints
+      // with a trailing fetch so fast replies are not lost inside a throttle window.
+      const revision=event?.payload?.revision;
+      if(!Number.isSafeInteger(revision)||revision<=game.revision)return;queueHint();
     }).subscribe(status=>{subscribed=status==='SUBSCRIBED';connection(subscribed?'Live':'Connected',subscribed?'live':'connected');schedulePoll();if(subscribed)void sync();});
   }catch{connection('Connected','connected');}finally{connecting=false;}
 }
-function disconnectRealtime(){subscribed=false;if(channel)void channel.unsubscribe();channel=null;realtime?.disconnect();realtime=null;}
+function queueHint(){
+  if(hintTimer!==null||document.hidden||destroyed)return;
+  hintTimer=setTimeout(()=>{hintTimer=null;syncAfter=performance.now()+1000;void sync();},Math.max(0,syncAfter-performance.now()));
+}
+function disconnectRealtime(){clearTimeout(hintTimer);hintTimer=null;syncAgain=false;subscribed=false;if(channel)void channel.unsubscribe();channel=null;realtime?.disconnect();realtime=null;}
 async function act(action,fields={}){
   if(pending||!game)return;pending=true;updateActions();message('');
   try{
