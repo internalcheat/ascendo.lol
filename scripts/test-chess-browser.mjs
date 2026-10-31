@@ -10,7 +10,7 @@ async function repository(operation,payload){
  if(operation==='rate')return true;
  if(operation==='get')return structuredClone(games.get(payload.id)||null);
  if(operation==='create'){if(!games.has(payload.id))games.set(payload.id,{...structuredClone(payload),revision:1,expires_at:'2099-01-01'});return structuredClone(games.get(payload.id));}
- if(operation==='commit'){const game=games.get(payload.id);if(game.revision!==payload.revision)return null;if(payload.swap)[game.white_token,game.black_token]=[game.black_token,game.white_token];if(payload.join_token){if(!game.white_token)game.white_token=payload.join_token;else game.black_token=payload.join_token;}game.state=structuredClone(payload.state);game.revision++;for(const page of pages)void page.evaluate(revision=>window.__chessHint?.({payload:{revision}}),game.revision).catch(()=>{});return structuredClone(game);}
+ if(operation==='commit'){const game=games.get(payload.id);if(game.revision!==payload.revision)return null;if(payload.swap)[game.white_token,game.black_token]=[game.black_token,game.white_token];if(payload.join_token){if(!game.white_token)game.white_token=payload.join_token;else game.black_token=payload.join_token;}game.state=structuredClone(payload.state);game.revision++;for(const page of pages)void page.evaluate(revision=>{if(window.__chessHintsLive)window.__chessHint?.({payload:{revision}});},game.revision).catch(()=>{});return structuredClone(game);}
  throw Error(operation);
 }
 const handler=createChessHandler({repository}),browser=await launchCaptureBrowser();
@@ -31,7 +31,7 @@ async function createPage(){
    const asset=publicAsset(root,url.pathname);if(asset)return request.respond({status:200,contentType:asset.mime,body:fs.readFileSync(asset.target)});return request.abort();
  })().catch(error=>{errors.push(error.message);void request.abort().catch(()=>{});});});return p;
 }
-async function waitPiece(p,square,name){await p.waitForFunction((sel,text)=>document.querySelector(sel)?.getAttribute('aria-label').includes(text),{},selector(square),name);}
+async function waitPiece(p,square,name){await p.waitForFunction((sel,text)=>document.querySelector(sel)?.getAttribute('aria-label').includes(text),{timeout:5000},selector(square),name);}
 async function clickMove(p,from,to){const press=sel=>p.viewport().hasTouch?p.tap(sel):p.click(sel);await press(selector(from));assert.equal(await p.$eval(selector(to),n=>n.classList.contains('legal')),true,`${from}-${to} legal highlight`);await press(selector(to));}
 async function layout(p,width){
  await p.setViewport({width,height:960,isMobile:width<700,hasTouch:width<700});await pause(220);
@@ -55,7 +55,7 @@ try{
  const from=await page.$eval(selector('g1'),n=>{const r=n.getBoundingClientRect();return{x:r.x+r.width/2,y:r.y+r.height/2}}),to=await page.$eval(selector('f3'),n=>{const r=n.getBoundingClientRect();return{x:r.x+r.width/2,y:r.y+r.height/2}});
  await page.mouse.move(from.x,from.y);await page.mouse.down();await page.mouse.move(to.x,to.y,{steps:12});await page.mouse.up();await waitPiece(friend,'f3','white knight');assert.equal(await page.$$eval('.drag-piece',n=>n.length),0);
  await page.reload({waitUntil:'networkidle0'});await page.waitForSelector('#game:not([hidden])');assert.equal(await page.$eval('#selfColor',n=>n.textContent),'White pieces · You');assert.equal(await page.$eval('#moveList',n=>n.textContent.includes('Nf3')),true);
- for(const p of [page,friend]){await p.waitForFunction(()=>typeof window.__chessSubscribe==='function');await p.evaluate(()=>window.__chessSubscribe('SUBSCRIBED'));}
+ for(const p of [page,friend]){await p.waitForFunction(()=>typeof window.__chessSubscribe==='function');await p.evaluate(()=>{window.__chessHintsLive=true;window.__chessSubscribe('SUBSCRIBED');});}
  await page.focus(selector('e2'));await page.keyboard.press('ArrowUp');assert.equal(await page.evaluate(()=>document.activeElement.dataset.square),'e3');
  for(const width of [1440,1024,768,390,320])await layout(page,width);
  await friend.click('#offerDraw');await page.waitForFunction(()=>!document.getElementById('drawPanel').hidden);await page.click('#declineDraw');await friend.waitForFunction(()=>!document.getElementById('offerDraw').disabled);
