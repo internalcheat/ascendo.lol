@@ -7,7 +7,7 @@ const reduced=matchMedia('(prefers-reduced-motion: reduce)'),storageKey='ascendo
 const roomPattern=/^[a-f0-9]{32}$/,tokenPattern=/^[a-f0-9]{64}$/;
 const random=bytes=>[...crypto.getRandomValues(new Uint8Array(bytes))].map(n=>n.toString(16).padStart(2,'0')).join('');
 let seats={},game=null,seat=null,pending=false,selected=null,legal=[],orientation='w',poll=null,clockTimer=null,creationRoom=null;
-let syncInFlight=null,realtime=null,channel=null,subscribed=false,connecting=false,syncAfter=0,anchor=null,drag=null,promotionMove=null,lastFocus='e2',destroyed=false;
+let syncInFlight=null,realtime=null,channel=null,subscribed=false,connecting=false,syncAfter=0,timeoutSyncAt=0,anchor=null,drag=null,promotionMove=null,lastFocus='e2',destroyed=false;
 try{const parsed=JSON.parse(localStorage.getItem(storageKey)||'{}');for(const [room,value] of Object.entries(parsed))if(roomPattern.test(room)&&tokenPattern.test(value?.token||''))seats[room]={token:value.token,at:Number(value.at)||0};}catch{}
 function saveSeat(room,token){
   seats[room]={token,at:Date.now()};seats=Object.fromEntries(Object.entries(seats).sort((a,b)=>b[1].at-a[1].at).slice(0,8));
@@ -56,7 +56,7 @@ function renderBoard(previous){
   board.replaceChildren();
   for(const rank of ranks){const row=document.createElement('div');row.className='board-row';row.setAttribute('role','row');
     for(const file of files){const square=file+rank,piece=engine.get(square),cell=document.createElement('button');
-      cell.type='button';cell.className=`square${('abcdefgh'.indexOf(file)+Number(rank))%2===0?' dark':''}`;cell.dataset.square=square;cell.setAttribute('role','gridcell');cell.setAttribute('aria-label',`${square}${piece?`, ${piece.color==='w'?'white':'black'} ${pieceNames[piece.type]}`:', empty'}`);cell.tabIndex=square===(focused||lastFocus)?0:-1;
+      cell.type='button';cell.className=`square${('abcdefgh'.indexOf(file)+Number(rank))%2===1?' dark':''}`;cell.dataset.square=square;cell.setAttribute('role','gridcell');cell.setAttribute('aria-label',`${square}${piece?`, ${piece.color==='w'?'white':'black'} ${pieceNames[piece.type]}`:', empty'}`);cell.tabIndex=square===(focused||lastFocus)?0:-1;
       if(piece){cell.insertAdjacentHTML('afterbegin',pieceMarkup(piece));cell.classList.add('occupied');}
       if(file===files[0]){const label=document.createElement('span');label.className='coordinate rank';label.textContent=rank;label.setAttribute('aria-hidden','true');cell.append(label);}
       if(rank===ranks[7]){const label=document.createElement('span');label.className='coordinate file';label.textContent=file;label.setAttribute('aria-hidden','true');cell.append(label);}
@@ -98,6 +98,7 @@ function updateActions(){
 function updateClocks(){
   if(!game||!anchor)return;const state=game.state,remaining={...anchor.remaining};
   if(state.status==='active'&&TIME_CONTROLS[state.time].base)remaining[state.turn]=Math.max(0,remaining[state.turn]-(performance.now()-anchor.at));
+  if(state.status==='active'&&TIME_CONTROLS[state.time].base&&remaining[state.turn]===0&&performance.now()>timeoutSyncAt){timeoutSyncAt=performance.now()+1500;void sync();}
   for(const [id,side] of [['selfClock',game.side],['opponentClock',opposite(game.side)]]){
     const n=$(id),seconds=Math.ceil(remaining[side]/1000);n.textContent=TIME_CONTROLS[state.time].base?`${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,'0')}`:'∞';
     n.classList.toggle('running',state.status==='active'&&state.turn===side);n.classList.toggle('low',TIME_CONTROLS[state.time].base>0&&seconds<30);
@@ -133,7 +134,16 @@ async function connectRealtime(){
 function disconnectRealtime(){subscribed=false;if(channel)void channel.unsubscribe();channel=null;realtime?.disconnect();realtime=null;}
 async function act(action,fields={}){
   if(pending||!game)return;pending=true;updateActions();message('');
-  try{snapshot(await request(`games/${game.room}/${action}`,{method:'POST',body:{revision:game.revision,...fields}}));}
+  try{
+    const round=game.state.round;
+    try{snapshot(await request(`games/${game.room}/${action}`,{method:'POST',body:{revision:game.revision,...fields}}));}
+    catch(error){
+      // Simultaneous rematch requests may race. Retry only this same finished round,
+      // never a move, resignation, draw acceptance or a different game.
+      if(action!=='rematch'||error.status!==409||error.game?.state.round!==round||error.game?.state.status!=='finished'||error.game.state.rematch.includes(error.game.side))throw error;
+      snapshot({data:error.game});snapshot(await request(`games/${game.room}/rematch`,{method:'POST',body:{revision:game.revision}}));
+    }
+  }
   catch(error){if(error.game)snapshot({data:error.game});message(error.message||'Connection interrupted. Reconnecting before your next move.',true);await sync();}
   finally{pending=false;selected=null;legal=[];updateActions();}
 }

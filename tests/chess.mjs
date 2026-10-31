@@ -94,6 +94,6 @@ await test('origin, token, body size, content type and rate limits are enforced'
   rates.set(await hash(`${await hash('unknown')}:requests`),180);assert.equal((await call(`games/${room}`)).status,429);rates.clear();
 });
 await test('migration isolates all chess data, reserves the route, and touches no profile records',()=>{
-  const sql=fs.readFileSync('supabase/migrations/20261031230305_private_chess.sql','utf8');assert.match(sql,/security invoker set search_path=''/);assert.match(sql,/revoke all on function public.chess_command\(text,jsonb\) from public,anon,authenticated/);assert.match(sql,/enable row level security/g);assert.match(sql,/'plugins','chess','customize'/);assert.doesNotMatch(sql,/(?:update|delete from|insert into) private\.(?:profiles|credentials|uploads|profile_presets)\b/i);
+  const sql=fs.readFileSync('supabase/migrations/20261031231302_private_chess.sql','utf8');assert.match(sql,/security invoker set search_path=''/);assert.match(sql,/revoke all on function public.chess_command\(text,jsonb\) from public,anon,authenticated/);assert.match(sql,/enable row level security/g);assert.match(sql,/'plugins','chess','customize'/);assert.doesNotMatch(sql,/(?:update|delete from|insert into) private\.(?:profiles|credentials|uploads|profile_presets)\b/i);
 });
 console.log(`${checks} chess checks passed.`);

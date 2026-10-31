@@ -44,7 +44,7 @@ try{
  await page.goto('https://ascendo.lol/chess/',{waitUntil:'networkidle0'});await page.waitForFunction(()=>!document.getElementById('startButton').disabled);
  await page.screenshot({path:'test-results/chess/lobby-desktop.png',fullPage:true});
  await page.type('#nickname','A very friendly nickname');await page.click('input[name=time][value=untimed]');await page.click('input[name=color][value=w]');await page.click('#startButton');
- await page.waitForSelector('#game:not([hidden])');assert.equal(await page.$eval('#boardNotice',n=>n.hidden),false);
+ await page.waitForSelector('#game:not([hidden])');assert.equal(await page.$eval('#boardNotice',n=>n.hidden),false);assert.equal(await page.$eval(selector('a1'),n=>n.classList.contains('dark')),true);assert.equal(await page.$eval(selector('h1'),n=>n.classList.contains('dark')),false);
  const invite=await page.$eval('#inviteUrl',n=>n.value);assert.match(invite,/^https:\/\/ascendo\.lol\/chess\/\?room=[a-f0-9]{32}$/);
  await friend.setViewport({width:1280,height:900});await friend.goto(invite,{waitUntil:'networkidle0'});await friend.type('#nickname','Szikra Ádám');await friend.click('#startButton');await friend.waitForSelector('#game:not([hidden])');
  await page.waitForFunction(()=>document.getElementById('boardNotice').hidden);assert.equal(await friend.$eval('#selfColor',n=>n.textContent),'Black pieces · You');
