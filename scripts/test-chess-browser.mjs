@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {launchCaptureBrowser,publicAsset} from './profile-capture.mjs';
 import {createChessHandler} from '../supabase/functions/chess-api/service.mjs';
+import {Chess,transition} from '../chess/game.mjs';
 
 if(process.env.GITHUB_ACTIONS!=='true')throw Error('Chess browser checks run only on GitHub Actions.');
 const games=new Map(),errors=[],reports=[];const root=process.cwd();fs.mkdirSync('test-results/chess',{recursive:true});
@@ -31,7 +32,7 @@ async function createPage(){
  })().catch(error=>{errors.push(error.message);void request.abort().catch(()=>{});});});return p;
 }
 async function waitPiece(p,square,name){await p.waitForFunction((sel,text)=>document.querySelector(sel)?.getAttribute('aria-label').includes(text),{},selector(square),name);}
-async function clickMove(p,from,to){await p.click(selector(from));assert.equal(await p.$eval(selector(to),n=>n.classList.contains('legal')),true,`${from}-${to} legal highlight`);await p.click(selector(to));}
+async function clickMove(p,from,to){const press=sel=>p.viewport().hasTouch?p.tap(sel):p.click(sel);await press(selector(from));assert.equal(await p.$eval(selector(to),n=>n.classList.contains('legal')),true,`${from}-${to} legal highlight`);await press(selector(to));}
 async function layout(p,width){
  await p.setViewport({width,height:960,isMobile:width<700,hasTouch:width<700});await pause(220);
  const report=await p.evaluate(()=>{
@@ -43,6 +44,7 @@ try{
  page=await createPage();friend=await createPage();await page.setViewport({width:1440,height:1000});
  await page.goto('https://ascendo.lol/chess/',{waitUntil:'networkidle0'});await page.waitForFunction(()=>!document.getElementById('startButton').disabled);
  await page.screenshot({path:'test-results/chess/lobby-desktop.png',fullPage:true});
+ await page.setViewport({width:320,height:850,isMobile:true,hasTouch:true});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);await page.screenshot({path:'test-results/chess/lobby-mobile.png',fullPage:true});await page.setViewport({width:1440,height:1000});
  await page.type('#nickname','A very friendly nickname');await page.click('input[name=time][value=untimed]');await page.click('input[name=color][value=w]');await page.click('#startButton');
  await page.waitForSelector('#game:not([hidden])');assert.equal(await page.$eval('#boardNotice',n=>n.hidden),false);assert.equal(await page.$eval(selector('a1'),n=>n.classList.contains('dark')),true);assert.equal(await page.$eval(selector('h1'),n=>n.classList.contains('dark')),false);
  const invite=await page.$eval('#inviteUrl',n=>n.value);assert.match(invite,/^https:\/\/ascendo\.lol\/chess\/\?room=[a-f0-9]{32}$/);
@@ -62,6 +64,10 @@ try{
  await page.emulateMediaFeatures([{name:'prefers-reduced-motion',value:'reduce'}]);await friend.setViewport({width:390,height:844,isMobile:true,hasTouch:true});
  await clickMove(friend,'f2','f3');await waitPiece(page,'f3','white pawn');await clickMove(page,'e7','e5');await waitPiece(friend,'e5','black pawn');await clickMove(friend,'g2','g4');await waitPiece(page,'g4','white pawn');await clickMove(page,'d8','h4');await friend.waitForFunction(()=>document.getElementById('gameStatus').textContent.includes('Checkmate'));
  assert.equal(await page.$eval('#game',n=>getComputedStyle(n).animationName),'none');
+ // Advance only the isolated server fixture to a legal promotion position.
+ const room=new URL(invite).searchParams.get('room'),fixture=games.get(room);fixture.state={...fixture.state,status:'active',result:null,moves:[],lastMove:null,drawOffer:null,rematch:[],turn:'w',fen:new Chess().fen()};
+ for(const san of ['a4','h5','a5','h4','a6','h3','axb7','hxg2']){const engine=new Chess(fixture.state.fen),move=engine.move(san);fixture.state=transition(fixture.state,fixture.state.turn,'move',{from:move.from,to:move.to},Date.now());}fixture.revision++;
+ await friend.reload({waitUntil:'networkidle0'});await friend.waitForSelector('#game:not([hidden])');await clickMove(friend,'b7','a8');await friend.waitForFunction(()=>document.getElementById('promotion').open);await friend.tap('[aria-label="Promote to knight"]');await waitPiece(friend,'a8','white knight');assert.equal(await friend.$eval('#promotion',n=>n.open),false);
  await page.setJavaScriptEnabled(false);await page.goto('https://ascendo.lol/chess/',{waitUntil:'networkidle0'});assert.match(await page.$eval('noscript',n=>n.textContent),/JavaScript is needed/);await page.setJavaScriptEnabled(true);
  const missing=await createPage();await missing.goto('https://ascendo.lol/chess/?room=bad',{waitUntil:'networkidle0'});assert.equal(await missing.$eval('#startButton',n=>n.disabled),true);assert.match(await missing.$eval('#message',n=>n.textContent),/not valid/);
  assert.deepEqual(errors,[]);fs.writeFileSync('test-results/chess/results.json',JSON.stringify({reports,checks:['two independent browser contexts','private invitation','live fallback synchronization','legal moves','mouse drag','refresh resume','keyboard navigation','draw decline','resign confirmation','color-swapping rematch','touch-sized play','checkmate','reduced motion','no JavaScript notice','invalid invite'],errors},null,2));
