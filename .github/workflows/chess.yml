@@ -14,8 +14,19 @@ jobs:
   verify:
     runs-on: ubuntu-24.04
     timeout-minutes: 12
+    outputs:
+      bot_changed: ${{ steps.bot_changes.outputs.changed }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 2
+      - id: bot_changes
+        run: |
+          if git diff --quiet HEAD^ HEAD -- chess/ scripts/test-chess-bots-browser.mjs; then
+            echo 'changed=false' >> "$GITHUB_OUTPUT"
+          else
+            echo 'changed=true' >> "$GITHUB_OUTPUT"
+          fi
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '24'
@@ -24,8 +35,6 @@ jobs:
       - run: npm test
       - run: node scripts/test-chess-browser.mjs
       - run: node scripts/test-chess-bots-browser.mjs
-      - run: CHESS_BOT_LIVE=1 node scripts/test-chess-bots-browser.mjs
-        if: github.event_name == 'workflow_dispatch' && inputs.live_bot
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
@@ -33,5 +42,43 @@ jobs:
           path: |
             test-results/chess/
             test-results/chess-bots/
+          retention-days: 7
+          if-no-files-found: ignore
+  live_bot:
+    needs: verify
+    if: github.ref == 'refs/heads/main' && (needs.verify.outputs.bot_changed == 'true' || (github.event_name == 'workflow_dispatch' && inputs.live_bot))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Wait for the reviewed Pages version
+        run: |
+          node --input-type=module <<'JS'
+          import fs from 'node:fs';
+          import {createHash} from 'node:crypto';
+          const hash=data=>createHash('sha256').update(data).digest('hex');
+          const expected=hash(fs.readFileSync('chess/index.html'));
+          let ready=false;
+          for(let attempt=0;attempt<36;attempt++){
+            try{
+              const response=await fetch('https://ascendo.lol/chess/',{headers:{'Cache-Control':'no-cache'},signal:AbortSignal.timeout(10000)});
+              if(response.ok&&hash(Buffer.from(await response.arrayBuffer()))===expected){ready=true;break;}
+            }catch{}
+            await new Promise(resolve=>setTimeout(resolve,10000));
+          }
+          if(!ready)throw Error('The reviewed chess page has not reached Pages yet.');
+          JS
+      - name: Play the published bot in isolated browsers
+        run: CHESS_BOT_LIVE=1 node scripts/test-chess-bots-browser.mjs
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: chess-live-bot-checks
+          path: test-results/chess-bots/
           retention-days: 7
           if-no-files-found: ignore
