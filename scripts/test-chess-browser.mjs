@@ -26,7 +26,7 @@ async function createPage(){
      return request.respond({status:response.status,headers:Object.fromEntries(response.headers),body:await response.text()});
    }
    if(url.hostname!=='ascendo.lol')return request.abort();
-   if(url.pathname==='/chess/vendor/realtime.mjs')return request.respond({status:200,contentType:'text/javascript',body:'export class RealtimeClient { channel(){return {on(event,filter,callback){window.__chessHint=callback;return this},subscribe(callback){window.__chessSubscribe=callback;return this},async unsubscribe(){delete window.__chessHint}}} disconnect(){} }'});
+   if(url.pathname==='/chess/vendor/realtime.mjs')return request.respond({status:200,contentType:'text/javascript',body:'export class RealtimeClient { channel(){return {on(event,filter,callback){window.__chessHint=callback;return this},subscribe(callback){window.__chessSubscribe=callback;if(sessionStorage.getItem("fixture-live")){window.__chessHintsLive=true;queueMicrotask(()=>callback("SUBSCRIBED"))}return this},async unsubscribe(){delete window.__chessHint}}} disconnect(){} }'});
    if(url.pathname==='/chess/')return request.respond({status:200,contentType:'text/html',body:fs.readFileSync('chess/index.html')});
    const asset=publicAsset(root,url.pathname);if(asset)return request.respond({status:200,contentType:asset.mime,body:fs.readFileSync(asset.target)});return request.abort();
  })().catch(error=>{errors.push(error.message);void request.abort().catch(()=>{});});});return p;
@@ -55,7 +55,7 @@ try{
  const from=await page.$eval(selector('g1'),n=>{const r=n.getBoundingClientRect();return{x:r.x+r.width/2,y:r.y+r.height/2}}),to=await page.$eval(selector('f3'),n=>{const r=n.getBoundingClientRect();return{x:r.x+r.width/2,y:r.y+r.height/2}});
  await page.mouse.move(from.x,from.y);await page.mouse.down();await page.mouse.move(to.x,to.y,{steps:12});await page.mouse.up();await waitPiece(friend,'f3','white knight');assert.equal(await page.$$eval('.drag-piece',n=>n.length),0);
  await page.reload({waitUntil:'networkidle0'});await page.waitForSelector('#game:not([hidden])');assert.equal(await page.$eval('#selfColor',n=>n.textContent),'White pieces · You');assert.equal(await page.$eval('#moveList',n=>n.textContent.includes('Nf3')),true);
- for(const p of [page,friend]){await p.waitForFunction(()=>typeof window.__chessSubscribe==='function');await p.evaluate(()=>{window.__chessHintsLive=true;window.__chessSubscribe('SUBSCRIBED');});}
+ for(const p of [page,friend]){await p.waitForFunction(()=>typeof window.__chessSubscribe==='function');await p.evaluate(()=>{sessionStorage.setItem('fixture-live','1');window.__chessHintsLive=true;window.__chessSubscribe('SUBSCRIBED');});}
  await page.focus(selector('e2'));await page.keyboard.press('ArrowUp');assert.equal(await page.evaluate(()=>document.activeElement.dataset.square),'e3');
  for(const width of [1440,1024,768,390,320])await layout(page,width);
  await friend.click('#offerDraw');await page.waitForFunction(()=>!document.getElementById('drawPanel').hidden);await page.click('#declineDraw');await friend.waitForFunction(()=>!document.getElementById('offerDraw').disabled);
