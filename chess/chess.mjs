@@ -266,7 +266,7 @@ $('board').addEventListener('keydown',keyboard);$('board').addEventListener('poi
 $('rotateBoard').onclick=()=>{if(game){cancelDrag();orientation=opposite(orientation);renderBoard();}};
 $('offerDraw').onclick=()=>void act('offer-draw');$('acceptDraw').onclick=()=>void act('accept-draw');$('declineDraw').onclick=()=>void act('decline-draw');$('rematch').onclick=()=>void act('rematch');
 $('resign').onclick=()=>{$('confirmResign').querySelector('p').textContent=isBot()?'The bot will win this game.':'Your friend will win this game.';$('confirmResign').showModal();};$('cancelResign').onclick=()=>$('confirmResign').close();$('confirmResignButton').onclick=()=>{$('confirmResign').close();void act('resign');};$('cancelPromotion').onclick=closePromotion;
-$('botHint').onclick=()=>{message('');void bot?.hint();};$('botUndo').onclick=()=>{message('');bot?.undo();};$('engineRetry').onclick=()=>{message('');bot?.retry();};
+$('botHint').onclick=()=>{message('');selected=null;legal=[];updateSelection();void bot?.hint();};$('botUndo').onclick=()=>{message('');bot?.undo();};$('engineRetry').onclick=()=>{message('');bot?.retry();};
 $('promotion').addEventListener('cancel',()=>{promotionMove=null;});
 $('copyInvite').onclick=async()=>{try{await navigator.clipboard.writeText(inviteUrl(game.room));message('Invitation copied. Send it to your friend.');}catch{$('inviteUrl').select();message('Select and copy the invitation link above.');}};
 $('downloadPgn').onclick=()=>{
