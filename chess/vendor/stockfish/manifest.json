@@ -1,0 +1,37 @@
+{
+  "package": "stockfish",
+  "version": "19.0.1",
+  "sourceCommit": "0d5dd7944f88c817c07a26bc4fb1905d5f9c46d6",
+  "files": [
+    {
+      "name": "stockfish-19-lite-single.js",
+      "url": "https://unpkg.com/stockfish@19.0.1/bin/stockfish-19-lite-single.js",
+      "sha256": "ccb130d7ff29408531c47d859a49f91d59d4f482d05a53eb1a3231a4f624c91a",
+      "bytes": 28230
+    },
+    {
+      "name": "stockfish-19-lite-single.wasm",
+      "url": "https://unpkg.com/stockfish@19.0.1/bin/stockfish-19-lite-single.wasm",
+      "sha256": "ee4f115bdb2d32cadf96cada104a05b5ec257d7ad6f57582190b49bc71f096de",
+      "bytes": 1845971
+    },
+    {
+      "name": "Copying.txt",
+      "url": "https://unpkg.com/stockfish@19.0.1/Copying.txt",
+      "sha256": "0b383d5a63da644f628d99c33976ea6487ed89aaa59f0b3257992deac1171e6b",
+      "bytes": 35821
+    },
+    {
+      "name": "stockfish-19.0.1-source.tar.gz",
+      "url": "https://codeload.github.com/nmrugg/stockfish.js/tar.gz/0d5dd7944f88c817c07a26bc4fb1905d5f9c46d6",
+      "sha256": "e5289a920554bf0069a6601c228e81d957c00522bb31c4343588dc5d7d251879",
+      "bytes": 426352
+    },
+    {
+      "name": "nn-61e7af4bb97d.nnue",
+      "url": "https://data.stockfishchess.org/nn/nn-61e7af4bb97d.nnue",
+      "sha256": "61e7af4bb97d51eeeb25d322916f86513b5cd3a827ce189c98c6e31946f99e5b",
+      "bytes": 1166381
+    }
+  ]
+}
