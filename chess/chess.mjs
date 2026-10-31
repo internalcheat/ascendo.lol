@@ -8,6 +8,10 @@ const roomPattern=/^[a-f0-9]{32}$/,tokenPattern=/^[a-f0-9]{64}$/;
 const random=bytes=>[...crypto.getRandomValues(new Uint8Array(bytes))].map(n=>n.toString(16).padStart(2,'0')).join('');
 let seats={},game=null,seat=null,pending=false,selected=null,legal=[],orientation='w',poll=null,clockTimer=null,creationRoom=null;
 let syncInFlight=null,syncAgain=false,realtime=null,channel=null,subscribed=false,connecting=false,syncAfter=0,hintTimer=null,timeoutSyncAt=0,anchor=null,drag=null,promotionMove=null,lastFocus='e2',destroyed=false;
+let bot=null,hintMove=null;
+const isBot=()=>game?.mode==='bot';
+const botMode=()=>!roomFromUrl()&&$('setup').elements.mode.value==='bot';
+try{const strength=Number(localStorage.getItem('ascendo-chess-bot-skill-v1'));if(Number.isInteger(strength)&&strength>=1&&strength<=20)$('botStrength').value=String(strength);}catch{}
 try{const parsed=JSON.parse(localStorage.getItem(storageKey)||'{}');for(const [room,value] of Object.entries(parsed))if(roomPattern.test(room)&&tokenPattern.test(value?.token||''))seats[room]={token:value.token,at:Number(value.at)||0};}catch{}
 function saveSeat(room,token){
   seats[room]={token,at:Date.now()};seats=Object.fromEntries(Object.entries(seats).sort((a,b)=>b[1].at-a[1].at).slice(0,8));
@@ -33,20 +37,27 @@ function snapshot({data,elapsed=0}){
   game=data;anchor={at:performance.now(),remaining:clockAt(data.state,data.serverNow+elapsed/2)};
   $('lobby').hidden=true;$('game').hidden=false;
   document.title=`${data.state.status==='finished'?'Game over':data.state.turn===data.side?'Your move':'Chess'} | Ascendo`;
-  if(changed){selected=null;legal=[];cancelDrag();closePromotion();render(previous);}
+  if(changed){hintMove=null;selected=null;legal=[];cancelDrag();closePromotion();render(previous);}
   updateActions();updateClocks();startClock();schedulePoll();
   void connectRealtime();
 }
 function render(previous){
   const state=game.state,self=game.side,enemy=opposite(self);
+  document.body.classList.toggle('bot-game',isBot());
   $('selfName').textContent=state.players[self]||'You';$('opponentName').textContent=state.players[enemy]||'Your friend';
   $('selfColor').textContent=`${self==='w'?'White':'Black'} pieces · You`;$('opponentColor').textContent=`${enemy==='w'?'White':'Black'} pieces`;
   for(const [id,color] of [['selfBar',self],['opponentBar',enemy]])$(id).querySelector('.player-avatar').textContent=color==='w'?'♙':'♟';
-  $('gameStatus').textContent=gameMessage(state,self);$('roundLabel').textContent=state.round>1?`FRIENDLY MATCH · ROUND ${state.round}`:'FRIENDLY MATCH';
+  $('gameStatus').textContent=gameMessage(state,self);$('roundLabel').textContent=isBot()?`BOT PRACTICE · ROUND ${state.round}`:state.round>1?`FRIENDLY MATCH · ROUND ${state.round}`:'FRIENDLY MATCH';
   $('matchDetail').textContent=state.status==='waiting'?`You have the ${self==='w'?'white':'black'} pieces.`:state.status==='finished'?'Good game. There is always another opening.':`${state.players.w} vs ${state.players.b}`;
   $('invitePanel').hidden=state.status!=='waiting';$('inviteUrl').value=inviteUrl(game.room);$('boardNotice').hidden=state.status!=='waiting';
   $('boardHint').textContent=state.status==='waiting'?'Only your friend needs the invitation link.':state.status==='finished'?'The game is finished. Start a rematch to switch colors.':'Drag a piece or select it, then choose a square.';
-  $('clockLabel').textContent=TIME_CONTROLS[state.time].label;
+  if(isBot()){
+    $('invitePanel').hidden=true;$('boardNotice').hidden=true;$('matchDetail').textContent=`Untimed · Bot strength ${game.strength} / 20`;
+    $('boardHint').textContent=state.status==='finished'?'Play again or take back your last turn.':'Your pace. Try a hint, or take back a turn.';
+  }
+  $('clockLabel').textContent=isBot()?`Practice · Level ${game.strength}`:TIME_CONTROLS[state.time].label;
+  $('newInvitation').textContent=isBot()?'New bot game ↗':'New invitation ↗';$('newInvitation').href=isBot()?'?mode=bot&setup=1':'./';
+  $('reconnectNote').textContent=isBot()?'Saved on this device. Refresh to resume.':'Your seat stays in this browser. Refresh to reconnect.';$('engineCredit').hidden=!isBot();
   renderBoard(previous);renderMoves();
 }
 function renderBoard(previous){
@@ -77,22 +88,25 @@ function renderMoves(){
   $('movesEmpty').hidden=game.state.moves.length>0;$('downloadPgn').disabled=game.state.moves.length===0;
   if(nearBottom)$('moveScroll').scrollTop=$('moveScroll').scrollHeight;
 }
-function canMove(){return game?.state.status==='active'&&game.state.turn===game.side&&!pending;}
+function canMove(){return (isBot()?bot?.canPlay:game?.state.status==='active'&&game.state.turn===game.side)&&!pending;}
 function updateSelection(){
   const engine=game?new Chess(game.state.fen):null;
   for(const cell of $('board').querySelectorAll('.square')){
     const square=cell.dataset.square;cell.classList.toggle('selected',square===selected);cell.setAttribute('aria-selected',String(square===selected));
     cell.classList.toggle('legal',legal.some(move=>move.to===square));cell.classList.toggle('can-select',canMove()&&engine.get(square)?.color===game.side);
+    cell.classList.toggle('hint-from',hintMove?.from===square);cell.classList.toggle('hint-to',hintMove?.to===square);
   }
 }
 function updateActions(){
   if(!game)return;const state=game.state,active=state.status==='active';
   $('gameActions').hidden=!active;$('finishedActions').hidden=state.status!=='finished';
-  $('offerDraw').disabled=pending||Boolean(state.drawOffer);$('offerDraw').textContent=state.drawOffer===game.side?'Draw offered':'Offer draw';$('resign').disabled=pending;
+  $('offerDraw').hidden=isBot();$('offerDraw').disabled=pending||Boolean(state.drawOffer);$('offerDraw').textContent=state.drawOffer===game.side?'Draw offered':'Offer draw';$('resign').disabled=pending;
   $('drawPanel').hidden=state.drawOffer!==opposite(game.side)||!active;
   $('drawText').textContent=`${state.players[opposite(game.side)]} offered a draw.`;
   for(const id of ['acceptDraw','declineDraw'])$(id).disabled=pending;
-  $('rematch').disabled=pending||state.rematch.includes(game.side);$('rematch').textContent=state.rematch.includes(game.side)?'Waiting for your friend…':state.rematch.length?'Accept rematch':'Play again';
+  $('rematch').disabled=pending||(!isBot()&&state.rematch.includes(game.side));$('rematch').textContent=isBot()?'Play again':state.rematch.includes(game.side)?'Waiting for your friend…':state.rematch.length?'Accept rematch':'Play again';
+  $('practiceTools').hidden=!isBot();$('botHint').disabled=pending||!bot?.canHint;$('botHint').lastChild.textContent=bot?.status==='hint'?' Finding…':' Hint';$('botUndo').disabled=pending||!bot?.canUndo;
+  $('engineRetry').hidden=!isBot()||bot?.status!=='error';
   updateSelection();
 }
 function updateClocks(){
@@ -106,11 +120,11 @@ function updateClocks(){
 }
 function startClock(){clearInterval(clockTimer);if(game?.state.status==='active'&&TIME_CONTROLS[game.state.time].base&&!document.hidden)clockTimer=setInterval(updateClocks,200);}
 function schedulePoll(){
-  clearTimeout(poll);if(!game||document.hidden||destroyed)return;
+  clearTimeout(poll);if(!game||isBot()||document.hidden||destroyed)return;
   poll=setTimeout(()=>void sync(),subscribed?15000:2500);
 }
 async function sync(){
-  if(!seat||!activeRoom()||document.hidden||destroyed)return;
+  if(isBot()||!seat||!activeRoom()||document.hidden||destroyed)return;
   if(syncInFlight){syncAgain=true;return syncInFlight;}
   syncInFlight=(async()=>{
     try{snapshot(await request(`games/${activeRoom()}`));connection(subscribed?'Live':'Connected',subscribed?'live':'connected');}
@@ -119,7 +133,7 @@ async function sync(){
   })();return syncInFlight;
 }
 async function connectRealtime(){
-  if(!game||document.hidden||connecting||channel||destroyed)return;connecting=true;
+  if(!game||isBot()||document.hidden||connecting||channel||destroyed)return;connecting=true;
   try{
     const {RealtimeClient}=await import('./vendor/realtime.mjs?v=20261101-1');
     if(document.hidden||destroyed)return;
@@ -138,7 +152,7 @@ function queueHint(){
   hintTimer=setTimeout(()=>{hintTimer=null;syncAfter=performance.now()+1000;void sync();},Math.max(0,syncAfter-performance.now()));
 }
 function disconnectRealtime(){clearTimeout(hintTimer);hintTimer=null;syncAgain=false;subscribed=false;if(channel)void channel.unsubscribe();channel=null;realtime?.disconnect();realtime=null;}
-async function act(action,fields={}){
+async function onlineAct(action,fields={}){
   if(pending||!game)return;pending=true;updateActions();message('');
   try{
     const round=game.state.round;
@@ -152,6 +166,26 @@ async function act(action,fields={}){
   }
   catch(error){if(error.game)snapshot({data:error.game});message(error.message||'Connection interrupted. Reconnecting before your next move.',true);await sync();}
   finally{pending=false;selected=null;legal=[];updateActions();}
+}
+const friendController={act:onlineAct,suspend:disconnectRealtime,resume:()=>{void sync();void connectRealtime();}};
+async function act(action,fields={}){
+  if(!isBot())return friendController.act(action,fields);
+  if(pending||!bot)return;message('');
+  try{if(action==='move')bot.play(fields);else if(action==='resign')bot.resign();else if(action==='rematch')bot.restart();}
+  catch(error){message(error.message,true);}finally{selected=null;legal=[];updateActions();}
+}
+function botStatus(status,error){
+  const labels={loading:'Loading bot',thinking:'Thinking',hint:'Finding a hint',ready:'Ready',error:'Bot unavailable',paused:'Paused'};
+  connection(labels[status]||'Ready',status==='ready'?'live':status==='thinking'||status==='hint'?'thinking':status);
+  if(error)message(error,true);updateActions();
+}
+async function openBot({restore=false,name,side,strength}={}){
+  const {BotGame}=await import('./bot-game.mjs?v=20261101-2');
+  bot?.dispose();bot=new BotGame({onChange:data=>snapshot({data}),onStatus:botStatus,onWarning:text=>message(text,true),onHint:move=>{
+    hintMove=move;updateSelection();if(move)message(`Hint: ${move.san} (${move.from} → ${move.to}${move.promotion?' · promote to '+pieceNames[move.promotion]:''}).`);
+  }});
+  if(restore){if(!bot.restore())return false;}else bot.start(name,{side,strength});
+  history.replaceState(null,'','?mode=bot');if(document.hidden)bot.suspend();return true;
 }
 function choose(square){
   if(!canMove())return;const engine=new Chess(game.state.fen),piece=engine.get(square),destination=legal.filter(move=>move.to===square);
@@ -196,13 +230,29 @@ function keyboard(event){
 }
 function showLobby(){
   const room=roomFromUrl();if(room&&!roomPattern.test(room)){message('This invitation is not valid. Ask your friend for a fresh link.',true);$('startButton').disabled=true;return;}
-  if(room){$('gameOptions').hidden=true;$('setupTitle').textContent='Join your friend';$('startButton').firstElementChild.textContent='Join game';$('setupNote').textContent='Your friend has saved you a seat.';$('lobbyTitle').textContent='Your table awaits.';$('lobbyDescription').textContent='A private game. Just the two of you.';}
+  if(room){$('modePicker').hidden=true;$('gameOptions').hidden=true;$('setupTitle').textContent='Join your friend';$('startButton').firstElementChild.textContent='Join game';$('setupNote').textContent='Your friend has saved you a seat.';$('lobbyTitle').textContent='Your table awaits.';$('lobbyDescription').textContent='A private game. Just the two of you.';}
   else {const last=Object.keys(seats)[0];if(last){$('resumeButton').hidden=false;$('resumeButton').onclick=()=>location.assign(`?room=${last}`);}}
-  $('startButton').disabled=false;
+  if(!room)updateMode();$('startButton').disabled=false;
 }
+function updateMode(){
+  const chosen=botMode();$('botOptions').hidden=!chosen;$('clockOptions').hidden=chosen;$('resumeButton').hidden=chosen||Object.keys(seats).length===0;
+  $('setupTitle').textContent=chosen?'Find your rhythm':'Take a seat';$('startButton').firstElementChild.textContent=chosen?'Play the bot':'Create game';
+  $('setupNote').textContent=chosen?'Untimed. No account needed. Saved on this device.':'Create a game, then send your friend the invitation.';
+  $('lobbyDescription').textContent=chosen?'A little practice. A better next move.':'One board. A friend. A little friendly rivalry.';
+  let saved=false;try{saved=Boolean(localStorage.getItem('ascendo-chess-bot-v1'));}catch{}$('resumeBot').hidden=!chosen||!saved;
+}
+for(const radio of $('setup').elements.mode)radio.addEventListener('change',updateMode);
+$('botStrength').addEventListener('input',()=>{const value=Number($('botStrength').value);$('strengthValue').textContent=`${value} / 20`;$('botStrength').setAttribute('aria-valuetext',`Level ${value} of 20`);$('botStrength').style.setProperty('--strength-fill',`${(value-1)/19*100}%`);try{localStorage.setItem('ascendo-chess-bot-skill-v1',String(value));}catch{}});
+$('botStrength').dispatchEvent(new Event('input'));
+$('resumeBot').onclick=async()=>{try{await openBot({restore:true});}catch(error){message('Your saved bot game could not be restored. Start a new game.',true);}};
 $('setup').addEventListener('submit',async event=>{
   event.preventDefault();if(pending)return;let name;
   try{name=nickname($('nickname').value);}catch(error){message(error.message,true);$('nickname').focus();return;}
+  if(botMode()){
+    pending=true;$('startButton').disabled=true;message('');
+    try{const choice=$('setup').elements.color.value,side=choice==='random'?(crypto.getRandomValues(new Uint8Array(1))[0]%2?'w':'b'):choice;await openBot({name,side,strength:Number($('botStrength').value)});}
+    catch(error){message(error.message||'The bot could not start. Try again.',true);}finally{pending=false;$('startButton').disabled=false;updateActions();}return;
+  }
   let room=roomFromUrl(),joining=Boolean(room);room||=(creationRoom??=random(16));seat=seats[room]||{token:random(32)};saveSeat(room,seat.token);
   pending=true;$('startButton').disabled=true;message('');
   try{
@@ -215,19 +265,21 @@ $('board').addEventListener('click',event=>{if(performance.now()<ignoreClickUnti
 $('board').addEventListener('keydown',keyboard);$('board').addEventListener('pointerdown',pointerDown);$('board').addEventListener('pointermove',pointerMove);$('board').addEventListener('pointerup',pointerUp);$('board').addEventListener('pointercancel',cancelDrag);
 $('rotateBoard').onclick=()=>{if(game){cancelDrag();orientation=opposite(orientation);renderBoard();}};
 $('offerDraw').onclick=()=>void act('offer-draw');$('acceptDraw').onclick=()=>void act('accept-draw');$('declineDraw').onclick=()=>void act('decline-draw');$('rematch').onclick=()=>void act('rematch');
-$('resign').onclick=()=>$('confirmResign').showModal();$('cancelResign').onclick=()=>$('confirmResign').close();$('confirmResignButton').onclick=()=>{$('confirmResign').close();void act('resign');};$('cancelPromotion').onclick=closePromotion;
+$('resign').onclick=()=>{$('confirmResign').querySelector('p').textContent=isBot()?'The bot will win this game.':'Your friend will win this game.';$('confirmResign').showModal();};$('cancelResign').onclick=()=>$('confirmResign').close();$('confirmResignButton').onclick=()=>{$('confirmResign').close();void act('resign');};$('cancelPromotion').onclick=closePromotion;
+$('botHint').onclick=()=>{message('');selected=null;legal=[];updateSelection();void bot?.hint();};$('botUndo').onclick=()=>{message('');bot?.undo();};$('engineRetry').onclick=()=>{message('');bot?.retry();};
 $('promotion').addEventListener('cancel',()=>{promotionMove=null;});
 $('copyInvite').onclick=async()=>{try{await navigator.clipboard.writeText(inviteUrl(game.room));message('Invitation copied. Send it to your friend.');}catch{$('inviteUrl').select();message('Select and copy the invitation link above.');}};
 $('downloadPgn').onclick=()=>{
   if(!game)return;const state=game.state,engine=new Chess();for(const move of state.moves)engine.move(move);
   const result=state.result?(state.result.winner===null?'1/2-1/2':state.result.winner==='w'?'1-0':'0-1'):'*';
-  engine.setHeader('Event','Ascendo friendly game','Site','https://ascendo.lol/chess/','White',state.players.w,'Black',state.players.b,'Result',result);
+  engine.setHeader('Event',isBot()?'Ascendo bot practice':'Ascendo friendly game','Site','https://ascendo.lol/chess/','White',state.players.w,'Black',state.players.b,'Result',result);
   const blob=new Blob([engine.pgn()],{type:'application/x-chess-pgn'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='ascendo-chess.pgn';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 };
-document.addEventListener('visibilitychange',()=>{if(document.hidden){clearTimeout(poll);clearInterval(clockTimer);disconnectRealtime();cancelDrag();}else{startClock();void sync();void connectRealtime();}});
-window.addEventListener('offline',()=>connection('Offline','offline'));window.addEventListener('online',()=>{void sync();void connectRealtime();});
-window.addEventListener('pagehide',()=>{destroyed=true;clearTimeout(poll);clearInterval(clockTimer);disconnectRealtime();cancelDrag();closePromotion();});
-window.addEventListener('pageshow',event=>{if(event.persisted){destroyed=false;void sync();void connectRealtime();startClock();}});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){clearTimeout(poll);clearInterval(clockTimer);if(isBot())bot?.suspend();else friendController.suspend();cancelDrag();closePromotion();}else{if(isBot())bot?.resume();else{startClock();friendController.resume();}}});
+window.addEventListener('offline',()=>{if(!isBot())connection('Offline','offline');});window.addEventListener('online',()=>{if(!isBot())friendController.resume();});
+window.addEventListener('pagehide',()=>{destroyed=true;clearTimeout(poll);clearInterval(clockTimer);if(isBot())bot?.suspend();else friendController.suspend();cancelDrag();closePromotion();});
+window.addEventListener('pageshow',event=>{if(event.persisted){destroyed=false;if(isBot())bot?.resume();else{friendController.resume();startClock();}}});
+if(!roomFromUrl()&&new URL(location.href).searchParams.get('mode')==='bot')$('setup').elements.mode.value='bot';
 showLobby();
 const initialRoom=roomFromUrl();
 if(roomPattern.test(initialRoom||'')&&seats[initialRoom]){
@@ -235,4 +287,7 @@ if(roomPattern.test(initialRoom||'')&&seats[initialRoom]){
   try{snapshot(await request(`games/${initialRoom}`));connection('Connected','connected');}
   catch(error){if(error.status!==403&&error.status!==404)message(error.message||'Could not reconnect. Try again.',true);}
   finally{$('startButton').disabled=false;}
+}
+if(!initialRoom&&new URL(location.href).searchParams.get('mode')==='bot'&&!new URL(location.href).searchParams.has('setup')){
+  $('startButton').disabled=true;try{await openBot({restore:true});}catch{message('Your saved bot game could not be restored. Start a new game.',true);}finally{$('startButton').disabled=false;}
 }

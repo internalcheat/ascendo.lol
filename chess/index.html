@@ -4,15 +4,15 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#08070c">
-  <meta name="description" content="A quiet table for two. Invite a friend and play chess on Ascendo.">
+  <meta name="description" content="Play chess with a friend or practice against the Ascendo bot, with adjustable strength, hints and takebacks.">
   <meta name="referrer" content="no-referrer">
   <link rel="canonical" href="https://ascendo.lol/chess/">
   <title>Chess | Ascendo</title>
   <link rel="icon" href="/assets/ascendo-icon-32.png?v=20261023-2" sizes="32x32">
   <link rel="shortcut icon" href="/assets/ascendo-icon.ico?v=20261023-2">
   <link rel="stylesheet" href="/fonts.css?v=20261025-11">
-  <link rel="stylesheet" href="./chess.css?v=20261101-1">
-  <script type="module" src="./chess.mjs?v=20261101-1"></script>
+  <link rel="stylesheet" href="./chess.css?v=20261101-2">
+  <script type="module" src="./chess.mjs?v=20261101-2"></script>
 </head>
 <body>
   <header class="masthead">
@@ -28,13 +28,18 @@
         <div class="setup-title"><span class="small-mark" aria-hidden="true">♟</span><h2 id="setupTitle">Take a seat</h2></div>
         <label for="nickname">Your nickname</label><input id="nickname" name="nickname" autocomplete="nickname" maxlength="48" placeholder="What should we call you?" required aria-describedby="nameHint">
         <span class="field-hint" id="nameHint">Up to 24 characters. No account needed.</span>
+        <fieldset class="mode-picker" id="modePicker"><legend>Who’s across the board?</legend><div class="choice-grid mode-choices">
+          <label><input type="radio" name="mode" value="friend" checked><span>Play a friend</span></label>
+          <label><input type="radio" name="mode" value="bot"><span>Play a bot</span></label>
+        </div></fieldset>
         <div id="gameOptions" class="game-options">
-          <fieldset><legend>Clock</legend><div class="choice-grid clock-choices">
+          <fieldset id="clockOptions"><legend>Clock</legend><div class="choice-grid clock-choices">
             <label><input type="radio" name="time" value="3+2"><span>3 + 2<small>Quick</small></span></label>
             <label><input type="radio" name="time" value="5+0"><span>5 min<small>Blitz</small></span></label>
             <label><input type="radio" name="time" value="10+0" checked><span>10 min<small>Relaxed</small></span></label>
             <label><input type="radio" name="time" value="untimed"><span>∞<small>Untimed</small></span></label>
           </div></fieldset>
+          <div class="bot-options" id="botOptions" hidden><label for="botStrength">Bot strength <output id="strengthValue" for="botStrength">8 / 20</output></label><input id="botStrength" type="range" min="1" max="20" step="1" value="8" aria-describedby="strengthHint"><div class="strength-scale" aria-hidden="true"><span>Lower</span><span>Higher</span></div><p id="strengthHint" class="field-hint">Untimed practice. Hints and takebacks included.</p></div>
           <fieldset><legend>Your pieces</legend><div class="choice-grid color-choices">
             <label><input type="radio" name="color" value="random" checked><span>Random</span></label>
             <label><input type="radio" name="color" value="w"><span><i class="color-dot white" aria-hidden="true"></i> White</span></label>
@@ -44,6 +49,7 @@
         <button class="button primary" id="startButton" type="submit" disabled><span>Create game</span><span aria-hidden="true">↗</span></button>
         <p class="setup-note" id="setupNote">Create a game, then send your friend the invitation.</p>
         <button class="text-button" id="resumeButton" type="button" hidden>Resume your last game →</button>
+        <button class="text-button" id="resumeBot" type="button" hidden>Resume your bot game →</button>
       </form>
     </section>
     <section class="game" id="game" aria-label="Chess game" hidden>
@@ -57,11 +63,14 @@
         <section class="match-panel glass"><div class="match-top"><span class="eyebrow" id="roundLabel">FRIENDLY MATCH</span><span class="connection" id="connection" role="status">Connecting</span></div><h1 id="gameStatus" tabindex="-1" aria-live="polite" aria-atomic="true">Waiting for your friend</h1><p class="match-detail" id="matchDetail">You have the white pieces.</p>
           <div class="invite-panel" id="invitePanel"><label for="inviteUrl">Your invitation</label><div class="invite-field"><input id="inviteUrl" type="text" readonly aria-label="Game invitation link"><button class="icon-button" id="copyInvite" type="button" aria-label="Copy invitation link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="3"/><path d="M15 8V4H4v11h4"/></svg></button></div><p>Anyone with this link can take the open seat.</p></div>
           <div class="draw-panel" id="drawPanel" hidden><p id="drawText">Your friend offered a draw.</p><div><button class="button small" id="acceptDraw" type="button">Accept</button><button class="text-button" id="declineDraw" type="button">Keep playing</button></div></div>
+          <button class="button secondary engine-retry" id="engineRetry" type="button" hidden>Retry bot</button>
+          <div class="practice-tools" id="practiceTools" hidden><button class="button secondary" id="botHint" type="button"><span aria-hidden="true">◇</span> Hint</button><button class="button secondary" id="botUndo" type="button"><span aria-hidden="true">↶</span> Take back</button></div>
           <div class="game-actions" id="gameActions"><button class="button secondary" id="offerDraw" type="button">Offer draw</button><button class="button quiet" id="resign" type="button">Resign</button></div>
-          <div class="finished-actions" id="finishedActions" hidden><button class="button primary" id="rematch" type="button">Play again</button><a class="text-button" href="./">New invitation ↗</a></div>
+          <div class="finished-actions" id="finishedActions" hidden><button class="button primary" id="rematch" type="button">Play again</button><a class="text-button" id="newInvitation" href="./">New invitation ↗</a></div>
         </section>
         <section class="moves-panel glass" aria-labelledby="movesTitle"><div class="moves-heading"><h2 id="movesTitle">The game so far</h2><button class="icon-button" id="rotateBoard" type="button" aria-label="Rotate board"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 8a8 8 0 1 0 0 8M20 3v5h-5"/></svg></button></div><div class="move-scroll" id="moveScroll"><p class="moves-empty" id="movesEmpty">Every game starts with a possibility.</p><ol class="move-list" id="moveList" aria-label="Move history"></ol></div><div class="move-footer"><span id="clockLabel">10 minutes</span><button class="text-button" id="downloadPgn" type="button" disabled>PGN ↓</button></div></section>
-        <p class="reconnect-note">Your seat stays in this browser. Refresh to reconnect.</p>
+        <p class="reconnect-note" id="reconnectNote">Your seat stays in this browser. Refresh to reconnect.</p>
+        <details class="engine-credit" id="engineCredit" hidden><summary>Engine &amp; source</summary><p>Stockfish.js 19.0.1 · GPLv3. Runs on this device.</p><a href="./vendor/stockfish/Copying.txt" target="_blank" rel="noopener noreferrer">License</a><a href="./vendor/stockfish/stockfish-19.0.1-source.tar.gz" download>Source &amp; build scripts</a><a href="./vendor/stockfish/nn-61e7af4bb97d.nnue" download>Network data</a><a href="./vendor/stockfish/README.md" target="_blank" rel="noopener noreferrer">Build instructions</a></details>
       </aside>
     </section>
     <p class="message" id="message" role="status" aria-live="polite"></p>
