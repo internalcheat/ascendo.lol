@@ -5,7 +5,7 @@ import http from 'node:http';
 import {launchCaptureBrowser,publicAsset} from './profile-capture.mjs';
 import {replayBotRecord,BOT_SAVE_KEY} from '../chess/bot-game.mjs';
 if(process.env.GITHUB_ACTIONS!=='true')throw Error('Bot browser checks run only on GitHub Actions.');
-const root=process.cwd(),requests=[],apiRequests=[],errors=[],reports=[];let failWasm=false;
+const root=process.cwd(),requests=[],apiRequests=[],errors=[],reports=[],live=process.env.CHESS_BOT_LIVE==='1';let failWasm=false;
 fs.mkdirSync('test-results/chess-bots',{recursive:true});
 const server=http.createServer((req,res)=>{
  const url=new URL(req.url,'http://localhost');requests.push(url.pathname);
@@ -17,9 +17,9 @@ const server=http.createServer((req,res)=>{
  }
  if(!asset){res.writeHead(404);res.end();return;}res.writeHead(200,{'Content-Type':asset.mime,'Cache-Control':'no-store'});res.end(fs.readFileSync(asset.target));
 });
-await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));const origin=`http://127.0.0.1:${server.address().port}`,browser=await launchCaptureBrowser();
+await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));const origin=live?'https://ascendo.lol':`http://127.0.0.1:${server.address().port}`,browser=await launchCaptureBrowser();
 const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms)),square=name=>`#board [data-square="${name}"]`;let page;
-async function newPage(){const context=await browser.createBrowserContext(),p=await context.newPage();p.on('pageerror',e=>errors.push(e.message));p.on('request',r=>{if(r.url().includes('/functions/v1/')||r.url().includes('/realtime/v1'))apiRequests.push(r.url());});return p;}
+async function newPage(){const context=await browser.createBrowserContext(),p=await context.newPage();p.on('pageerror',e=>errors.push(e.message));p.on('request',r=>{if(live)requests.push(new URL(r.url()).pathname);if(r.url().includes('/functions/v1/')||r.url().includes('/realtime/v1'))apiRequests.push(r.url());});return p;}
 async function saved(){return page.evaluate(key=>JSON.parse(localStorage.getItem(key)),BOT_SAVE_KEY);}
 async function waitMoves(length){await page.waitForFunction((key,n)=>JSON.parse(localStorage.getItem(key)||'null')?.moves.length===n,{timeout:20000},BOT_SAVE_KEY,length);}
 async function ready(){await page.waitForFunction(()=>document.getElementById('connection').textContent==='Ready',{timeout:25000});}
@@ -48,8 +48,8 @@ try{
  }
  await page.emulateMediaFeatures([{name:'prefers-reduced-motion',value:'reduce'}]);assert.equal(await page.$eval('#game',n=>getComputedStyle(n).animationName),'none');await page.focus(square('e2'));await page.keyboard.press('ArrowUp');assert.equal(await page.evaluate(()=>document.activeElement.dataset.square),'e3');
  // Test real WASM loading failure and retry in an isolated clean browser context.
- const other=await newPage();await other.setCacheEnabled(false);await page.close();page=other;failWasm=true;await page.goto(origin+'/chess/?mode=bot&setup=1',{waitUntil:'networkidle0'});await page.type('#nickname','Retry test');await page.click('input[name=color][value=w]');await page.click('#startButton');await page.waitForSelector('#engineRetry:not([hidden])',{timeout:25000});assert.equal((await saved()).moves.length,0);failWasm=false;await page.click('#engineRetry');await ready();assert.equal((await saved()).moves.length,0);
+ if(!live){const other=await newPage();await other.setCacheEnabled(false);await page.close();page=other;failWasm=true;await page.goto(origin+'/chess/?mode=bot&setup=1',{waitUntil:'networkidle0'});await page.type('#nickname','Retry test');await page.click('input[name=color][value=w]');await page.click('#startButton');await page.waitForSelector('#engineRetry:not([hidden])',{timeout:25000});assert.equal((await saved()).moves.length,0);failWasm=false;await page.click('#engineRetry');await ready();assert.equal((await saved()).moves.length,0);}
  assert.deepEqual(apiRequests,[],'Bot play must never use profile/chess APIs or realtime');assert.deepEqual(errors,[]);assert.ok(requests.includes('/chess/vendor/stockfish/stockfish-19-lite-single.wasm'));
- fs.writeFileSync('test-results/chess-bots/results.json',JSON.stringify({reports,checks:['real Stockfish WASM','friend/invitation isolation','both colors','all 20 slider values','hint is legal and does not play','takebacks during/after reply','resume once after refresh','hidden-tab termination and resume','resign/undo/rematch','native touch','keyboard','reduced motion','WASM failure and retry','zero backend requests'],errors},null,2));console.log('Bot browser checks passed',JSON.stringify(reports));
+ fs.writeFileSync('test-results/chess-bots/results.json',JSON.stringify({live,reports,checks:['real Stockfish WASM','friend/invitation isolation','both colors','all 20 slider values','hint is legal and does not play','takebacks during/after reply','resume once after refresh','hidden-tab termination and resume','resign/undo/rematch','native touch','keyboard','reduced motion',...(!live?['WASM failure and retry']:[]),'zero backend requests'],errors},null,2));console.log('Bot browser checks passed',JSON.stringify({live,reports}));
 }catch(error){if(page&&!page.isClosed()){await page.screenshot({path:'test-results/chess-bots/failure.png',fullPage:true});fs.writeFileSync('test-results/chess-bots/failure-dom.txt',await page.content());}fs.writeFileSync('test-results/chess-bots/failure.json',JSON.stringify({error:error.message,stack:error.stack,errors,apiRequests,requests:requests.slice(-35)},null,2));throw error;}
 finally{await browser.close();await new Promise(resolve=>server.close(resolve));}

@@ -3,6 +3,11 @@ on:
   push:
     branches: [codex/private-chess, codex/chess-bots, main]
   workflow_dispatch:
+    inputs:
+      live_bot:
+        description: Verify the published bot in isolated browser contexts
+        type: boolean
+        default: false
 permissions:
   contents: read
 jobs:
@@ -19,6 +24,8 @@ jobs:
       - run: npm test
       - run: node scripts/test-chess-browser.mjs
       - run: node scripts/test-chess-bots-browser.mjs
+      - run: CHESS_BOT_LIVE=1 node scripts/test-chess-bots-browser.mjs
+        if: github.event_name == 'workflow_dispatch' && inputs.live_bot
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
