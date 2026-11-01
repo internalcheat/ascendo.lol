@@ -309,6 +309,7 @@ $('setup').addEventListener('submit',async event=>{
 $('board').addEventListener('click',event=>{if(performance.now()<ignoreClickUntil)return;const cell=event.target.closest('.square');if(cell){lastFocus=cell.dataset.square;choose(cell.dataset.square);}});
 $('board').addEventListener('keydown',keyboard);$('board').addEventListener('pointerdown',pointerDown);$('board').addEventListener('pointermove',pointerMove);$('board').addEventListener('pointerup',pointerUp);$('board').addEventListener('pointercancel',cancelDrag);
 $('board').addEventListener('contextmenu',event=>{event.preventDefault();cancelDrag();cancelPremove(true);});
+document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!event.defaultPrevented&&!document.querySelector('dialog[open]')&&(premove.value||selected)){event.preventDefault();const restore=document.activeElement===$('cancelPremove');cancelDrag();cancelPremove(true);if(restore)$('board').querySelector('[tabindex="0"]')?.focus({preventScroll:true});}});
 $('cancelPremove').onclick=()=>{cancelPremove(true);$('board').querySelector('[tabindex="0"]')?.focus({preventScroll:true});};
 $('rotateBoard').onclick=()=>{if(game){cancelDrag();orientation=opposite(orientation);renderBoard();}};
 $('offerDraw').onclick=()=>void act('offer-draw');$('acceptDraw').onclick=()=>void act('accept-draw');$('declineDraw').onclick=()=>void act('decline-draw');$('rematch').onclick=()=>void act('rematch');
