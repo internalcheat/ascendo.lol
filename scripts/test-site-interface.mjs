@@ -5,6 +5,7 @@ import {launchCaptureBrowser,publicAsset} from './profile-capture.mjs';
 import {normalizeProfile} from '../profile-schema.mjs';
 import {renderProfileDocument} from '../profile-document.mjs';
 import {OVERLAY_PRESETS} from '../visual-schema.mjs';
+import {Window} from 'happy-dom';
 
 if(process.env.GITHUB_ACTIONS!=='true')throw Error('Interface checks require isolated GitHub Actions browsers.');
 const root=process.cwd(),output='test-results/site-audit';fs.mkdirSync(output,{recursive:true});
@@ -58,7 +59,7 @@ try{
   await page.setViewport({width:1440,height:900});await page.goto('https://ascendo.lol'+route,{waitUntil:'networkidle0'});
   for(const width of [1440,1024,768,390,320])await layout(page,route,width);
   if(route==='/plugins/'){
-   const jars=await page.$$eval('a[download]',nodes=>nodes.map(n=>({href:n.getAttribute('href'),download:n.getAttribute('download')})));assert.equal(jars.length,5);assert.ok(jars.every(n=>n.href.startsWith('/downloads/')&&n.href.endsWith('.jar')));
+   const jars=await page.$$eval('a[download]',nodes=>nodes.map(n=>({href:n.href,download:n.getAttribute('download')})));assert.equal(jars.length,5);assert.ok(jars.every(n=>new URL(n.href).origin==='https://ascendo.lol'&&new URL(n.href).pathname.startsWith('/downloads/')&&new URL(n.href).pathname.endsWith('.jar')));
   }
   if(route==='/audit-profile/'){
    assert.equal(await page.$$eval('audio[data-profile-music]',nodes=>nodes.length),1);
@@ -92,7 +93,7 @@ try{
  await page.$eval('#expandPreview',n=>n.click());await page.waitForSelector('#previewDialog[open]');await page.keyboard.press('Escape');assert.equal(await page.$eval('#previewDialog',n=>n.open),false);assert.equal(await page.evaluate(()=>document.activeElement.id),'expandPreview');
  // Untrusted text is never interpreted as markup, including saved HTML bootstrap.
  const hostile={...saved,name:'<img src=x onerror=alert(1)>',bio:'</script><img src=x onerror=alert(1)>\n[unsafe](javascript:alert(1))',badge:'<svg onload=alert(1)>',socials:[{icon:'website',label:'<img src=x>',handle:'<svg onload=alert(1)>',action:'link',value:'https://example.com/'}]};
- const rendered=renderProfileDocument(template,'audit-fixture',{config:hostile,revision:17});assert.equal(rendered.includes('<img src="x"'),false);assert.equal(rendered.includes('<svg onload='),false);assert.equal(rendered.includes('href="javascript:'),false);assert.equal(rendered.includes('"</script>'),false);
+ const rendered=renderProfileDocument(template,'audit-fixture',{config:hostile,revision:17}),win=new Window({settings:{disableJavaScriptEvaluation:true,disableJavaScriptFileLoading:true,disableCSSFileLoading:true,disableIframePageLoading:true}});win.document.write(rendered);assert.equal(win.document.querySelectorAll('[onload],[onerror],img[src="x"],a[href^="javascript:"]').length,0);assert.equal(JSON.parse(win.document.getElementById('profileBootstrap').textContent).config.bio,hostile.bio);win.happyDOM.close();
  await page.screenshot({path:output+'/studio-desktop.png',fullPage:true});await page.emulateMediaFeatures([{name:'prefers-reduced-motion',value:'reduce'}]);await layout(page,'studio-reduced-motion',320);await page.screenshot({path:output+'/studio-mobile.png',fullPage:true});
  assert.deepEqual(errors,[]);fs.writeFileSync(output+'/interface.json',JSON.stringify({reports,overlays:OVERLAY_PRESETS,writes,errors},null,2));console.log(JSON.stringify({layouts:reports.length,overlays:OVERLAY_PRESETS.length,privatePreview:true,errors}));
 }catch(error){if(page)await page.screenshot({path:output+'/failure.png',fullPage:true}).catch(()=>{});fs.writeFileSync(output+'/failure.json',JSON.stringify({message:error.message,stack:error.stack,reports,errors},null,2));throw error;}
