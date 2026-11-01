@@ -27,7 +27,7 @@ export class BoardAnnotations {
     board.addEventListener('pointerdown',e=>this.down(e),options);board.addEventListener('pointermove',e=>this.move(e),options);board.addEventListener('pointerup',e=>this.up(e),options);
     board.addEventListener('pointercancel',e=>{if(e.pointerId===this.gesture?.id)this.cancelGesture();},options);
     board.addEventListener('contextmenu',e=>{e.preventDefault();e.stopImmediatePropagation();},options);
-    board.addEventListener('click',e=>{if(this.mode||this.suppressClick){const synthetic=!this.suppressClick&&e.detail===0,cell=e.target.closest('.square');this.suppressClick=false;e.preventDefault();e.stopImmediatePropagation();if(synthetic&&cell)this.select(cell.dataset.square);}},options);
+    board.addEventListener('click',e=>{if(this.mode||(this.suppressClick&&e.detail!==0)){const synthetic=e.detail===0,cell=e.target.closest('.square');this.suppressClick=false;e.preventDefault();e.stopImmediatePropagation();if(synthetic&&cell)this.select(cell.dataset.square);}},options);
     board.addEventListener('focusin',e=>{const cell=e.target.closest('.square');if(this.mode&&this.anchor&&cell){this.preview={from:this.anchor,to:cell.dataset.square};this.render();}},options);
     board.ownerDocument.addEventListener('visibilitychange',()=>{if(board.ownerDocument.hidden)this.cancelGesture();},{signal:this.events.signal});
     win.addEventListener('pagehide',e=>{this.cancelGesture();if(!e.persisted)this.dispose();},{signal:this.events.signal});
@@ -73,7 +73,9 @@ export class BoardAnnotations {
   }
   up(event){
     const g=this.gesture;if(!g||g.id!==event.pointerId)return;
-    event.preventDefault();event.stopImmediatePropagation();const to=pointSquare(event.clientX,event.clientY,g.rect,this.orientation);this.cancelGesture();this.suppressClick=g.button===0;
+    event.preventDefault();event.stopImmediatePropagation();const rect=this.board.getBoundingClientRect();
+    if(['left','top','width','height'].some(key=>Math.abs(rect[key]-g.rect[key])>.5)){this.cancelGesture();this.suppressClick=g.button===0;return;}
+    const to=pointSquare(event.clientX,event.clientY,g.rect,this.orientation);this.cancelGesture();this.suppressClick=g.button===0;
     if(g.button===0&&!g.moved&&to===g.clicked){this.anchor=g.priorAnchor;this.select(to);}else if(to)this.toggle(g.from,to);
   }
   select(square){
@@ -92,7 +94,7 @@ export class BoardAnnotations {
     const paint=({from,to},preview=false)=>{
       const a=squarePoint(from,this.orientation),b=squarePoint(to,this.orientation);if(!a||!b)return;
       const group=element('g',{'data-annotation':from===to?'square':'arrow','data-from':from,'data-to':to,...(preview?{'data-preview':'true'}:{})});
-      if(from===to)group.append(element('rect',{x:a.x-.44,y:a.y-.44,width:.88,height:.88,rx:.07,class:'annotation-square'}));
+      if(from===to){const rect={x:a.x-.44,y:a.y-.44,width:.88,height:.88,rx:.07};group.append(element('rect',{...rect,class:'annotation-square-shadow'}),element('rect',{...rect,class:'annotation-square'}));}
       else{
         const dx=b.x-a.x,dy=b.y-a.y,length=Math.hypot(dx,dy),ux=dx/length,uy=dy/length,base={x:b.x-ux*.32,y:b.y-uy*.32};
         const path=`M ${a.x} ${a.y} L ${base.x} ${base.y}`;
