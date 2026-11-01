@@ -16,7 +16,7 @@ let syncInFlight=null,syncAgain=false,realtime=null,channel=null,subscribed=fals
 let bot=null,hintMove=null;
 let optionMotion=null,fieldMotion=null,sceneMotion=null,lastMode=null;
 const annotations=new BoardAnnotations({board:$('board'),layer:$('boardAnnotations'),enabled:()=>Boolean(game)&&!destroyed&&!document.hidden,onStart:()=>{cancelDrag();cancelPremove();},onChange:({mode,count,text})=>{
-  $('annotateBoard').setAttribute('aria-pressed',String(mode));$('clearAnnotations').disabled=count===0;$('annotationHelp').hidden=!mode;if(text)$('annotationSummary').textContent=text;
+  $('annotateBoard').setAttribute('aria-pressed',String(mode));$('clearAnnotations').disabled=count===0;$('annotationHelp').hidden=!mode;$('board').setAttribute('aria-disabled',String(game?.state.status!=='active'&&!mode));if(text)$('annotationSummary').textContent=text;
 }});
 const sounds=new ChessSounds(),soundEvents=new AbortController();
 const unlockSound=event=>{if(event.isTrusted&&!event.repeat&&!event.ctrlKey&&!event.metaKey&&!event.altKey&&(event.type!=='pointerdown'||event.button===0))sounds.unlock();};
@@ -86,7 +86,7 @@ function render(previous){
   $('roundLabel').hidden=state.round<=1;$('roundLabel').textContent=`Round ${state.round}`;
   $('invitePanel').hidden=state.status!=='waiting';$('inviteUrl').value=inviteUrl(game.room);$('boardNotice').hidden=state.status!=='waiting';
   if(isBot()){$('invitePanel').hidden=true;$('boardNotice').hidden=true;}
-  $('board').setAttribute('aria-disabled',String(state.status!=='active'));
+  $('board').setAttribute('aria-disabled',String(state.status!=='active'&&!annotations.mode));
   $('clockLabel').textContent=TIME_CONTROLS[state.time].label;
   $('newInvitation').href=isBot()?'?mode=bot&setup=1':'./';$('engineCredit').hidden=!isBot();
   renderBoard(previous);renderMoves();
