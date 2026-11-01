@@ -9,7 +9,7 @@ const random=bytes=>[...crypto.getRandomValues(new Uint8Array(bytes))].map(n=>n.
 let seats={},game=null,seat=null,pending=false,selected=null,legal=[],orientation='w',poll=null,clockTimer=null,creationRoom=null;
 let syncInFlight=null,syncAgain=false,realtime=null,channel=null,subscribed=false,connecting=false,syncAfter=0,hintTimer=null,timeoutSyncAt=0,anchor=null,drag=null,promotionMove=null,lastFocus='e2',destroyed=false;
 let bot=null,hintMove=null;
-let optionMotion=null,fieldMotion=null,sceneMotion=null,entryTransition=null,lastMode=null;
+let optionMotion=null,fieldMotion=null,sceneMotion=null,lastMode=null;
 const isBot=()=>game?.mode==='bot';
 const botMode=()=>!roomFromUrl()&&$('setup').elements.mode.value==='bot';
 try{const strength=Number(localStorage.getItem('ascendo-chess-bot-skill-v1'));if(Number.isInteger(strength)&&strength>=1&&strength<=20)$('botStrength').value=String(strength);}catch{}
@@ -47,14 +47,8 @@ function snapshot({data,elapsed=0}){
   if(changed){
     hintMove=null;selected=null;legal=[];cancelDrag();closePromotion();
     const entering=!$('lobby').hidden;
-    if(entryTransition){entryTransition.skipTransition();paintGame(previous);}
-    else if(entering&&!reduced.matches&&!document.hidden&&document.startViewTransition){
-      const transition=document.startViewTransition(()=>paintGame(previous));entryTransition=transition;
-      transition.ready.catch(()=>{});transition.finished.catch(()=>{}).then(()=>{if(entryTransition===transition)entryTransition=null;});
-    }else{
-      paintGame(previous);
-      if(entering&&!reduced.matches&&!document.hidden)sceneMotion=$('game').animate([{opacity:0,transform:'translateY(5px)'},{opacity:1,transform:'none'}],{duration:240,easing:'cubic-bezier(.22,.7,.25,1)'});
-    }
+    paintGame(previous);
+    if(entering&&!reduced.matches&&!document.hidden)sceneMotion=$('game').animate([{opacity:0},{opacity:1}],{duration:220,easing:'cubic-bezier(.22,.7,.25,1)'});
   }
   updateActions();updateClocks();startClock();schedulePoll();
   void connectRealtime();
@@ -263,7 +257,7 @@ function updateMode(){
   }
   lastMode=chosen;
 }
-function stopMotion(){optionMotion?.cancel();fieldMotion?.cancel();sceneMotion?.cancel();entryTransition?.skipTransition();delete $('gameOptions').dataset.animating;}
+function stopMotion(){optionMotion?.cancel();fieldMotion?.cancel();sceneMotion?.cancel();delete $('gameOptions').dataset.animating;}
 for(const radio of $('setup').elements.mode)radio.addEventListener('change',updateMode);
 $('botStrength').addEventListener('input',()=>{const value=Number($('botStrength').value);$('strengthValue').textContent=`${value} / 20`;$('botStrength').setAttribute('aria-valuetext',`Level ${value} of 20`);$('botStrength').style.setProperty('--strength-fill',`${(value-1)/19*100}%`);try{localStorage.setItem('ascendo-chess-bot-skill-v1',String(value));}catch{}});
 $('botStrength').dispatchEvent(new Event('input'));
