@@ -4,6 +4,7 @@ import {PremoveQueue,premoveTargets} from './premoves.mjs?v=20261101-4';
 import {readPreferences,savePreferences} from './preferences.mjs?v=20261101-4';
 import {gamePgn} from './pgn.mjs?v=20261101-5';
 import {ChessSounds,moveSound} from './sounds.mjs?v=20261101-6';
+import {BoardAnnotations} from './annotations.mjs?v=20261101-7';
 import {BACKEND_URL,PUBLISHABLE_KEY} from '../customizer-config.mjs';
 
 const $=id=>document.getElementById(id),api=`${BACKEND_URL}/functions/v1/chess-api`;
@@ -14,6 +15,9 @@ let seats={},game=null,seat=null,pending=false,selected=null,legal=[],orientatio
 let syncInFlight=null,syncAgain=false,realtime=null,channel=null,subscribed=false,connecting=false,syncAfter=0,hintTimer=null,timeoutSyncAt=0,anchor=null,drag=null,promotionMove=null,lastFocus='e2',destroyed=false;
 let bot=null,hintMove=null;
 let optionMotion=null,fieldMotion=null,sceneMotion=null,lastMode=null;
+const annotations=new BoardAnnotations({board:$('board'),layer:$('boardAnnotations'),enabled:()=>Boolean(game)&&!destroyed&&!document.hidden,onStart:()=>{cancelDrag();cancelPremove();},onChange:({mode,count,text})=>{
+  $('annotateBoard').setAttribute('aria-pressed',String(mode));$('clearAnnotations').disabled=count===0;$('annotationHelp').hidden=!mode;if(text)$('annotationSummary').textContent=text;
+}});
 const sounds=new ChessSounds(),soundEvents=new AbortController();
 const unlockSound=event=>{if(event.isTrusted&&!event.repeat&&!event.ctrlKey&&!event.metaKey&&!event.altKey&&(event.type!=='pointerdown'||event.button===0))sounds.unlock();};
 document.addEventListener('pointerdown',unlockSound,{capture:true,signal:soundEvents.signal});
@@ -57,6 +61,7 @@ function snapshot({data,elapsed=0}){
   const changed=!game||game.revision!==data.revision||game.room!==data.room,previous=game;
   if(!game||game.side!==data.side)orientation=data.side;
   game=data;anchor={at:performance.now(),remaining:clockAt(data.state,data.serverNow+elapsed/2)};
+  annotations.reconcile(data);
   if(data.state.status!=='active'&&$('confirmResign').open){$('confirmResign').close();$('gameStatus').focus({preventScroll:true});}
   document.title=`${data.state.status==='finished'?'Game over':data.state.turn===data.side?'Your move':'Chess'} | Ascendo`;
   if(changed){
@@ -102,7 +107,7 @@ function renderBoard(previous){
       row.append(cell);
     }board.append(row);
   }
-  updateSelection();if(focused)board.querySelector(`[data-square=${focused}]`)?.focus({preventScroll:true});
+  updateSelection();annotations.setOrientation(orientation);if(focused)board.querySelector(`[data-square=${focused}]`)?.focus({preventScroll:true});
   if(previous&&previous.state.round===game.state.round&&previous.state.moves.length+1===game.state.moves.length&&!reduced.matches){
     const move=game.state.lastMove,to=board.querySelector(`[data-square=${move.to}]`),fromRect=oldRects.get(move.from),toRect=to?.getBoundingClientRect();
     if(fromRect&&toRect)to.querySelector('.piece')?.animate([{transform:`translate(${fromRect.left-toRect.left}px,${fromRect.top-toRect.top}px)`},{transform:'translate(0,0)'}],{duration:210,easing:'cubic-bezier(.22,.7,.25,1)'});
@@ -276,9 +281,11 @@ function pointerUp(event){
   else cancelDrag();
 }
 function keyboard(event){
+  if(annotations.key(event))return;
+  if(event.key.toLowerCase()==='a'&&!event.ctrlKey&&!event.metaKey&&!event.altKey){event.preventDefault();if(!event.repeat)annotations.setMode(!annotations.mode);return;}
   const cell=event.target.closest('.square');if(!cell)return;const cells=[...$('board').querySelectorAll('.square')],index=cells.indexOf(cell),delta={ArrowRight:1,ArrowLeft:-1,ArrowDown:8,ArrowUp:-8}[event.key];
   if(delta){event.preventDefault();let next=index+delta;if((event.key==='ArrowLeft'&&index%8===0)||(event.key==='ArrowRight'&&index%8===7)||next<0||next>63)return;cells.forEach(n=>n.tabIndex=-1);cells[next].tabIndex=0;lastFocus=cells[next].dataset.square;cells[next].focus();}
-  else if(event.key==='Escape'){event.preventDefault();cancelDrag();cancelPremove(true);}
+  else if(event.key==='Escape'){event.preventDefault();cancelDrag();cancelPremove(true);annotations.clear();annotations.setMode(false);}
 }
 function showLobby(){
   const room=roomFromUrl();if(room&&!roomPattern.test(room)){message('This invitation is not valid. Ask your friend for a fresh link.',true);$('startButton').disabled=true;return;}
@@ -324,8 +331,9 @@ $('setup').addEventListener('submit',async event=>{
 });
 $('board').addEventListener('click',event=>{if(event.detail!==0&&performance.now()<ignoreClickUntil)return;const cell=event.target.closest('.square');if(cell){lastFocus=cell.dataset.square;choose(cell.dataset.square);}});
 $('board').addEventListener('keydown',keyboard);$('board').addEventListener('pointerdown',pointerDown);$('board').addEventListener('pointermove',pointerMove);$('board').addEventListener('pointerup',pointerUp);$('board').addEventListener('pointercancel',event=>{if(drag?.id===event.pointerId)cancelDrag();});
-$('board').addEventListener('contextmenu',event=>{event.preventDefault();cancelDrag();cancelPremove(true);});
-document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!event.defaultPrevented&&!document.querySelector('dialog[open]')&&(premove.value||selected)){event.preventDefault();const restore=document.activeElement===$('cancelPremove');cancelDrag();cancelPremove(true);if(restore)$('board').querySelector('[tabindex="0"]')?.focus({preventScroll:true});}});
+document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!event.defaultPrevented&&!document.querySelector('dialog[open]')&&(premove.value||selected||annotations.hasState)){event.preventDefault();const restore=document.activeElement===$('cancelPremove');cancelDrag();cancelPremove(true);annotations.clear();annotations.setMode(false);if(restore)$('board').querySelector('[tabindex="0"]')?.focus({preventScroll:true});}});
+$('annotateBoard').onclick=()=>annotations.setMode(!annotations.mode);
+$('clearAnnotations').onclick=()=>{annotations.clear();$('annotateBoard').focus({preventScroll:true});};
 $('cancelPremove').onclick=()=>{cancelPremove(true);$('board').querySelector('[tabindex="0"]')?.focus({preventScroll:true});};
 $('rotateBoard').onclick=()=>{if(game){cancelDrag();orientation=opposite(orientation);renderBoard();}};
 $('offerDraw').onclick=()=>void act('offer-draw');$('acceptDraw').onclick=()=>void act('accept-draw');$('declineDraw').onclick=()=>void act('decline-draw');$('rematch').onclick=()=>void act('rematch');
