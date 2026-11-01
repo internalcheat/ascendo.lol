@@ -21,7 +21,7 @@ try{const strength=Number(localStorage.getItem('ascendo-chess-bot-skill-v1'));if
 try{const parsed=JSON.parse(localStorage.getItem(storageKey)||'{}');for(const [room,value] of Object.entries(parsed))if(roomPattern.test(room)&&tokenPattern.test(value?.token||''))seats[room]={token:value.token,at:Number(value.at)||0};}catch{}
 function saveSeat(room,token){
   seats[room]={token,at:Date.now()};seats=Object.fromEntries(Object.entries(seats).sort((a,b)=>b[1].at-a[1].at).slice(0,8));
-  try{localStorage.setItem(storageKey,JSON.stringify(seats));}catch{message('Browser storage is unavailable. Keep this tab open to keep your seat.',true);}
+  try{localStorage.setItem(storageKey,JSON.stringify(seats));return true;}catch{return false;}
 }
 function message(text,error=false){$('message').textContent=text;$('message').classList.toggle('error',error);}
 function connection(text,state){$('connection').textContent=text;$('connection').dataset.state=state;}
@@ -241,6 +241,7 @@ async function moveTo(from,to,options){
 function closePromotion(){if($('promotion').open)$('promotion').close();promotionMove=null;}
 function cancelDrag(){if(!drag)return;drag.ghost?.remove();drag.cell.classList.remove('drag-source');$('board').querySelector('.drop-target')?.classList.remove('drop-target');drag=null;}
 function pointerDown(event){
+  if(event.isPrimary===false||drag)return;
   // Only suppress the click synthesized by the completed drag. A fresh press
   // is a new intention and must not inherit that drag's short suppression.
   ignoreClickUntil=0;
@@ -301,16 +302,17 @@ $('setup').addEventListener('submit',async event=>{
     try{const choice=$('setup').elements.color.value,side=choice==='random'?(crypto.getRandomValues(new Uint8Array(1))[0]%2?'w':'b'):choice;await openBot({name,side,strength:Number($('botStrength').value)});}
     catch(error){message(error.message||'The bot could not start. Try again.',true);}finally{pending=false;$('startButton').disabled=false;updateActions();}return;
   }
-  let room=roomFromUrl(),joining=Boolean(room);room||=(creationRoom??=random(16));seat=seats[room]||{token:random(32)};saveSeat(room,seat.token);
+  let room=roomFromUrl(),joining=Boolean(room);room||=(creationRoom??=random(16));seat=seats[room]||{token:random(32)};const seatSaved=saveSeat(room,seat.token);
   pending=true;$('startButton').disabled=true;message('');
   try{
     const result=await request(joining?`games/${room}/join`:'games',{method:'POST',body:joining?{nickname:name}:{room,nickname:name,time:$('setup').elements.time.value,color:$('setup').elements.color.value}});
     history.replaceState(null,'',`?room=${room}`);snapshot(result);connection('Connected','connected');
+    if(!seatSaved)message('Browser storage is unavailable. Keep this tab open to keep your seat.',true);
   }catch(error){message(error.message||'Could not connect. Try again; your invitation is kept safe.',true);}
   finally{pending=false;$('startButton').disabled=false;updateActions();}
 });
 $('board').addEventListener('click',event=>{if(event.detail!==0&&performance.now()<ignoreClickUntil)return;const cell=event.target.closest('.square');if(cell){lastFocus=cell.dataset.square;choose(cell.dataset.square);}});
-$('board').addEventListener('keydown',keyboard);$('board').addEventListener('pointerdown',pointerDown);$('board').addEventListener('pointermove',pointerMove);$('board').addEventListener('pointerup',pointerUp);$('board').addEventListener('pointercancel',cancelDrag);
+$('board').addEventListener('keydown',keyboard);$('board').addEventListener('pointerdown',pointerDown);$('board').addEventListener('pointermove',pointerMove);$('board').addEventListener('pointerup',pointerUp);$('board').addEventListener('pointercancel',event=>{if(drag?.id===event.pointerId)cancelDrag();});
 $('board').addEventListener('contextmenu',event=>{event.preventDefault();cancelDrag();cancelPremove(true);});
 document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!event.defaultPrevented&&!document.querySelector('dialog[open]')&&(premove.value||selected)){event.preventDefault();const restore=document.activeElement===$('cancelPremove');cancelDrag();cancelPremove(true);if(restore)$('board').querySelector('[tabindex="0"]')?.focus({preventScroll:true});}});
 $('cancelPremove').onclick=()=>{cancelPremove(true);$('board').querySelector('[tabindex="0"]')?.focus({preventScroll:true});};
