@@ -9,6 +9,7 @@ const random=bytes=>[...crypto.getRandomValues(new Uint8Array(bytes))].map(n=>n.
 let seats={},game=null,seat=null,pending=false,selected=null,legal=[],orientation='w',poll=null,clockTimer=null,creationRoom=null;
 let syncInFlight=null,syncAgain=false,realtime=null,channel=null,subscribed=false,connecting=false,syncAfter=0,hintTimer=null,timeoutSyncAt=0,anchor=null,drag=null,promotionMove=null,lastFocus='e2',destroyed=false;
 let bot=null,hintMove=null;
+let optionMotion=null,fieldMotion=null,sceneMotion=null,entryTransition=null,lastMode=null;
 const isBot=()=>game?.mode==='bot';
 const botMode=()=>!roomFromUrl()&&$('setup').elements.mode.value==='bot';
 try{const strength=Number(localStorage.getItem('ascendo-chess-bot-skill-v1'));if(Number.isInteger(strength)&&strength>=1&&strength<=20)$('botStrength').value=String(strength);}catch{}
@@ -29,15 +30,32 @@ async function request(path,{method='GET',body,token=seat?.token}={}){
 }
 function activeRoom(){return game?.room||roomFromUrl();}
 function inviteUrl(room){return `${location.origin}/chess/?room=${room}`;}
+function paintGame(previous){
+  if(destroyed)return;
+  const entering=!$('lobby').hidden;
+  $('lobby').hidden=true;$('game').hidden=false;if($('message').parentNode!==$('gameFeedback'))$('gameFeedback').append($('message'));
+  render(previous);updateActions();updateClocks();
+  if(entering){window.scrollTo({top:0,behavior:'instant'});$('gameStatus').focus({preventScroll:true});}
+}
 function snapshot({data,elapsed=0}){
   if(destroyed||!data?.state||data.room!==activeRoom()&&game)return;
   if(game&&data.room===game.room&&data.revision<game.revision)return;
   const changed=!game||game.revision!==data.revision||game.room!==data.room,previous=game;
   if(!game||game.side!==data.side)orientation=data.side;
   game=data;anchor={at:performance.now(),remaining:clockAt(data.state,data.serverNow+elapsed/2)};
-  $('lobby').hidden=true;$('game').hidden=false;
   document.title=`${data.state.status==='finished'?'Game over':data.state.turn===data.side?'Your move':'Chess'} | Ascendo`;
-  if(changed){hintMove=null;selected=null;legal=[];cancelDrag();closePromotion();render(previous);}
+  if(changed){
+    hintMove=null;selected=null;legal=[];cancelDrag();closePromotion();
+    const entering=!$('lobby').hidden;
+    if(entryTransition){entryTransition.skipTransition();paintGame(previous);}
+    else if(entering&&!reduced.matches&&!document.hidden&&document.startViewTransition){
+      const transition=document.startViewTransition(()=>paintGame(previous));entryTransition=transition;
+      transition.ready.catch(()=>{});transition.finished.catch(()=>{}).then(()=>{if(entryTransition===transition)entryTransition=null;});
+    }else{
+      paintGame(previous);
+      if(entering&&!reduced.matches&&!document.hidden)sceneMotion=$('game').animate([{opacity:0,transform:'translateY(5px)'},{opacity:1,transform:'none'}],{duration:240,easing:'cubic-bezier(.22,.7,.25,1)'});
+    }
+  }
   updateActions();updateClocks();startClock();schedulePoll();
   void connectRealtime();
 }
@@ -47,17 +65,14 @@ function render(previous){
   $('selfName').textContent=state.players[self]||'You';$('opponentName').textContent=state.players[enemy]||'Your friend';
   $('selfColor').textContent=`${self==='w'?'White':'Black'} pieces · You`;$('opponentColor').textContent=`${enemy==='w'?'White':'Black'} pieces`;
   for(const [id,color] of [['selfBar',self],['opponentBar',enemy]])$(id).querySelector('.player-avatar').textContent=color==='w'?'♙':'♟';
-  $('gameStatus').textContent=gameMessage(state,self);$('roundLabel').textContent=isBot()?`BOT PRACTICE · ROUND ${state.round}`:state.round>1?`FRIENDLY MATCH · ROUND ${state.round}`:'FRIENDLY MATCH';
-  $('matchDetail').textContent=state.status==='waiting'?`You have the ${self==='w'?'white':'black'} pieces.`:state.status==='finished'?'Good game. There is always another opening.':`${state.players.w} vs ${state.players.b}`;
+  const turn=state.turn===self?'Your turn':isBot()?'Bot’s turn':`${state.players[state.turn]}’s turn`;
+  $('gameStatus').textContent=state.status==='waiting'?'Waiting for player':state.status==='active'?`${turn}${new Chess(state.fen).inCheck()?' · Check':''}`:gameMessage(state,self);
+  $('roundLabel').hidden=state.round<=1;$('roundLabel').textContent=`Round ${state.round}`;
   $('invitePanel').hidden=state.status!=='waiting';$('inviteUrl').value=inviteUrl(game.room);$('boardNotice').hidden=state.status!=='waiting';
-  $('boardHint').textContent=state.status==='waiting'?'Only your friend needs the invitation link.':state.status==='finished'?'The game is finished. Start a rematch to switch colors.':'Drag a piece or select it, then choose a square.';
-  if(isBot()){
-    $('invitePanel').hidden=true;$('boardNotice').hidden=true;$('matchDetail').textContent=`Untimed · Bot strength ${game.strength} / 20`;
-    $('boardHint').textContent=state.status==='finished'?'Play again or take back your last turn.':'Your pace. Try a hint, or take back a turn.';
-  }
-  $('clockLabel').textContent=isBot()?`Practice · Level ${game.strength}`:TIME_CONTROLS[state.time].label;
-  $('newInvitation').textContent=isBot()?'New bot game ↗':'New invitation ↗';$('newInvitation').href=isBot()?'?mode=bot&setup=1':'./';
-  $('reconnectNote').textContent=isBot()?'Saved on this device. Refresh to resume.':'Your seat stays in this browser. Refresh to reconnect.';$('engineCredit').hidden=!isBot();
+  if(isBot()){$('invitePanel').hidden=true;$('boardNotice').hidden=true;}
+  $('board').setAttribute('aria-disabled',String(state.status!=='active'));
+  $('clockLabel').textContent=TIME_CONTROLS[state.time].label;
+  $('newInvitation').href=isBot()?'?mode=bot&setup=1':'./';$('engineCredit').hidden=!isBot();
   renderBoard(previous);renderMoves();
 }
 function renderBoard(previous){
@@ -79,7 +94,7 @@ function renderBoard(previous){
   updateSelection();if(focused)board.querySelector(`[data-square=${focused}]`)?.focus({preventScroll:true});
   if(previous&&previous.state.round===game.state.round&&previous.state.moves.length+1===game.state.moves.length&&!reduced.matches){
     const move=game.state.lastMove,to=board.querySelector(`[data-square=${move.to}]`),fromRect=oldRects.get(move.from),toRect=to?.getBoundingClientRect();
-    if(fromRect&&toRect)to.querySelector('.piece')?.animate([{transform:`translate(${fromRect.left-toRect.left}px,${fromRect.top-toRect.top}px)`},{transform:'translate(0,0)'}],{duration:190,easing:'cubic-bezier(.2,.7,.25,1)'});
+    if(fromRect&&toRect)to.querySelector('.piece')?.animate([{transform:`translate(${fromRect.left-toRect.left}px,${fromRect.top-toRect.top}px)`},{transform:'translate(0,0)'}],{duration:210,easing:'cubic-bezier(.22,.7,.25,1)'});
   }
 }
 function renderMoves(){
@@ -104,8 +119,8 @@ function updateActions(){
   $('drawPanel').hidden=state.drawOffer!==opposite(game.side)||!active;
   $('drawText').textContent=`${state.players[opposite(game.side)]} offered a draw.`;
   for(const id of ['acceptDraw','declineDraw'])$(id).disabled=pending;
-  $('rematch').disabled=pending||(!isBot()&&state.rematch.includes(game.side));$('rematch').textContent=isBot()?'Play again':state.rematch.includes(game.side)?'Waiting for your friend…':state.rematch.length?'Accept rematch':'Play again';
-  $('practiceTools').hidden=!isBot();$('botHint').disabled=pending||!bot?.canHint;$('botHint').lastChild.textContent=bot?.status==='hint'?' Finding…':' Hint';$('botUndo').disabled=pending||!bot?.canUndo;
+  $('rematch').disabled=pending||(!isBot()&&state.rematch.includes(game.side));$('rematch').textContent=isBot()?'Play again':state.rematch.includes(game.side)?'Waiting…':state.rematch.length?'Accept rematch':'Play again';
+  $('practiceTools').hidden=!isBot();$('botHint').disabled=pending||!bot?.canHint;$('botHint').textContent=bot?.status==='hint'?'Finding…':'Hint';$('botUndo').disabled=pending||!bot?.canUndo;
   $('engineRetry').hidden=!isBot()||bot?.status!=='error';
   updateSelection();
 }
@@ -114,7 +129,7 @@ function updateClocks(){
   if(state.status==='active'&&TIME_CONTROLS[state.time].base)remaining[state.turn]=Math.max(0,remaining[state.turn]-(performance.now()-anchor.at));
   if(state.status==='active'&&TIME_CONTROLS[state.time].base&&remaining[state.turn]===0&&performance.now()>timeoutSyncAt){timeoutSyncAt=performance.now()+1500;void sync();}
   for(const [id,side] of [['selfClock',game.side],['opponentClock',opposite(game.side)]]){
-    const n=$(id),seconds=Math.ceil(remaining[side]/1000);n.textContent=TIME_CONTROLS[state.time].base?`${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,'0')}`:'∞';
+    const n=$(id),seconds=Math.ceil(remaining[side]/1000);n.hidden=!TIME_CONTROLS[state.time].base;n.textContent=TIME_CONTROLS[state.time].base?`${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,'0')}`:'∞';
     n.classList.toggle('running',state.status==='active'&&state.turn===side);n.classList.toggle('low',TIME_CONTROLS[state.time].base>0&&seconds<30);
   }
 }
@@ -213,7 +228,7 @@ function pointerMove(event){
   if(!drag||event.pointerId!==drag.id)return;
   if(!drag.moved&&Math.hypot(event.clientX-drag.x,event.clientY-drag.y)<7)return;
   if(!drag.moved){drag.moved=true;selected=drag.square;legal=new Chess(game.state.fen).moves({square:selected,verbose:true});updateSelection();drag.cell.classList.add('drag-source');drag.ghost=document.createElement('div');drag.ghost.className='drag-piece';drag.ghost.innerHTML=pieceMarkup(drag.piece);drag.ghost.setAttribute('aria-hidden','true');const size=drag.cell.getBoundingClientRect().width;drag.ghost.style.width=drag.ghost.style.height=`${size}px`;document.body.append(drag.ghost);}
-  event.preventDefault();drag.ghost.style.left=`${event.clientX}px`;drag.ghost.style.top=`${event.clientY}px`;
+  event.preventDefault();drag.ghost.style.transform=`translate3d(${event.clientX}px,${event.clientY}px,0) translate(-50%,-50%)`;
   const target=document.elementFromPoint(event.clientX,event.clientY)?.closest('.square');$('board').querySelector('.drop-target')?.classList.remove('drop-target');
   if(target&&legal.some(move=>move.to===target.dataset.square))target.classList.add('drop-target');
 }
@@ -230,17 +245,25 @@ function keyboard(event){
 }
 function showLobby(){
   const room=roomFromUrl();if(room&&!roomPattern.test(room)){message('This invitation is not valid. Ask your friend for a fresh link.',true);$('startButton').disabled=true;return;}
-  if(room){$('modePicker').hidden=true;$('gameOptions').hidden=true;$('setupTitle').textContent='Join your friend';$('startButton').firstElementChild.textContent='Join game';$('setupNote').textContent='Your friend has saved you a seat.';$('lobbyTitle').textContent='Your table awaits.';$('lobbyDescription').textContent='A private game. Just the two of you.';}
+  if(room){$('modePicker').hidden=true;$('gameOptions').hidden=true;$('setupTitle').textContent='Join game';$('startButton').firstElementChild.textContent='Join game';}
   else {const last=Object.keys(seats)[0];if(last){$('resumeButton').hidden=false;$('resumeButton').onclick=()=>location.assign(`?room=${last}`);}}
   if(!room)updateMode();$('startButton').disabled=false;
 }
 function updateMode(){
-  const chosen=botMode();$('botOptions').hidden=!chosen;$('clockOptions').hidden=chosen;$('resumeButton').hidden=chosen||Object.keys(seats).length===0;
-  $('setupTitle').textContent=chosen?'Find your rhythm':'Take a seat';$('startButton').firstElementChild.textContent=chosen?'Play the bot':'Create game';
-  $('setupNote').textContent=chosen?'Untimed. No account needed. Saved on this device.':'Create a game, then send your friend the invitation.';
-  $('lobbyDescription').textContent=chosen?'A little practice. A better next move.':'One board. A friend. A little friendly rivalry.';
+  const chosen=botMode(),options=$('gameOptions'),from=options.getBoundingClientRect().height,animate=lastMode!==null&&lastMode!==chosen&&!reduced.matches&&!document.hidden;
+  optionMotion?.cancel();fieldMotion?.cancel();
+  $('botOptions').hidden=!chosen;$('clockOptions').hidden=chosen;$('resumeButton').hidden=chosen||Object.keys(seats).length===0;
+  $('setupTitle').textContent='New game';$('startButton').firstElementChild.textContent=chosen?'Play':'Create game';
   let saved=false;try{saved=Boolean(localStorage.getItem('ascendo-chess-bot-v1'));}catch{}$('resumeBot').hidden=!chosen||!saved;
+  if(animate){
+    const to=options.getBoundingClientRect().height;options.dataset.animating='true';
+    const motion=options.animate([{height:`${from}px`},{height:`${to}px`}],{duration:240,easing:'cubic-bezier(.22,.7,.25,1)'});optionMotion=motion;
+    motion.finished.catch(()=>{}).then(()=>{if(optionMotion===motion){delete options.dataset.animating;optionMotion=null;}});
+    fieldMotion=$(chosen?'botOptions':'clockOptions').animate([{opacity:0,transform:'translateY(3px)'},{opacity:1,transform:'none'}],{duration:180,easing:'ease-out'});
+  }
+  lastMode=chosen;
 }
+function stopMotion(){optionMotion?.cancel();fieldMotion?.cancel();sceneMotion?.cancel();entryTransition?.skipTransition();delete $('gameOptions').dataset.animating;}
 for(const radio of $('setup').elements.mode)radio.addEventListener('change',updateMode);
 $('botStrength').addEventListener('input',()=>{const value=Number($('botStrength').value);$('strengthValue').textContent=`${value} / 20`;$('botStrength').setAttribute('aria-valuetext',`Level ${value} of 20`);$('botStrength').style.setProperty('--strength-fill',`${(value-1)/19*100}%`);try{localStorage.setItem('ascendo-chess-bot-skill-v1',String(value));}catch{}});
 $('botStrength').dispatchEvent(new Event('input'));
@@ -265,20 +288,21 @@ $('board').addEventListener('click',event=>{if(performance.now()<ignoreClickUnti
 $('board').addEventListener('keydown',keyboard);$('board').addEventListener('pointerdown',pointerDown);$('board').addEventListener('pointermove',pointerMove);$('board').addEventListener('pointerup',pointerUp);$('board').addEventListener('pointercancel',cancelDrag);
 $('rotateBoard').onclick=()=>{if(game){cancelDrag();orientation=opposite(orientation);renderBoard();}};
 $('offerDraw').onclick=()=>void act('offer-draw');$('acceptDraw').onclick=()=>void act('accept-draw');$('declineDraw').onclick=()=>void act('decline-draw');$('rematch').onclick=()=>void act('rematch');
-$('resign').onclick=()=>{$('confirmResign').querySelector('p').textContent=isBot()?'The bot will win this game.':'Your friend will win this game.';$('confirmResign').showModal();};$('cancelResign').onclick=()=>$('confirmResign').close();$('confirmResignButton').onclick=()=>{$('confirmResign').close();void act('resign');};$('cancelPromotion').onclick=closePromotion;
+$('resign').onclick=()=>$('confirmResign').showModal();$('cancelResign').onclick=()=>$('confirmResign').close();$('confirmResignButton').onclick=()=>{$('confirmResign').close();void act('resign');};$('cancelPromotion').onclick=closePromotion;
 $('botHint').onclick=()=>{message('');selected=null;legal=[];updateSelection();void bot?.hint();};$('botUndo').onclick=()=>{message('');bot?.undo();};$('engineRetry').onclick=()=>{message('');bot?.retry();};
 $('promotion').addEventListener('cancel',()=>{promotionMove=null;});
-$('copyInvite').onclick=async()=>{try{await navigator.clipboard.writeText(inviteUrl(game.room));message('Invitation copied. Send it to your friend.');}catch{$('inviteUrl').select();message('Select and copy the invitation link above.');}};
+$('copyInvite').onclick=async()=>{try{await navigator.clipboard.writeText(inviteUrl(game.room));message('Link copied.');}catch{$('inviteUrl').select();message('Copy the link above.');}};
 $('downloadPgn').onclick=()=>{
   if(!game)return;const state=game.state,engine=new Chess();for(const move of state.moves)engine.move(move);
   const result=state.result?(state.result.winner===null?'1/2-1/2':state.result.winner==='w'?'1-0':'0-1'):'*';
   engine.setHeader('Event',isBot()?'Ascendo bot practice':'Ascendo friendly game','Site','https://ascendo.lol/chess/','White',state.players.w,'Black',state.players.b,'Result',result);
   const blob=new Blob([engine.pgn()],{type:'application/x-chess-pgn'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='ascendo-chess.pgn';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 };
-document.addEventListener('visibilitychange',()=>{if(document.hidden){clearTimeout(poll);clearInterval(clockTimer);if(isBot())bot?.suspend();else friendController.suspend();cancelDrag();closePromotion();}else{if(isBot())bot?.resume();else{startClock();friendController.resume();}}});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){stopMotion();clearTimeout(poll);clearInterval(clockTimer);if(isBot())bot?.suspend();else friendController.suspend();cancelDrag();closePromotion();}else{if(isBot())bot?.resume();else{startClock();friendController.resume();}}});
 window.addEventListener('offline',()=>{if(!isBot())connection('Offline','offline');});window.addEventListener('online',()=>{if(!isBot())friendController.resume();});
-window.addEventListener('pagehide',()=>{destroyed=true;clearTimeout(poll);clearInterval(clockTimer);if(isBot())bot?.suspend();else friendController.suspend();cancelDrag();closePromotion();});
-window.addEventListener('pageshow',event=>{if(event.persisted){destroyed=false;if(isBot())bot?.resume();else{friendController.resume();startClock();}}});
+window.addEventListener('pagehide',()=>{destroyed=true;stopMotion();clearTimeout(poll);clearInterval(clockTimer);if(isBot())bot?.suspend();else friendController.suspend();cancelDrag();closePromotion();});
+window.addEventListener('pageshow',event=>{if(event.persisted){destroyed=false;if(game)paintGame();if(isBot())bot?.resume();else{friendController.resume();startClock();}}});
+reduced.addEventListener('change',()=>{if(reduced.matches)stopMotion();});
 if(!roomFromUrl()&&new URL(location.href).searchParams.get('mode')==='bot')$('setup').elements.mode.value='bot';
 showLobby();
 const initialRoom=roomFromUrl();
