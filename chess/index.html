@@ -59,8 +59,10 @@
           <div class="invite-panel" id="invitePanel"><label for="inviteUrl">Invite link</label><div class="invite-field"><input id="inviteUrl" type="text" readonly aria-label="Game invitation link"><button class="icon-button" id="copyInvite" type="button" aria-label="Copy invitation link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="3"/><path d="M15 8V4H4v11h4"/></svg></button></div></div>
           <div class="draw-panel" id="drawPanel" hidden><p id="drawText">Your friend offered a draw.</p><div><button class="button small" id="acceptDraw" type="button">Accept</button><button class="text-button" id="declineDraw" type="button">Keep playing</button></div></div>
           <button class="button secondary engine-retry" id="engineRetry" type="button" hidden>Retry bot</button>
-          <div class="practice-tools" id="practiceTools" hidden><button class="button secondary" id="botHint" type="button">Hint</button><button class="button secondary" id="botUndo" type="button">Take back</button></div>
-          <div class="game-actions" id="gameActions"><button class="button secondary" id="offerDraw" type="button">Offer draw</button><button class="button quiet" id="resign" type="button">Resign</button></div>
+          <div class="controls">
+            <div class="practice-tools" id="practiceTools" hidden><button class="button secondary" id="botHint" type="button">Hint</button><button class="button secondary" id="botUndo" type="button">Take back</button></div>
+            <div class="game-actions" id="gameActions"><button class="button secondary" id="offerDraw" type="button">Offer draw</button><button class="button quiet" id="resign" type="button">Resign</button></div>
+          </div>
           <div class="finished-actions" id="finishedActions" hidden><button class="button primary" id="rematch" type="button">Play again</button><a class="text-button" id="newInvitation" href="./">New game</a></div>
           <div id="gameFeedback"></div>
         </section>
