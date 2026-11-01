@@ -212,7 +212,7 @@ function botStatus(status,error){
   if(error)message(error,true);updateActions();
 }
 async function openBot({restore=false,name,side,strength}={}){
-  const {BotGame}=await import('./bot-game.mjs?v=20261101-2');
+  const {BotGame}=await import('./bot-game.mjs?v=20261101-5');
   bot?.dispose();bot=new BotGame({onChange:data=>snapshot({data}),onStatus:botStatus,onWarning:text=>message(text,true),onHint:move=>{
     hintMove=move;updateSelection();if(move)message(`Hint: ${move.san} (${move.from} → ${move.to}${move.promotion?' · promote to '+pieceNames[move.promotion]:''}).`);
   }});

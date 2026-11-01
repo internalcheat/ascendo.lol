@@ -19,8 +19,9 @@ export function replayBotRecord(input){
 }
 export function uciHistory(moves){const engine=new Chess();return moves.map(san=>{const move=engine.move(san);return move.from+move.to+(move.promotion||'');});}
 function moveInput(uci){if(!/^[a-h][1-8][a-h][1-8][qrbn]?$/.test(uci))throw Error('The bot returned an illegal move. Retry to continue.');return {from:uci.slice(0,2),to:uci.slice(2,4),...(uci[4]?{promotion:uci[4]}:{})};}
+function browserStorage(){try{return globalThis.localStorage??null;}catch{return null;}}
 export class BotGame {
-  constructor({onChange=()=>{},onStatus=()=>{},onHint=()=>{},onWarning=()=>{},storage=globalThis.localStorage,engineFactory=()=>new StockfishEngine()}={}){
+  constructor({onChange=()=>{},onStatus=()=>{},onHint=()=>{},onWarning=()=>{},storage=browserStorage(),engineFactory=()=>new StockfishEngine()}={}){
     Object.assign(this,{onChange,onStatus,onHint,onWarning,storage,engineFactory});this.record=null;this.state=null;this.engine=null;this.epoch=0;this.status='loading';this.closed=false;this.hidden=false;
   }
   get canUndo(){return Boolean(this.state?.moves.some((_,i)=>i%2===(this.record.side==='w'?0:1)));}
@@ -29,7 +30,7 @@ export class BotGame {
   setStatus(status,error=''){this.status=status;this.onStatus(status,error);}
   snapshot(){return {mode:'bot',room:'bot',revision:this.record.revision,side:this.record.side,strength:this.record.strength,state:structuredClone(this.state),serverNow:Date.now()};}
   emit(){this.onChange(this.snapshot());}
-  save(){try{this.storage?.setItem(BOT_SAVE_KEY,JSON.stringify(this.record));}catch{this.onWarning('This browser could not save the bot game. Keep this tab open.');}}
+  save(){try{if(!this.storage)throw Error('Storage unavailable');this.storage.setItem(BOT_SAVE_KEY,JSON.stringify(this.record));}catch{this.onWarning('This browser could not save the bot game. Keep this tab open.');}}
   invalidate(){this.epoch++;this.engine?.cancel();this.onHint(null);}
   start(name,{side='w',strength=8}={}){
     this.invalidate();this.engine?.destroy();this.engine=null;
