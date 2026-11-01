@@ -84,7 +84,7 @@ try{
   await page.waitForFunction(()=>{const n=document.querySelector('.preview-card .profile-overlay-presets');return n&&n.width>1&&!n.closest('.profile-atmosphere').hidden;});
   await page.evaluate(()=>new Promise(resolve=>setTimeout(resolve,100)));
   const layer=await page.$eval('[data-preset="'+preset+'"]',n=>({enabled:n.querySelector('[data-layer-field=enabled]').checked,opacity:Number(n.querySelector('[data-layer-field=opacity]').value)}));assert.deepEqual(layer,{enabled:true,opacity:73});
-  await page.$eval('[data-preset="'+preset+'"] [data-layer-field=enabled]',n=>n.click());assert.equal(await page.$eval('[data-preset="'+preset+'"] [data-layer-field=opacity]',n=>n.disabled),true);
+  await page.$eval('[data-preset="'+preset+'"] [data-layer-field=enabled]',n=>n.click());await page.waitForFunction(p=>document.querySelector('[data-preset="'+p+'"] [data-layer-field=opacity]').disabled,{},preset);
   await page.$eval('[data-preset="'+preset+'"] [data-layer-action="0"]',n=>n.click());
  }
  assert.equal(writes.some(w=>w.route!=='/preferences'),false,'Preview must never publish');
