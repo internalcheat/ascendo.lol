@@ -350,7 +350,7 @@ const initialRoom=roomFromUrl();
 if(roomPattern.test(initialRoom||'')&&seats[initialRoom]){
   seat=seats[initialRoom];$('startButton').disabled=true;
   try{snapshot(await request(`games/${initialRoom}`));connection('Connected','connected');}
-  catch(error){if(error.status!==403&&error.status!==404)message(error.message||'Could not reconnect. Try again.',true);}
+  catch(error){message(error.message||'Could not reconnect. Try again.',true);}
   finally{$('startButton').disabled=false;}
 }
 if(!initialRoom&&new URL(location.href).searchParams.get('mode')==='bot'&&!new URL(location.href).searchParams.has('setup')){

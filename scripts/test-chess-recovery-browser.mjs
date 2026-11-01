@@ -20,9 +20,9 @@ async function page({blocked=false,seed}={}){
  await p.setRequestInterception(true);p.on('request',r=>{void(async()=>{
    const u=new URL(r.url());if(u.pathname.startsWith('/functions/v1/chess-api/')){
      const action=u.pathname.split('/').at(-1),id=u.pathname.split('/').at(-2);
-     if(conflict&&action==='move'){conflict=false;const g=games.get(id);g.state=transition(g.state,g.state.turn==='w'?'b':'w','offer-draw',{},now());g.revision++;}
+     if(conflict&&action==='move'&&r.method()==='POST'){conflict=false;const g=games.get(id);g.state=transition(g.state,g.state.turn==='w'?'b':'w','offer-draw',{},now());g.revision++;}
      const res=await handler(new Request(r.url(),{method:r.method(),headers:r.headers(),body:r.postData()}));const body=await res.text();
-     if(dropMove&&action==='move'){dropMove=false;return r.abort('failed');}
+     if(dropMove&&action==='move'&&r.method()==='POST'){dropMove=false;return r.abort('failed');}
      if(holdPage===p&&r.method()==='GET'){holdPage=null;await new Promise(resolve=>releaseGet=resolve);}
      return r.respond({status:res.status,headers:Object.fromEntries(res.headers),body});
    }
