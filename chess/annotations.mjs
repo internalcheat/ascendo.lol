@@ -53,6 +53,7 @@ export class BoardAnnotations {
   clear(announce=true){this.cancelGesture();this.anchor=null;this.preview=null;this.marks.clear();this.render();this.notify(announce?'Board annotations cleared.':'');}
   cancelGesture(){
     const g=this.gesture;this.gesture=null;this.preview=null;this.anchor=null;
+    if(g?.button===0)this.suppressClick=true;
     if(g)try{if(this.board.hasPointerCapture(g.id))this.board.releasePointerCapture(g.id);}catch{}
     this.render();
   }
