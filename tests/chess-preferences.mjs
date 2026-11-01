@@ -3,6 +3,7 @@ import {Chess} from '../chess/game.mjs';
 import {PremoveQueue,premoveTargets} from '../chess/premoves.mjs';
 import {normalizePreferences,readPreferences,savePreferences,PREFERENCES_KEY,BOARD_THEMES,PIECE_THEMES} from '../chess/preferences.mjs';
 import {pieceMarkup} from '../chess/pieces.mjs';
+import {moveSound,ChessSounds} from '../chess/sounds.mjs';
 let checks=0;
 function test(label,run){run();checks++;console.log(`✓ ${label}`);}
 function game(fen=new Chess().fen(),side='b',moves=[]){const e=new Chess(fen);return {room:'fixture',side,state:{status:'active',round:1,fen:e.fen(),turn:e.turn(),moves}};}
@@ -50,4 +51,21 @@ test('castling and promotion preserve explicit legal choices',()=>{
   const q=new PremoveQueue();let g=game('4k3/8/8/8/8/8/8/4K2R b K - 0 1','w');assert.equal(q.set(g,{from:'e1',to:'g1'}),true);assert.equal(q.check(advance(g,'Kd7')).status,'ready');
   g=game('7k/P7/8/8/8/8/8/4K3 b - - 0 1','w');assert.equal(q.set(g,{from:'a7',to:'a8'}),false);assert.equal(q.set(g,{from:'a7',to:'a8',promotion:'n'}),true);assert.deepEqual(q.check(advance(g,'Kg8')).move,{from:'a7',to:'a8',promotion:'n'});
 });
-console.log(`${checks} chess theme and premove groups passed.`);
+function soundGame(moves){const e=new Chess(),history=[];for(const move of moves)history.push(e.move(move).san);return {room:'fixture',side:'w',state:{round:1,status:e.isGameOver()?'finished':'active',fen:e.fen(),moves:history}};}
+test('sounds distinguish moves, captures and check, including special moves',()=>{
+  const cue=moves=>moveSound(soundGame(moves.slice(0,-1)),soundGame(moves));
+  assert.equal(cue(['e4']),'move');assert.equal(cue(['e4','d5','exd5']),'capture');assert.equal(cue(['f3','e5','g4','Qh4#']),'check');
+  assert.equal(cue(['e4','a6','e5','d5','exd6']),'capture');assert.equal(cue(['e4','e5','Nf3','Nc6','Bc4','Nf6','O-O']),'move');
+  assert.equal(cue(['a4','h5','a5','h4','a6','h3','axb7','hxg2','bxa8=N']),'capture');
+});
+test('initial state, duplicate snapshots, skipped history, undo, results and rematches stay silent',()=>{
+  const first=soundGame([]),one=soundGame(['e4']),two=soundGame(['e4','e5']);
+  assert.equal(moveSound(null,one),null);assert.equal(moveSound(one,one),null);assert.equal(moveSound(first,two),null);assert.equal(moveSound(two,one),null);
+  assert.equal(moveSound(one,{...two,room:'other'}),null);assert.equal(moveSound(one,{...two,side:'b'}),null);assert.equal(moveSound(one,{...two,state:{...two.state,round:2}}),null);
+  assert.equal(moveSound(one,{...one,state:{...one.state,status:'finished'}}),null);assert.equal(moveSound(one,soundGame(['d4','d5'])),null);
+});
+test('audio does not initialize on load or play, and unavailable audio never blocks the game',()=>{
+  let created=0;const sounds=new ChessSounds({contextFactory:()=>{created++;throw Error('Unavailable');},visible:()=>true});
+  sounds.play('move');assert.equal(created,0);assert.doesNotThrow(()=>sounds.unlock());assert.equal(created,1);assert.doesNotThrow(()=>sounds.play('check'));sounds.dispose();sounds.unlock();assert.equal(created,1);
+});
+console.log(`${checks} chess theme, premove and audio groups passed.`);

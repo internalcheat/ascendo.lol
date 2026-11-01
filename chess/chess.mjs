@@ -3,6 +3,7 @@ import {pieceMarkup,pieceNames} from './pieces.mjs?v=20261101-4';
 import {PremoveQueue,premoveTargets} from './premoves.mjs?v=20261101-4';
 import {readPreferences,savePreferences} from './preferences.mjs?v=20261101-4';
 import {gamePgn} from './pgn.mjs?v=20261101-5';
+import {ChessSounds,moveSound} from './sounds.mjs?v=20261101-6';
 import {BACKEND_URL,PUBLISHABLE_KEY} from '../customizer-config.mjs';
 
 const $=id=>document.getElementById(id),api=`${BACKEND_URL}/functions/v1/chess-api`;
@@ -13,6 +14,13 @@ let seats={},game=null,seat=null,pending=false,selected=null,legal=[],orientatio
 let syncInFlight=null,syncAgain=false,realtime=null,channel=null,subscribed=false,connecting=false,syncAfter=0,hintTimer=null,timeoutSyncAt=0,anchor=null,drag=null,promotionMove=null,lastFocus='e2',destroyed=false;
 let bot=null,hintMove=null;
 let optionMotion=null,fieldMotion=null,sceneMotion=null,lastMode=null;
+const sounds=new ChessSounds(),soundEvents=new AbortController();
+const unlockSound=event=>{if(event.isTrusted&&!event.repeat&&!event.ctrlKey&&!event.metaKey&&!event.altKey&&(event.type!=='pointerdown'||event.button===0))sounds.unlock();};
+document.addEventListener('pointerdown',unlockSound,{capture:true,signal:soundEvents.signal});
+document.addEventListener('keydown',unlockSound,{capture:true,signal:soundEvents.signal});
+document.addEventListener('visibilitychange',()=>document.hidden?sounds.suspend():sounds.resume(),{signal:soundEvents.signal});
+window.addEventListener('pagehide',event=>{if(event.persisted)sounds.suspend();else{sounds.dispose();soundEvents.abort();}},{signal:soundEvents.signal});
+window.addEventListener('pageshow',event=>{if(event.persisted)sounds.resume();},{signal:soundEvents.signal});
 let preferences=readPreferences();
 const premove=new PremoveQueue(),pieceArt=piece=>pieceMarkup(piece,preferences.pieces);
 document.documentElement.dataset.boardTheme=preferences.board;
@@ -55,6 +63,7 @@ function snapshot({data,elapsed=0}){
     hintMove=null;selected=null;legal=[];cancelDrag();closePromotion();
     const entering=!$('lobby').hidden;
     paintGame(previous);
+    const cue=moveSound(previous,data);if(cue)sounds.play(cue);
     if(entering&&!reduced.matches&&!document.hidden)sceneMotion=$('game').animate([{opacity:0},{opacity:1}],{duration:220,easing:'cubic-bezier(.22,.7,.25,1)'});
   }
   updateActions();updateClocks();startClock();schedulePoll();
