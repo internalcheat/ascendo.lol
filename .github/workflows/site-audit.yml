@@ -1,0 +1,65 @@
+name: Site interface and security audit
+on:
+  push:
+    branches: [codex/site-security-audit]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+          cache: npm
+      - id: install
+        run: npm ci --ignore-scripts
+      - run: npm audit --audit-level=low
+      - run: npm test
+      - run: node scripts/test-site-interface.mjs
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: site-interface-evidence
+          path: test-results/site-audit/
+          retention-days: 7
+      - run: node scripts/test-profile-creative.mjs
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+      - run: node scripts/test-profile-capture.mjs
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+      - run: node scripts/test-profile-expression.mjs
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+      - run: node scripts/test-layout-social-borders.mjs
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+      - run: node scripts/test-studio-presets.mjs
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+      - run: node scripts/test-cursors.mjs
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+      - run: node scripts/test-sweezy-cursors.mjs
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+      - run: node scripts/test-profile-appearance.mjs
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+      - run: node scripts/test-volume-motion.mjs
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+      - run: node scripts/test-chess-browser.mjs
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+      - run: node scripts/test-chess-bots-browser.mjs
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+      - run: node scripts/test-chess-recovery-browser.mjs
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: site-audit-evidence
+          path: |
+            test-results/site-audit/
+            test-results/creative/
+            test-results/capture/
+            test-results/chess/
+            test-results/chess-bots/
+            test-results/chess-recovery/
+          retention-days: 7

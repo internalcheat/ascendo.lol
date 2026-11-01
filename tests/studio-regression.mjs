@@ -19,6 +19,7 @@ import { hasH264Track } from '../supabase/functions/profile-api/overlay-video.mj
 import { createOverlayParticles } from '../overlay-particles.mjs';
 import { badgeCapabilities } from '../supabase/functions/profile-api/badge-authority.mjs';
 import { transform,build } from 'esbuild';
+import {readJsonObject} from '../supabase/functions/profile-api/json-body.mjs';
 const appBundle=async()=> (await build({entryPoints:['app.js'],bundle:true,write:false,format:'iife'})).outputFiles[0].text;
 
 const root=path.resolve('.');
@@ -165,7 +166,7 @@ try{
       throw new Error(operation);
     },storage:{from:()=>({copy:async()=>{publicCopies++;},getPublicUrl:path=>({data:{publicUrl:`https://test.supabase.co/storage/v1/object/public/profile-media/${path}`}})})}};
     let source=read('supabase/functions/profile-api/index.ts').replace(/^import .*;\r?\n/gm,'');source=(await transform(source,{loader:'ts',format:'esm'})).code;
-    vm.runInNewContext(source,{Deno:{env:{get:name=>name==='SUPABASE_URL'?'https://test.supabase.co':'test-only'},serve:callback=>handler=callback},createClient:()=>fakeClient,normalizeProfile,profileMedia:profile=>[],MAX_IMAGE:5e6,MAX_VIDEO:5e7,OWNER_QUOTA:25e7,badgeError,badgeCapabilities,preserveVisualGroups,TextEncoder,TextDecoder,Request,Response,URL,Uint8Array,console,atob});
+    vm.runInNewContext(source,{Deno:{env:{get:name=>name==='SUPABASE_URL'?'https://test.supabase.co':'test-only'},serve:callback=>handler=callback},createClient:()=>fakeClient,readJsonObject,normalizeProfile,profileMedia:profile=>[],MAX_IMAGE:5e6,MAX_VIDEO:5e7,OWNER_QUOTA:25e7,badgeError,badgeCapabilities,preserveVisualGroups,TextEncoder,TextDecoder,Request,Response,URL,Uint8Array,console,atob});
     const token=slug=>`${slug}.${Buffer.from(JSON.stringify({session_id:'11111111-1111-1111-1111-111111111111'})).toString('base64url')}.fixture`;
     const call=(slug,method,body)=>handler(new Request('https://example.com/profile-api/me',{method,headers:{Authorization:`Bearer ${token(slug)}`,'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined}));
     const me=await (await call('bal4zs','GET')).json();assert.equal(me.capabilities.canUseReservedBadges,false);

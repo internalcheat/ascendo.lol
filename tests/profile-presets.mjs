@@ -1,6 +1,7 @@
 import fs from 'node:fs';import vm from 'node:vm';import assert from 'node:assert/strict';import {webcrypto} from 'node:crypto';import {transform} from 'esbuild';import {Window} from 'happy-dom';
 import {normalizeProfile,profileMedia} from '../profile-schema.mjs';import {preserveVisualGroups} from '../visual-schema.mjs';import {badgeError} from '../badge-policy.mjs';import {badgeCapabilities} from '../supabase/functions/profile-api/badge-authority.mjs';import {createStudioPresets} from '../studio-presets.mjs';
 import {CURSOR_PACKS,CURSOR_IDS} from '../cursor-packs.mjs';import {createHash} from 'node:crypto';
+import {readJsonObject} from '../supabase/functions/profile-api/json-body.mjs';
 const base=normalizeProfile(JSON.parse(fs.readFileSync('supabase/seed-profiles.json','utf8')).internalcheats),checks=[],check=async(name,fn)=>{await fn();checks.push(name);},tick=async()=>{for(let i=0;i<8;i++)await new Promise(r=>setTimeout(r,0));};
 await check('preset API binds native ownership, validates snapshots and never publishes media or changes profile revisions',async()=>{
  const a='11111111-1111-4111-8111-111111111111',b='22222222-2222-4222-8222-222222222222',id='33333333-3333-4333-8333-333333333333',items=new Map();let handler,writes=0;
@@ -16,7 +17,7 @@ await check('preset API binds native ownership, validates snapshots and never pu
   if(operation==='delete'){items.delete(payload.id);return {data:{removed:true}};}if(['rename','replace'].includes(operation)){if(item.version!==payload.version)return {data:{conflict:true}};if(operation==='rename')item.name=payload.name;else{item.config=payload.config;item.media=payload.media;}item.version++;}return {data:item};
  },storage:{from:()=>({getPublicUrl:path=>({data:{publicUrl:'https://fixture.supabase.co/storage/v1/object/public/profile-media/'+path}}),remove:async()=>({})})}};
  const source=(await transform(fs.readFileSync('supabase/functions/profile-api/index.ts','utf8').replace(/^import .*;\r?\n/gm,''),{loader:'ts',format:'esm'})).code;
- vm.runInNewContext(source,{Deno:{env:{get:key=>key==='SUPABASE_URL'?'https://fixture.supabase.co':'fixture-only'},serve:fn=>handler=fn},createClient:()=>client,normalizeProfile,profileMedia,preserveVisualGroups,badgeError,badgeCapabilities,crypto:webcrypto,MAX_IMAGE:5e6,MAX_VIDEO:5e7,OWNER_QUOTA:25e7,TextEncoder,TextDecoder,Request,Response,URL,Uint8Array,console,atob});
+ vm.runInNewContext(source,{Deno:{env:{get:key=>key==='SUPABASE_URL'?'https://fixture.supabase.co':'fixture-only'},serve:fn=>handler=fn},createClient:()=>client,readJsonObject,normalizeProfile,profileMedia,preserveVisualGroups,badgeError,badgeCapabilities,crypto:webcrypto,MAX_IMAGE:5e6,MAX_VIDEO:5e7,OWNER_QUOTA:25e7,TextEncoder,TextDecoder,Request,Response,URL,Uint8Array,console,atob});
  const token=who=>who+'.'+Buffer.from(JSON.stringify({session_id:id})).toString('base64url')+'.fixture';
  const call=(who,path,method='GET',body)=>handler(new Request('https://fixture.invalid/profile-api'+path,{method,headers:{...(who?{Authorization:'Bearer '+token(who)}:{}),'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined}));
  assert.equal((await call(null,'/presets')).status,401);

@@ -8,6 +8,7 @@ import { normalizeHandle, createInvitedProfile } from '../../../invitation-polic
 import {verifyMp3} from './audio-file.mjs';
 import {createShareService} from './share-service.mjs';
 import {verifyShareRunner} from './share-runner-auth.mjs';
+import {readJsonObject} from './json-body.mjs';
 
 const url = Deno.env.get('SUPABASE_URL')!;
 const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -68,22 +69,7 @@ function equal(left: string, right: string) {
 }
 
 async function body(request: Request) {
-  if (!request.headers.get('content-type')?.startsWith('application/json')) throw new HttpError(415, 'Expected JSON.');
-  const reader = request.body?.getReader();
-  if (!reader) throw new HttpError(400, 'Missing request.');
-  const chunks: Uint8Array[] = [];
-  let size = 0;
-  while (true) {
-    const part = await reader.read();
-    if (part.done) break;
-    size += part.value.byteLength;
-    if (size > 80_000) { await reader.cancel(); throw new HttpError(413, 'Request too large.'); }
-    chunks.push(part.value);
-  }
-  const bytes = new Uint8Array(size);
-  let offset = 0;
-  for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
-  try { return JSON.parse(new TextDecoder().decode(bytes)); } catch { throw new HttpError(400, 'Invalid JSON.'); }
+  return readJsonObject(request,{error:(status:number,message:string)=>new HttpError(status,message)});
 }
 
 async function owner(request: Request) {
