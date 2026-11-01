@@ -57,6 +57,19 @@ try{
  }
  await a.click('#downloadPgn');await a.waitForFunction(()=>Boolean(window.__pgn));const pgn=await a.evaluate(()=>window.__pgn),engine=new Chess();engine.loadPgn(pgn);assert.equal(engine.fen(),row().state.fen);assert.equal(engine.header().White,'Clock tester');checks.push('all four promotions and complete PGN export round-trip');
  await b.reload({waitUntil:'networkidle0'});await b.waitForSelector('#game:not([hidden])');await b.click('#offerDraw');await a.waitForSelector('#drawPanel:not([hidden])');await a.click('#acceptDraw');await b.waitForSelector('#finishedActions:not([hidden])');assert.equal(row().state.result.reason,'agreement');await a.click('#rematch');await b.click('#rematch');await a.waitForFunction(()=>document.getElementById('selfColor').textContent.startsWith('Black'));assert.equal(row().state.moves.length,0);checks.push('accepted draw and rematch reset the board and swap seats');
+ // Sustained multiplayer interaction with independent browsers and fault recovery.
+ const players={b:a,w:b};let chaosSeed=731,chaosPlies=0;
+ for(let ply=0;ply<64&&row().state.status==='active';ply++){
+   chaosSeed=(Math.imul(chaosSeed,1664525)+1013904223)>>>0;const e=new Chess(row().state.fen),moves=e.moves({verbose:true}),m=moves[chaosSeed%moves.length],actor=players[row().state.turn];current=actor;
+   await actor.waitForFunction(n=>document.querySelectorAll('#moveList li span').length===n,{},ply);
+   if(ply%13===5)await actor.click('#rotateBoard');
+   if(ply%17===8)dropMove=true;
+   await move(actor,m.from,m.to);if(m.promotion)await actor.click(`[aria-label="Promote to ${{q:'queen',r:'rook',b:'bishop',n:'knight'}[m.promotion]}"]`);
+   for(const p of [a,b])await p.waitForFunction(n=>document.querySelectorAll('#moveList li span').length===n,{},ply+1);
+   e.move({from:m.from,to:m.to,...(m.promotion?{promotion:m.promotion}:{})});assert.equal(row().state.fen,e.fen());assert.equal(row().state.moves.length,ply+1);
+   if(ply%19===11)await refresh(actor);assert.equal(await actor.$$eval('.drag-piece',ns=>ns.length),0);chaosPlies++;
+ }
+ checks.push(`${chaosPlies} synchronized multiplayer plies with rotations, refreshes and dropped responses`);
  // A restored expired seat must provide a useful visible error immediately.
  const missing=await page({seed:{'ascendo-chess-seats-v1':JSON.stringify({['f'.repeat(32)]:{token:'a'.repeat(64),at:Date.now()}})}});current=missing;await missing.goto('https://ascendo.lol/chess/?room='+'f'.repeat(32),{waitUntil:'networkidle0'});assert.match(await missing.$eval('#message',n=>n.textContent),/expired|does not exist/i);checks.push('expired saved invitations explain the failure before another submit');
  const blockedFriend=await page({blocked:true});current=blockedFriend;await blockedFriend.goto('https://ascendo.lol/chess/',{waitUntil:'networkidle0'});await blockedFriend.type('#nickname','Temporary seat');await blockedFriend.click('#startButton');await blockedFriend.waitForSelector('#game:not([hidden])');assert.match(await blockedFriend.$eval('#message',n=>n.textContent),/storage is unavailable.*keep this tab open/i);checks.push('friend seat storage warning survives successful game creation');

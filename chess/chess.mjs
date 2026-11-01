@@ -2,6 +2,7 @@ import {Chess,TIME_CONTROLS,clockAt,gameMessage,nickname,opposite} from './game.
 import {pieceMarkup,pieceNames} from './pieces.mjs?v=20261101-4';
 import {PremoveQueue,premoveTargets} from './premoves.mjs?v=20261101-4';
 import {readPreferences,savePreferences} from './preferences.mjs?v=20261101-4';
+import {gamePgn} from './pgn.mjs?v=20261101-5';
 import {BACKEND_URL,PUBLISHABLE_KEY} from '../customizer-config.mjs';
 
 const $=id=>document.getElementById(id),api=`${BACKEND_URL}/functions/v1/chess-api`;
@@ -323,10 +324,7 @@ $('botHint').onclick=()=>{message('');selected=null;legal=[];updateSelection();v
 $('promotion').addEventListener('cancel',()=>{promotionMove=null;});
 $('copyInvite').onclick=async()=>{try{await navigator.clipboard.writeText(inviteUrl(game.room));message('Link copied.');}catch{$('inviteUrl').select();message('Copy the link above.');}};
 $('downloadPgn').onclick=()=>{
-  if(!game)return;const state=game.state,engine=new Chess();for(const move of state.moves)engine.move(move);
-  const result=state.result?(state.result.winner===null?'1/2-1/2':state.result.winner==='w'?'1-0':'0-1'):'*';
-  engine.setHeader('Event',isBot()?'Ascendo bot practice':'Ascendo friendly game','Site','https://ascendo.lol/chess/','White',state.players.w,'Black',state.players.b,'Result',result);
-  const blob=new Blob([engine.pgn()],{type:'application/x-chess-pgn'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='ascendo-chess.pgn';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  if(!game)return;const blob=new Blob([gamePgn(game)],{type:'application/x-chess-pgn'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='ascendo-chess.pgn';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 };
 for(const n of document.querySelectorAll('[data-piece-theme]'))n.innerHTML=pieceMarkup({type:'n',color:'w'},n.dataset.pieceTheme)+pieceMarkup({type:'k',color:'b'},n.dataset.pieceTheme);
 for(const n of document.querySelectorAll('[name=boardTheme]'))n.checked=n.value===preferences.board;
