@@ -8,4 +8,15 @@ const shapes={
  k:'<path d="M24 5v12M19 10h10" fill="none" stroke-width="3"/><path d="M24 18c-11-10-21 1-9 13l3 6-5 4v3h22v-3l-5-4 3-6c12-12 2-23-9-13Z"/><path d="M16 30h16M18 37h12" fill="none"/>'
 };
 export const pieceNames={p:'pawn',r:'rook',n:'knight',b:'bishop',q:'queen',k:'king'};
-export function pieceMarkup(piece){return `<svg class="piece ${piece.color==='w'?'white':'black'}" viewBox="0 0 48 48" fill="var(--piece-fill)" stroke="var(--piece-stroke)" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">${shapes[piece.type]}</svg>`;}
+const modern={
+ p:'<circle cx="24" cy="12" r="6"/><path d="M21 19h6l4 16H17Z"/><path d="M13 39h22v5H13Z"/>',
+ r:'<path d="M12 7h6v7h4V7h4v7h4V7h6v14H12Z"/><path d="M18 24h12v11H18Z"/><path d="M13 39h22v5H13Z"/>',
+ n:'<path d="m13 22 13-16 9 8-7 11 4 10H17l4-13-5 3Z"/><circle cx="27" cy="13" r="1" fill="var(--piece-stroke)" stroke="none"/><path d="M13 39h22v5H13Z"/>',
+ b:'<path d="M24 5 13 19l8 9-4 7h14l-4-7 8-9Z"/><path d="m27 12-6 8" fill="none"/><path d="M13 39h22v5H13Z"/>',
+ q:'<circle cx="11" cy="11" r="2"/><circle cx="24" cy="7" r="2"/><circle cx="37" cy="11" r="2"/><path d="m12 16 6 7 6-11 6 11 6-7-5 19H17Z"/><path d="M13 39h22v5H13Z"/>',
+ k:'<path d="M24 4v13M19 9h10" fill="none" stroke-width="3"/><path d="m24 19 12 8-6 8H18l-6-8Z"/><path d="M13 39h22v5H13Z"/>'
+};
+export function pieceMarkup(piece,theme='classic'){
+  const style=['classic','modern','outline'].includes(theme)?theme:'classic';
+  return `<svg class="piece ${piece.color==='w'?'white':'black'} set-${style}" viewBox="0 0 48 48" fill="var(--piece-fill)" stroke="var(--piece-stroke)" stroke-width="${style==='outline'?'2.4':'1.6'}" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">${(style==='modern'?modern:shapes)[piece.type]}</svg>`;
+}

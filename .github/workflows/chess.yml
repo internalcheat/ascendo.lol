@@ -1,7 +1,7 @@
 name: Private chess
 on:
   push:
-    branches: [codex/private-chess, codex/chess-bots, codex/chess-cleanup, main]
+    branches: [codex/private-chess, codex/chess-bots, codex/chess-cleanup, codex/chess-themes-premoves, main]
   workflow_dispatch:
     inputs:
       live_bot:

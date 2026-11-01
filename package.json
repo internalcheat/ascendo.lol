@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node tests/profile-features.mjs && node tests/studio-regression.mjs && node tests/invitations.mjs && node tests/studio-controls.mjs && node tests/studio-suite.mjs && node tests/profile-sharing.mjs && node tests/profile-expression.mjs && node tests/profile-presets.mjs && node tests/profile-appearance.mjs && node tests/profile-creative.mjs && node tests/chess.mjs && node tests/chess-bots.mjs",
+    "test": "node tests/profile-features.mjs && node tests/studio-regression.mjs && node tests/invitations.mjs && node tests/studio-controls.mjs && node tests/studio-suite.mjs && node tests/profile-sharing.mjs && node tests/profile-expression.mjs && node tests/profile-presets.mjs && node tests/profile-appearance.mjs && node tests/profile-creative.mjs && node tests/chess.mjs && node tests/chess-bots.mjs && node tests/chess-preferences.mjs",
     "build:upload": "esbuild upload-source.mjs --bundle --minify --format=esm --target=es2022 --outfile=vendor/upload.mjs",
     "build:backgrounds": "node build-backgrounds.mjs",
     "build:flux": "node build-flux.mjs",

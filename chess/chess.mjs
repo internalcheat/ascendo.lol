@@ -1,5 +1,7 @@
 import {Chess,TIME_CONTROLS,clockAt,gameMessage,nickname,opposite} from './game.mjs?v=20261101-1';
-import {pieceMarkup,pieceNames} from './pieces.mjs?v=20261101-1';
+import {pieceMarkup,pieceNames} from './pieces.mjs?v=20261101-4';
+import {PremoveQueue,premoveTargets} from './premoves.mjs?v=20261101-4';
+import {readPreferences,savePreferences} from './preferences.mjs?v=20261101-4';
 import {BACKEND_URL,PUBLISHABLE_KEY} from '../customizer-config.mjs';
 
 const $=id=>document.getElementById(id),api=`${BACKEND_URL}/functions/v1/chess-api`;
@@ -10,6 +12,9 @@ let seats={},game=null,seat=null,pending=false,selected=null,legal=[],orientatio
 let syncInFlight=null,syncAgain=false,realtime=null,channel=null,subscribed=false,connecting=false,syncAfter=0,hintTimer=null,timeoutSyncAt=0,anchor=null,drag=null,promotionMove=null,lastFocus='e2',destroyed=false;
 let bot=null,hintMove=null;
 let optionMotion=null,fieldMotion=null,sceneMotion=null,lastMode=null;
+let preferences=readPreferences();
+const premove=new PremoveQueue(),pieceArt=piece=>pieceMarkup(piece,preferences.pieces);
+document.documentElement.dataset.boardTheme=preferences.board;
 const isBot=()=>game?.mode==='bot';
 const botMode=()=>!roomFromUrl()&&$('setup').elements.mode.value==='bot';
 try{const strength=Number(localStorage.getItem('ascendo-chess-bot-skill-v1'));if(Number.isInteger(strength)&&strength>=1&&strength<=20)$('botStrength').value=String(strength);}catch{}
@@ -51,6 +56,7 @@ function snapshot({data,elapsed=0}){
     if(entering&&!reduced.matches&&!document.hidden)sceneMotion=$('game').animate([{opacity:0},{opacity:1}],{duration:220,easing:'cubic-bezier(.22,.7,.25,1)'});
   }
   updateActions();updateClocks();startClock();schedulePoll();
+  queueMicrotask(flushPremove);
   void connectRealtime();
 }
 function render(previous){
@@ -77,7 +83,7 @@ function renderBoard(previous){
   for(const rank of ranks){const row=document.createElement('div');row.className='board-row';row.setAttribute('role','row');
     for(const file of files){const square=file+rank,piece=engine.get(square),cell=document.createElement('button');
       cell.type='button';cell.className=`square${('abcdefgh'.indexOf(file)+Number(rank))%2===1?' dark':''}`;cell.dataset.square=square;cell.setAttribute('role','gridcell');cell.setAttribute('aria-label',`${square}${piece?`, ${piece.color==='w'?'white':'black'} ${pieceNames[piece.type]}`:', empty'}`);cell.tabIndex=square===(focused||lastFocus)?0:-1;
-      if(piece){cell.insertAdjacentHTML('afterbegin',pieceMarkup(piece));cell.classList.add('occupied');}
+      if(piece){cell.insertAdjacentHTML('afterbegin',pieceArt(piece));cell.classList.add('occupied');}
       if(file===files[0]){const label=document.createElement('span');label.className='coordinate rank';label.textContent=rank;label.setAttribute('aria-hidden','true');cell.append(label);}
       if(rank===ranks[7]){const label=document.createElement('span');label.className='coordinate file';label.textContent=file;label.setAttribute('aria-hidden','true');cell.append(label);}
       if(game.state.lastMove&&(game.state.lastMove.from===square||game.state.lastMove.to===square))cell.classList.add('last');
@@ -98,13 +104,30 @@ function renderMoves(){
   if(nearBottom)$('moveScroll').scrollTop=$('moveScroll').scrollHeight;
 }
 function canMove(){return (isBot()?bot?.canPlay:game?.state.status==='active'&&game.state.turn===game.side)&&!pending;}
+function canQueue(){return preferences.premoves&&!pending&&!destroyed&&!document.hidden&&game?.state.status==='active'&&game.state.turn!==game.side;}
+function destinations(square){return canQueue()?premoveTargets(game.state.fen,game.side,square):new Chess(game.state.fen).moves({square,verbose:true});}
+function cancelPremove(announce=false){
+  const had=Boolean(premove.value);premove.clear();selected=null;legal=[];updateSelection();
+  if(had&&announce)message('Premove canceled.');
+}
+function flushPremove(){
+  if(!game||!premove.value)return;
+  const result=premove.check(game);
+  if(result.status==='invalid'){cancelPremove();message('Premove canceled: no longer legal.');return;}
+  if(result.status!=='ready'||!canMove()||destroyed||document.hidden)return;
+  const move=result.move;premove.clear();selected=null;legal=[];updateSelection();void act('move',move);
+}
 function updateSelection(){
   const engine=game?new Chess(game.state.fen):null;
   for(const cell of $('board').querySelectorAll('.square')){
     const square=cell.dataset.square;cell.classList.toggle('selected',square===selected);cell.setAttribute('aria-selected',String(square===selected));
-    cell.classList.toggle('legal',legal.some(move=>move.to===square));cell.classList.toggle('can-select',canMove()&&engine.get(square)?.color===game.side);
+    cell.classList.toggle('legal',legal.some(move=>move.to===square));cell.classList.toggle('can-select',(canMove()||canQueue())&&engine.get(square)?.color===game.side);
+    cell.classList.toggle('premove-from',premove.value?.from===square);cell.classList.toggle('premove-to',premove.value?.to===square);
+    cell.classList.toggle('premove-candidate',canQueue()&&legal.some(move=>move.to===square));
     cell.classList.toggle('hint-from',hintMove?.from===square);cell.classList.toggle('hint-to',hintMove?.to===square);
   }
+  $('premoveStatus').hidden=!premove.value;
+  if(premove.value)$('premoveText').textContent=`Premove: ${premove.value.from} → ${premove.value.to}${premove.value.promotion?' = '+premove.value.promotion.toUpperCase():''}`;
 }
 function updateActions(){
   if(!game)return;const state=game.state,active=state.status==='active';
@@ -174,7 +197,7 @@ async function onlineAct(action,fields={}){
     }
   }
   catch(error){if(error.game)snapshot({data:error.game});message(error.message||'Connection interrupted. Reconnecting before your next move.',true);await sync();}
-  finally{pending=false;selected=null;legal=[];updateActions();}
+  finally{pending=false;selected=null;legal=[];updateActions();queueMicrotask(flushPremove);}
 }
 const friendController={act:onlineAct,suspend:disconnectRealtime,resume:()=>{void sync();void connectRealtime();}};
 async function act(action,fields={}){
@@ -197,23 +220,28 @@ async function openBot({restore=false,name,side,strength}={}){
   history.replaceState(null,'','?mode=bot');if(document.hidden)bot.suspend();return true;
 }
 function choose(square){
-  if(!canMove())return;const engine=new Chess(game.state.fen),piece=engine.get(square),destination=legal.filter(move=>move.to===square);
+  if(!canMove()&&!canQueue())return;const engine=new Chess(game.state.fen),piece=engine.get(square),destination=legal.filter(move=>move.to===square);
   if(selected&&destination.length){void moveTo(selected,square,destination);return;}
-  if(piece?.color===game.side){selected=selected===square?null:square;legal=selected?engine.moves({square:selected,verbose:true}):[];updateSelection();}
-  else {selected=null;legal=[];updateSelection();}
+  if(piece?.color===game.side){const repeated=selected===square;premove.clear();selected=repeated?null:square;legal=selected?destinations(selected):[];updateSelection();}
+  else cancelPremove();
 }
 async function moveTo(from,to,options){
+  const queuing=canQueue();if(!queuing&&!canMove())return;
+  const submit=move=>{
+    if(queuing){if(canQueue()&&premove.set(game,move)){selected=null;legal=[];message('');updateSelection();}}
+    else void act('move',move);
+  };
   if(options.some(move=>move.promotion)){
     promotionMove={from,to,revision:game.revision};$('promotionChoices').replaceChildren();
-    for(const type of ['q','r','b','n']){const button=document.createElement('button');button.type='button';button.setAttribute('aria-label',`Promote to ${pieceNames[type]}`);button.innerHTML=pieceMarkup({type,color:game.side});button.addEventListener('click',()=>{const move=promotionMove;closePromotion();if(move?.revision===game.revision)void act('move',{from:move.from,to:move.to,promotion:type});});$('promotionChoices').append(button);}
+    for(const type of ['q','r','b','n']){const button=document.createElement('button');button.type='button';button.setAttribute('aria-label',`Promote to ${pieceNames[type]}`);button.innerHTML=pieceArt({type,color:game.side});button.addEventListener('click',()=>{const move=promotionMove;closePromotion();if(move?.revision===game.revision)submit({from:move.from,to:move.to,promotion:type});});$('promotionChoices').append(button);}
     $('promotion').showModal();return;
   }
-  await act('move',{from,to});
+  submit({from,to});
 }
 function closePromotion(){if($('promotion').open)$('promotion').close();promotionMove=null;}
 function cancelDrag(){if(!drag)return;drag.ghost?.remove();drag.cell.classList.remove('drag-source');$('board').querySelector('.drop-target')?.classList.remove('drop-target');drag=null;}
 function pointerDown(event){
-  const cell=event.target.closest('.square');if(!cell||event.button!==0||!canMove())return;
+  const cell=event.target.closest('.square');if(!cell||event.button!==0||(!canMove()&&!canQueue()))return;
   const engine=new Chess(game.state.fen),piece=engine.get(cell.dataset.square);if(piece?.color!==game.side)return;
   drag={cell,square:cell.dataset.square,x:event.clientX,y:event.clientY,piece,id:event.pointerId,ghost:null,moved:false,wasSelected:selected===cell.dataset.square};
   cell.setPointerCapture?.(event.pointerId);
@@ -221,7 +249,7 @@ function pointerDown(event){
 function pointerMove(event){
   if(!drag||event.pointerId!==drag.id)return;
   if(!drag.moved&&Math.hypot(event.clientX-drag.x,event.clientY-drag.y)<7)return;
-  if(!drag.moved){drag.moved=true;selected=drag.square;legal=new Chess(game.state.fen).moves({square:selected,verbose:true});updateSelection();drag.cell.classList.add('drag-source');drag.ghost=document.createElement('div');drag.ghost.className='drag-piece';drag.ghost.innerHTML=pieceMarkup(drag.piece);drag.ghost.setAttribute('aria-hidden','true');const size=drag.cell.getBoundingClientRect().width;drag.ghost.style.width=drag.ghost.style.height=`${size}px`;document.body.append(drag.ghost);}
+  if(!drag.moved){drag.moved=true;premove.clear();selected=drag.square;legal=destinations(selected);updateSelection();drag.cell.classList.add('drag-source');drag.ghost=document.createElement('div');drag.ghost.className='drag-piece';drag.ghost.innerHTML=pieceArt(drag.piece);drag.ghost.setAttribute('aria-hidden','true');const size=drag.cell.getBoundingClientRect().width;drag.ghost.style.width=drag.ghost.style.height=`${size}px`;document.body.append(drag.ghost);}
   event.preventDefault();drag.ghost.style.transform=`translate3d(${event.clientX}px,${event.clientY}px,0) translate(-50%,-50%)`;
   const target=document.elementFromPoint(event.clientX,event.clientY)?.closest('.square');$('board').querySelector('.drop-target')?.classList.remove('drop-target');
   if(target&&legal.some(move=>move.to===target.dataset.square))target.classList.add('drop-target');
@@ -235,7 +263,7 @@ function pointerUp(event){
 function keyboard(event){
   const cell=event.target.closest('.square');if(!cell)return;const cells=[...$('board').querySelectorAll('.square')],index=cells.indexOf(cell),delta={ArrowRight:1,ArrowLeft:-1,ArrowDown:8,ArrowUp:-8}[event.key];
   if(delta){event.preventDefault();let next=index+delta;if((event.key==='ArrowLeft'&&index%8===0)||(event.key==='ArrowRight'&&index%8===7)||next<0||next>63)return;cells.forEach(n=>n.tabIndex=-1);cells[next].tabIndex=0;lastFocus=cells[next].dataset.square;cells[next].focus();}
-  else if(event.key==='Escape'){selected=null;legal=[];updateSelection();}
+  else if(event.key==='Escape'){event.preventDefault();cancelDrag();cancelPremove(true);}
 }
 function showLobby(){
   const room=roomFromUrl();if(room&&!roomPattern.test(room)){message('This invitation is not valid. Ask your friend for a fresh link.',true);$('startButton').disabled=true;return;}
@@ -280,10 +308,12 @@ $('setup').addEventListener('submit',async event=>{
 });
 $('board').addEventListener('click',event=>{if(performance.now()<ignoreClickUntil)return;const cell=event.target.closest('.square');if(cell){lastFocus=cell.dataset.square;choose(cell.dataset.square);}});
 $('board').addEventListener('keydown',keyboard);$('board').addEventListener('pointerdown',pointerDown);$('board').addEventListener('pointermove',pointerMove);$('board').addEventListener('pointerup',pointerUp);$('board').addEventListener('pointercancel',cancelDrag);
+$('board').addEventListener('contextmenu',event=>{event.preventDefault();cancelDrag();cancelPremove(true);});
+$('cancelPremove').onclick=()=>{cancelPremove(true);$('board').querySelector('[tabindex="0"]')?.focus({preventScroll:true});};
 $('rotateBoard').onclick=()=>{if(game){cancelDrag();orientation=opposite(orientation);renderBoard();}};
 $('offerDraw').onclick=()=>void act('offer-draw');$('acceptDraw').onclick=()=>void act('accept-draw');$('declineDraw').onclick=()=>void act('decline-draw');$('rematch').onclick=()=>void act('rematch');
-$('resign').onclick=()=>$('confirmResign').showModal();$('cancelResign').onclick=()=>$('confirmResign').close();$('confirmResignButton').onclick=()=>{$('confirmResign').close();void act('resign');};$('cancelPromotion').onclick=closePromotion;
-$('botHint').onclick=()=>{message('');selected=null;legal=[];updateSelection();void bot?.hint();};$('botUndo').onclick=()=>{message('');bot?.undo();};$('engineRetry').onclick=()=>{message('');bot?.retry();};
+$('resign').onclick=()=>{cancelPremove();$('confirmResign').showModal();};$('cancelResign').onclick=()=>$('confirmResign').close();$('confirmResignButton').onclick=()=>{$('confirmResign').close();void act('resign');};$('cancelPromotion').onclick=closePromotion;
+$('botHint').onclick=()=>{message('');selected=null;legal=[];updateSelection();void bot?.hint();};$('botUndo').onclick=()=>{message('');cancelPremove();bot?.undo();};$('engineRetry').onclick=()=>{message('');bot?.retry();};
 $('promotion').addEventListener('cancel',()=>{promotionMove=null;});
 $('copyInvite').onclick=async()=>{try{await navigator.clipboard.writeText(inviteUrl(game.room));message('Link copied.');}catch{$('inviteUrl').select();message('Copy the link above.');}};
 $('downloadPgn').onclick=()=>{
@@ -292,9 +322,22 @@ $('downloadPgn').onclick=()=>{
   engine.setHeader('Event',isBot()?'Ascendo bot practice':'Ascendo friendly game','Site','https://ascendo.lol/chess/','White',state.players.w,'Black',state.players.b,'Result',result);
   const blob=new Blob([engine.pgn()],{type:'application/x-chess-pgn'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='ascendo-chess.pgn';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 };
-document.addEventListener('visibilitychange',()=>{if(document.hidden){stopMotion();clearTimeout(poll);clearInterval(clockTimer);if(isBot())bot?.suspend();else friendController.suspend();cancelDrag();closePromotion();}else{if(isBot())bot?.resume();else{startClock();friendController.resume();}}});
+for(const n of document.querySelectorAll('[data-piece-theme]'))n.innerHTML=pieceMarkup({type:'n',color:'w'},n.dataset.pieceTheme)+pieceMarkup({type:'k',color:'b'},n.dataset.pieceTheme);
+for(const n of document.querySelectorAll('[name=boardTheme]'))n.checked=n.value===preferences.board;
+for(const n of document.querySelectorAll('[name=pieceTheme]'))n.checked=n.value===preferences.pieces;
+$('enablePremoves').checked=preferences.premoves;
+$('settingsDialog').addEventListener('change',()=>{
+  preferences={board:document.querySelector('[name=boardTheme]:checked').value,pieces:document.querySelector('[name=pieceTheme]:checked').value,premoves:$('enablePremoves').checked};
+  document.documentElement.dataset.boardTheme=preferences.board;
+  if(!preferences.premoves)cancelPremove();cancelDrag();if(game)renderBoard();
+  $('settingsMessage').textContent=savePreferences(preferences)?'':'Settings work for this visit. Browser storage is unavailable.';
+});
+$('openSettings').onclick=()=>{cancelDrag();$('settingsDialog').showModal();};
+$('closeSettings').onclick=()=>$('settingsDialog').close();
+$('settingsDialog').addEventListener('click',event=>{if(event.target!==$('settingsDialog'))return;const r=$('settingsDialog').getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)$('settingsDialog').close();});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){stopMotion();cancelPremove();clearTimeout(poll);clearInterval(clockTimer);if(isBot())bot?.suspend();else friendController.suspend();cancelDrag();closePromotion();}else{if(isBot())bot?.resume();else{startClock();friendController.resume();}}});
 window.addEventListener('offline',()=>{if(!isBot())connection('Offline','offline');});window.addEventListener('online',()=>{if(!isBot())friendController.resume();});
-window.addEventListener('pagehide',()=>{destroyed=true;stopMotion();clearTimeout(poll);clearInterval(clockTimer);if(isBot())bot?.suspend();else friendController.suspend();cancelDrag();closePromotion();});
+window.addEventListener('pagehide',()=>{destroyed=true;stopMotion();cancelPremove();clearTimeout(poll);clearInterval(clockTimer);if(isBot())bot?.suspend();else friendController.suspend();cancelDrag();closePromotion();});
 window.addEventListener('pageshow',event=>{if(event.persisted){destroyed=false;if(game)paintGame();if(isBot())bot?.resume();else{friendController.resume();startClock();}}});
 reduced.addEventListener('change',()=>{if(reduced.matches)stopMotion();});
 if(!roomFromUrl()&&new URL(location.href).searchParams.get('mode')==='bot')$('setup').elements.mode.value='bot';

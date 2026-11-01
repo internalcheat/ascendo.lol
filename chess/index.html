@@ -11,13 +11,13 @@
   <link rel="icon" href="/assets/ascendo-icon-32.png?v=20261023-2" sizes="32x32">
   <link rel="shortcut icon" href="/assets/ascendo-icon.ico?v=20261023-2">
   <link rel="stylesheet" href="/fonts.css?v=20261025-11">
-  <link rel="stylesheet" href="./chess.css?v=20261101-3">
-  <script type="module" src="./chess.mjs?v=20261101-3"></script>
+  <link rel="stylesheet" href="./chess.css?v=20261101-4">
+  <script type="module" src="./chess.mjs?v=20261101-4"></script>
 </head>
 <body>
   <header class="masthead">
     <a class="brand" href="/" aria-label="Ascendo home"><img src="/assets/ascendo-logo.png" alt="Ascendo" width="1300" height="414"><span>Chess</span></a>
-    <a class="home-link" href="/"><span aria-hidden="true">↖</span> Home</a>
+    <div class="header-actions"><button class="icon-button" id="openSettings" type="button" aria-label="Chess settings" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="3" fill="currentColor" stroke="none"/><circle cx="15" cy="17" r="3" fill="currentColor" stroke="none"/></svg></button><a class="home-link" href="/"><span aria-hidden="true">↖</span> Home</a></div>
   </header>
   <main>
     <section class="lobby" id="lobby" aria-labelledby="setupTitle">
@@ -53,6 +53,7 @@
         <div class="player-bar opponent" id="opponentBar"><span class="player-avatar" aria-hidden="true">♟</span><div class="player-info"><strong id="opponentName">Your friend</strong><span id="opponentColor">Black pieces</span></div><span class="clock" id="opponentClock" aria-label="Opponent time">10:00</span></div>
         <div class="board-frame"><div class="board" id="board" role="grid" aria-label="Chessboard. Arrow keys navigate; Enter selects a piece or destination." aria-rowcount="8" aria-colcount="8"></div><div id="boardNotice" class="board-notice" hidden aria-hidden="true"></div></div>
         <div class="player-bar self" id="selfBar"><span class="player-avatar" aria-hidden="true">♙</span><div class="player-info"><strong id="selfName">You</strong><span id="selfColor">White pieces</span></div><span class="clock" id="selfClock" aria-label="Your time">10:00</span></div>
+        <div class="premove-status" id="premoveStatus" hidden><span id="premoveText" role="status" aria-live="polite"></span><button class="icon-button" id="cancelPremove" type="button" aria-label="Cancel premove">×</button></div>
       </div>
       <aside class="game-sidebar">
         <section class="match-panel glass"><div class="match-top"><span class="round-label" id="roundLabel" hidden></span><span class="connection" id="connection" role="status">Connecting</span></div><h1 id="gameStatus" tabindex="-1" aria-live="polite" aria-atomic="true">Waiting for player</h1>
@@ -72,6 +73,22 @@
     </section>
     <noscript><p class="noscript">JavaScript is needed to play.</p></noscript>
   </main>
+  <dialog class="glass settings-dialog" id="settingsDialog" aria-labelledby="settingsTitle"><div class="settings-heading"><h2 id="settingsTitle">Settings</h2><button class="icon-button" id="closeSettings" type="button" aria-label="Close settings">×</button></div>
+    <fieldset><legend>Board</legend><div class="board-themes theme-choices">
+      <label><input type="radio" name="boardTheme" value="ascendo" checked><span><i class="board-swatch" data-theme="ascendo" aria-hidden="true"></i>Ascendo</span></label>
+      <label><input type="radio" name="boardTheme" value="walnut"><span><i class="board-swatch" data-theme="walnut" aria-hidden="true"></i>Walnut</span></label>
+      <label><input type="radio" name="boardTheme" value="forest"><span><i class="board-swatch" data-theme="forest" aria-hidden="true"></i>Forest</span></label>
+      <label><input type="radio" name="boardTheme" value="slate"><span><i class="board-swatch" data-theme="slate" aria-hidden="true"></i>Slate</span></label>
+    </div></fieldset>
+    <fieldset><legend>Pieces</legend><div class="piece-themes theme-choices">
+      <label><input type="radio" name="pieceTheme" value="classic" checked><span><i class="piece-swatch" data-piece-theme="classic" aria-hidden="true"></i>Classic</span></label>
+      <label><input type="radio" name="pieceTheme" value="modern"><span><i class="piece-swatch" data-piece-theme="modern" aria-hidden="true"></i>Modern</span></label>
+      <label><input type="radio" name="pieceTheme" value="outline"><span><i class="piece-swatch" data-piece-theme="outline" aria-hidden="true"></i>Outline</span></label>
+    </div></fieldset>
+    <label class="premove-toggle" for="enablePremoves"><span>Premoves</span><input id="enablePremoves" type="checkbox" role="switch" checked><i aria-hidden="true"></i></label>
+    <p class="settings-note">Queue a move during your opponent’s turn. Escape or right-click cancels it.</p>
+    <p class="message" id="settingsMessage" role="status"></p>
+  </dialog>
   <dialog class="glass promotion" id="promotion" aria-labelledby="promotionTitle"><h2 id="promotionTitle">Promote pawn</h2><div id="promotionChoices"></div><button class="text-button" id="cancelPromotion" type="button">Cancel</button></dialog>
   <dialog class="glass confirmation" id="confirmResign" aria-labelledby="resignTitle"><h2 id="resignTitle">Resign game?</h2><p>Your opponent wins.</p><div><button class="button secondary" id="cancelResign" type="button">Keep playing</button><button class="button primary" id="confirmResignButton" type="button">Resign</button></div></dialog>
 </body>
