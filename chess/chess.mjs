@@ -49,6 +49,7 @@ function snapshot({data,elapsed=0}){
   const changed=!game||game.revision!==data.revision||game.room!==data.room,previous=game;
   if(!game||game.side!==data.side)orientation=data.side;
   game=data;anchor={at:performance.now(),remaining:clockAt(data.state,data.serverNow+elapsed/2)};
+  if(data.state.status!=='active'&&$('confirmResign').open){$('confirmResign').close();$('gameStatus').focus({preventScroll:true});}
   document.title=`${data.state.status==='finished'?'Game over':data.state.turn===data.side?'Your move':'Chess'} | Ascendo`;
   if(changed){
     hintMove=null;selected=null;legal=[];cancelDrag();closePromotion();
