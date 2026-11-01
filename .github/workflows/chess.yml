@@ -73,6 +73,32 @@ jobs:
           path: test-results/chess-soak/
           retention-days: 7
           if-no-files-found: ignore
+  live_friend_probe:
+    if: github.ref == 'refs/heads/codex/chess-audit'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: |
+          if git diff --quiet HEAD^ HEAD -- scripts/test-chess-friend-live.mjs; then
+            echo 'Published guest-game probe already covered.'
+          else
+            node scripts/test-chess-friend-live.mjs
+          fi
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: chess-friend-live-probe
+          path: test-results/chess-friend-live/
+          retention-days: 7
+          if-no-files-found: ignore
   live_bot:
     needs: verify
     if: github.ref == 'refs/heads/main' && (needs.verify.outputs.bot_changed == 'true' || (github.event_name == 'workflow_dispatch' && inputs.live_bot))
@@ -104,10 +130,14 @@ jobs:
           JS
       - name: Play the published bot in isolated browsers
         run: CHESS_BOT_LIVE=1 node scripts/test-chess-bots-browser.mjs
+      - name: Verify published guest multiplayer and premoves
+        run: node scripts/test-chess-friend-live.mjs
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
           name: chess-live-bot-checks
-          path: test-results/chess-bots/
+          path: |
+            test-results/chess-bots/
+            test-results/chess-friend-live/
           retention-days: 7
           if-no-files-found: ignore
