@@ -9,6 +9,7 @@ import {normalizeProfile,profileMedia,MAX_IMAGE,MAX_VIDEO,OWNER_QUOTA} from '../
 import {badgeError} from '../badge-policy.mjs';
 import {badgeCapabilities} from '../supabase/functions/profile-api/badge-authority.mjs';
 import {preserveVisualGroups} from '../visual-schema.mjs';
+import {readJsonObject} from '../supabase/functions/profile-api/json-body.mjs';
 
 const read=file=>fs.readFileSync(new URL('../'+file,import.meta.url),'utf8'),checks=[],windows=[];
 const check=async(name,run)=>{await run();checks.push(name);};
@@ -52,7 +53,7 @@ const fakeClient={auth:{getUser:async value=>({data:{user:{id:value.split('.')[0
   throw Error(`Unexpected fixture operation ${operation}`);
 },storage:{from:()=>({getPublicUrl:path=>({data:{publicUrl:`https://test.supabase.co/storage/v1/object/public/profile-media/${path}`}}),copy:async()=>{published++;return {error:null};}})}};
 let source=read('supabase/functions/profile-api/index.ts').replace(/^import .*;\r?\n/gm,'');source=(await transform(source,{loader:'ts',format:'esm'})).code;
-vm.runInNewContext(source,{Deno:{env:{get:key=>key==='SUPABASE_URL'?'https://test.supabase.co':'fixture-only'},serve:fn=>handler=fn},createClient:()=>fakeClient,normalizeProfile,profileMedia,MAX_IMAGE,MAX_VIDEO,OWNER_QUOTA,normalizeHandle,createInvitedProfile,badgeError,badgeCapabilities,preserveVisualGroups,crypto:webcrypto,TextEncoder,TextDecoder,Request,Response,URL,URLSearchParams,Uint8Array,AbortSignal,console,atob,fetch:async()=>new Response(JSON.stringify({success:challengeValid,hostname:'ascendo.lol',action:'profile-login'}))});
+vm.runInNewContext(source,{Deno:{env:{get:key=>key==='SUPABASE_URL'?'https://test.supabase.co':'fixture-only'},serve:fn=>handler=fn},createClient:()=>fakeClient,readJsonObject,normalizeProfile,profileMedia,MAX_IMAGE,MAX_VIDEO,OWNER_QUOTA,normalizeHandle,createInvitedProfile,badgeError,badgeCapabilities,preserveVisualGroups,crypto:webcrypto,TextEncoder,TextDecoder,Request,Response,URL,URLSearchParams,Uint8Array,AbortSignal,console,atob,fetch:async()=>new Response(JSON.stringify({success:challengeValid,hostname:'ascendo.lol',action:'profile-login'}))});
 const call=(path,method='GET',body,id)=>handler(new Request('https://test.supabase.co/profile-api'+path,{method,headers:{'Content-Type':'application/json',...(id?{Authorization:`Bearer ${token(id)}`}:{})},body:body?JSON.stringify(body):undefined}));
 await check('valid invitation requires human verification and existing rate limits before creating native Auth',async()=>{
   challengeValid=false;assert.equal((await call('/session','POST',{code:'600001',challenge:'fixture'})).status,401);assert.equal(created,0);challengeValid=true;rateAllowed=false;assert.equal((await call('/session','POST',{code:'600001',challenge:'fixture'})).status,429);assert.equal(created,0);rateAllowed=true;

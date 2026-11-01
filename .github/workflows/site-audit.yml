@@ -21,6 +21,12 @@ jobs:
       - run: npm test
       - run: node scripts/test-site-interface.mjs
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: site-interface-evidence
+          path: test-results/site-audit/
+          retention-days: 7
       - run: node scripts/test-profile-creative.mjs
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
       - run: node scripts/test-profile-capture.mjs
