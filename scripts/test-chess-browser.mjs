@@ -19,6 +19,7 @@ const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const selector=s=>`#board [data-square="${s}"]`;
 async function createPage(){
  const context=await browser.createBrowserContext();contexts.push(context);const p=await context.newPage();pages.push(p);p.on('pageerror',error=>errors.push(error.message));await p.setRequestInterception(true);
+ await p.evaluateOnNewDocument(()=>{const Native=window.AudioContext;window.__audio={created:0,started:0,contexts:[]};window.AudioContext=class extends Native{constructor(options){super(options);window.__audio.created++;window.__audio.contexts.push(this);}createBufferSource(){const node=super.createBufferSource(),start=node.start.bind(node);node.start=(...args)=>{window.__audio.started++;return start(...args);};return node;}};});
  p.on('request',request=>{void(async()=>{
    const url=new URL(request.url());
    if(url.pathname.startsWith('/functions/v1/chess-api/')){
@@ -43,12 +44,14 @@ async function layout(p,width){
 try{
  page=await createPage();friend=await createPage();await friend.evaluateOnNewDocument(()=>{document.startViewTransition=undefined;});await page.setViewport({width:1440,height:1000});
  await page.goto('https://ascendo.lol/chess/',{waitUntil:'networkidle0'});await page.waitForFunction(()=>!document.getElementById('startButton').disabled);
+ assert.equal(await page.evaluate(()=>window.__audio.created),0,'No audio context before interaction');
  await page.screenshot({path:'test-results/chess/lobby-desktop.png',fullPage:true});
  await page.setViewport({width:320,height:850,isMobile:true,hasTouch:true});await page.waitForFunction(()=>getComputedStyle(document.getElementById('setup')).opacity==='1');assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);await page.screenshot({path:'test-results/chess/lobby-mobile.png',fullPage:true});await page.setViewport({width:1440,height:1000});
  await page.type('#nickname','A very friendly nickname');await page.click('input[name=time][value="3+2"]');
  for(const mode of ['bot','friend','bot','friend']){await page.click(`input[name=mode][value=${mode}]`);await pause(45);}
  await page.waitForFunction(()=>!document.getElementById('gameOptions').hasAttribute('data-animating'));
  assert.deepEqual(await page.evaluate(()=>({name:document.getElementById('nickname').value,time:document.getElementById('setup').elements.time.value,clock:document.getElementById('clockOptions').hidden,bot:document.getElementById('botOptions').hidden})),{name:'A very friendly nickname',time:'3+2',clock:false,bot:true});
+ await page.evaluate(()=>{Object.defineProperty(document,'hidden',{configurable:true,value:true});document.dispatchEvent(new Event('visibilitychange'));});await page.waitForFunction(()=>window.__audio.contexts.every(c=>c.state!=='running'));assert.equal(await page.evaluate(()=>window.__audio.started),0);await page.evaluate(()=>{delete document.hidden;document.dispatchEvent(new Event('visibilitychange'));});await page.waitForFunction(()=>window.__audio.contexts[0]?.state==='running');assert.equal(await page.evaluate(()=>window.__audio.created),1,'One reused context across gestures and visibility changes');
  await page.click('input[name=time][value=untimed]');await page.click('input[name=color][value=w]');await page.click('#startButton');
  await page.waitForSelector('#game:not([hidden])');assert.equal(await page.$eval('#boardNotice',n=>n.hidden),false);assert.equal(await page.$eval(selector('a1'),n=>n.classList.contains('dark')),true);assert.equal(await page.$eval(selector('h1'),n=>n.classList.contains('dark')),false);
  const invite=await page.$eval('#inviteUrl',n=>n.value);assert.match(invite,/^https:\/\/ascendo\.lol\/chess\/\?room=[a-f0-9]{32}$/);
@@ -63,14 +66,18 @@ try{
  await clickMove(friend,'d7','d5');await clickMove(friend,'e7','e5');assert.match(await friend.$eval('#premoveText',n=>n.textContent),/e7 → e5/);await friend.click(selector('e5'),{button:'right'});assert.equal(await friend.$eval('#premoveStatus',n=>n.hidden),true);
  const dragFrom=await friend.$eval(selector('e7'),n=>{const r=n.getBoundingClientRect();return{x:r.x+r.width/2,y:r.y+r.height/2}}),dragTo=await friend.$eval(selector('e5'),n=>{const r=n.getBoundingClientRect();return{x:r.x+r.width/2,y:r.y+r.height/2}});
  await friend.mouse.move(dragFrom.x,dragFrom.y);await friend.mouse.down();await friend.mouse.move(dragTo.x,dragTo.y,{steps:10});await friend.mouse.up();assert.equal(await friend.$eval('#premoveStatus',n=>n.hidden),false);assert.equal(games.get(new URL(invite).searchParams.get('room')).state.moves.length,0);await friend.screenshot({path:'test-results/chess/premove-desktop.png',fullPage:true});
+ for(const p of [page,friend])assert.equal(await p.evaluate(()=>window.__audio.started),0,'Selection and premoves are silent until confirmed');
  await clickMove(page,'e2','e4');await waitPiece(friend,'e4','white pawn');await waitPiece(page,'e5','black pawn');assert.equal(await friend.$eval('#premoveStatus',n=>n.hidden),true);
+ for(const p of [page,friend])await p.waitForFunction(()=>window.__audio.started===2);
  // Actual mouse drag; move destinations stay on the same board grid.
  const from=await page.$eval(selector('g1'),n=>{const r=n.getBoundingClientRect();return{x:r.x+r.width/2,y:r.y+r.height/2}}),to=await page.$eval(selector('f3'),n=>{const r=n.getBoundingClientRect();return{x:r.x+r.width/2,y:r.y+r.height/2}});
  await page.mouse.move(from.x,from.y);await page.mouse.down();await page.mouse.move(to.x,to.y,{steps:12});await page.mouse.up();await waitPiece(friend,'f3','white knight');assert.equal(await page.$$eval('.drag-piece',n=>n.length),0);
  // Conditional capture is canceled if no piece arrives on that square.
  await clickMove(page,'e4','f5');await clickMove(friend,'b8','c6');await waitPiece(page,'c6','black knight');await page.waitForFunction(()=>document.getElementById('premoveStatus').hidden);assert.match(await page.$eval('#message',n=>n.textContent),/no longer legal/);assert.equal(games.get(new URL(invite).searchParams.get('room')).state.moves.length,4);
  await page.reload({waitUntil:'networkidle0'});await page.waitForSelector('#game:not([hidden])');assert.equal(await page.$eval('#selfColor',n=>n.textContent),'White pieces · You');assert.equal(await page.$eval('#moveList',n=>n.textContent.includes('Nf3')),true);
+ assert.equal(await page.evaluate(()=>window.__audio.started),0,'Restoring a match does not replay audio');
  assert.equal(await page.$eval('html',n=>n.dataset.boardTheme),'forest');assert.equal(await page.$$eval('#board .set-modern',n=>n.length),32);
+ const audioReport=await page.evaluate(async()=>{const {createCue,noiseBuffer}=await import('/chess/sounds.mjs?v=20261101-6'),report=[];for(const kind of ['move','capture','check']){const c=new OfflineAudioContext(1,19200,48000);createCue(c,kind,noiseBuffer(c));const b=await c.startRendering(),data=b.getChannelData(0);let peak=0,energy=0,tail=0;for(let i=0;i<data.length;i++){peak=Math.max(peak,Math.abs(data[i]));energy+=data[i]*data[i];if(i>data.length-2400)tail+=Math.abs(data[i]);}report.push({kind,peak,energy,tail});}return report;});for(const r of audioReport){assert.ok(r.peak>.01&&r.peak<.5,JSON.stringify(r));assert.ok(r.tail<.0001,JSON.stringify(r));}assert.equal(new Set(audioReport.map(r=>r.energy.toFixed(4))).size,3);fs.writeFileSync('test-results/chess/audio.json',JSON.stringify(audioReport,null,2));
  for(const p of [page,friend]){await p.waitForFunction(()=>typeof window.__chessSubscribe==='function');await p.evaluate(()=>{sessionStorage.setItem('fixture-live','1');window.__chessHintsLive=true;window.__chessSubscribe('SUBSCRIBED');});}
  await page.focus(selector('e2'));await page.keyboard.press('ArrowUp');assert.equal(await page.evaluate(()=>document.activeElement.dataset.square),'e3');
  for(const width of [1440,1024,768,390,320])await layout(page,width);

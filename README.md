@@ -16,6 +16,8 @@ Profiles open immediately. The existing video attempts playback with audio, fall
 
 ## Private chess
 
+Chess has three quiet, original Web Audio cues: a move tap, a deeper capture tap and a short check tone. Check takes precedence over capture, so each confirmed move gets one cue. Audio starts after user interaction, with no mute button or extra controls. Initial loads, refresh/reconnect history, duplicate snapshots, selections, invalid moves, hints and takebacks stay silent. Hidden tabs stop pending cues; unavailable/blocked audio never interrupts play. No audio assets or dependencies are downloaded. UI cache version: `20261101-6`.
+
 Recovery checks cover blocked storage, expired saved seats, lost responses after a move commits, stale snapshots, revision conflicts, timed draws/timeouts, multi-touch dragging, all four promotion choices and PGN exports. Bot play still works for the current visit when storage is blocked; friend games retain a visible warning to keep the tab open. Secondary touches cannot take over an active drag. PGN downloads include separately assigned, escaped player headers and the actual result. The isolated browser recovery suite runs in Actions; `scripts/soak-chess-bot.mjs` adds sustained real-engine interaction checks. UI cache version: `20261101-5`.
 
 Chess settings (the small sliders button in the header) offer four board themes—Ascendo, Walnut, Forest and Slate—and three original, local SVG piece sets: Classic, Modern and Outline. Changes appear immediately and are remembered only on this device in `ascendo-chess-preferences-v1`, separately from friend seats and bot saves. No theme assets or new dependencies are downloaded.
