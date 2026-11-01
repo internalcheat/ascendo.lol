@@ -4,6 +4,7 @@ import {PremoveQueue,premoveTargets} from '../chess/premoves.mjs';
 import {normalizePreferences,readPreferences,savePreferences,PREFERENCES_KEY,BOARD_THEMES,PIECE_THEMES} from '../chess/preferences.mjs';
 import {pieceMarkup} from '../chess/pieces.mjs';
 import {moveSound,ChessSounds} from '../chess/sounds.mjs';
+import {squarePoint,pointSquare,BoardMarks} from '../chess/annotations.mjs';
 let checks=0;
 function test(label,run){run();checks++;console.log(`✓ ${label}`);}
 function game(fen=new Chess().fen(),side='b',moves=[]){const e=new Chess(fen);return {room:'fixture',side,state:{status:'active',round:1,fen:e.fen(),turn:e.turn(),moves}};}
@@ -68,4 +69,15 @@ test('audio does not initialize on load or play, and unavailable audio never blo
   let created=0;const sounds=new ChessSounds({contextFactory:()=>{created++;throw Error('Unavailable');},visible:()=>true});
   sounds.play('move');assert.equal(created,0);assert.doesNotThrow(()=>sounds.unlock());assert.equal(created,1);assert.doesNotThrow(()=>sounds.play('check'));sounds.dispose();sounds.unlock();assert.equal(created,1);
 });
-console.log(`${checks} chess theme, premove and audio groups passed.`);
+test('all annotation square centers round-trip at both orientations and board sizes',()=>{
+  for(const orientation of ['w','b'])for(const width of [282,352,590])for(const file of 'abcdefgh')for(const rank of '12345678'){
+    const square=file+rank,p=squarePoint(square,orientation),r={left:31,top:89,width,height:width};assert.equal(pointSquare(r.left+p.x/8*width,r.top+p.y/8*width,r,orientation),square);
+  }
+  assert.deepEqual(squarePoint('a8'),{x:.5,y:.5});assert.deepEqual(squarePoint('a8','b'),{x:7.5,y:7.5});assert.equal(squarePoint('x9'),null);
+  for(const [x,y,r] of [[-1,0,{left:0,top:0,width:80,height:80}],[80,80,{left:0,top:0,width:80,height:80}],[0,0,{left:0,top:0,width:0,height:80}],[NaN,1,{}],[1,1,{left:0,top:0,width:NaN,height:8}]])assert.equal(pointSquare(x,y,r),null);
+});
+test('annotations toggle independently, validate squares and remain bounded',()=>{
+  const marks=new BoardMarks();assert.equal(marks.toggle('e2','e4'),true);assert.equal(marks.toggle('e4'),true);assert.equal(marks.items.size,2);assert.equal(marks.toggle('e2','e4'),false);assert.equal(marks.items.size,1);assert.equal(marks.toggle('bad'),null);
+  for(const a of 'abcdefgh')for(const b of 'abcdefgh')marks.toggle(a+'1',b+'8');assert.ok(marks.items.size<=64);marks.clear();assert.equal(marks.items.size,0);
+});
+console.log(`${checks} chess preference and interaction groups passed.`);
