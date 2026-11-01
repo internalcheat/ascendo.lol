@@ -41,11 +41,15 @@ async function layout(p,width){
  await p.screenshot({path:`test-results/chess/game-${width}.png`,fullPage:true});
 }
 try{
- page=await createPage();friend=await createPage();await page.setViewport({width:1440,height:1000});
+ page=await createPage();friend=await createPage();await friend.evaluateOnNewDocument(()=>{document.startViewTransition=undefined;});await page.setViewport({width:1440,height:1000});
  await page.goto('https://ascendo.lol/chess/',{waitUntil:'networkidle0'});await page.waitForFunction(()=>!document.getElementById('startButton').disabled);
  await page.screenshot({path:'test-results/chess/lobby-desktop.png',fullPage:true});
  await page.setViewport({width:320,height:850,isMobile:true,hasTouch:true});await page.waitForFunction(()=>getComputedStyle(document.getElementById('setup')).opacity==='1');assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);await page.screenshot({path:'test-results/chess/lobby-mobile.png',fullPage:true});await page.setViewport({width:1440,height:1000});
- await page.type('#nickname','A very friendly nickname');await page.click('input[name=time][value=untimed]');await page.click('input[name=color][value=w]');await page.click('#startButton');
+ await page.type('#nickname','A very friendly nickname');await page.click('input[name=time][value="3+2"]');
+ for(const mode of ['bot','friend','bot','friend']){await page.click(`input[name=mode][value=${mode}]`);await pause(45);}
+ await page.waitForFunction(()=>!document.getElementById('gameOptions').hasAttribute('data-animating'));
+ assert.deepEqual(await page.evaluate(()=>({name:document.getElementById('nickname').value,time:document.getElementById('setup').elements.time.value,clock:document.getElementById('clockOptions').hidden,bot:document.getElementById('botOptions').hidden})),{name:'A very friendly nickname',time:'3+2',clock:false,bot:true});
+ await page.click('input[name=time][value=untimed]');await page.click('input[name=color][value=w]');await page.click('#startButton');
  await page.waitForSelector('#game:not([hidden])');assert.equal(await page.$eval('#boardNotice',n=>n.hidden),false);assert.equal(await page.$eval(selector('a1'),n=>n.classList.contains('dark')),true);assert.equal(await page.$eval(selector('h1'),n=>n.classList.contains('dark')),false);
  const invite=await page.$eval('#inviteUrl',n=>n.value);assert.match(invite,/^https:\/\/ascendo\.lol\/chess\/\?room=[a-f0-9]{32}$/);
  await friend.setViewport({width:1280,height:900});await friend.goto(invite,{waitUntil:'networkidle0'});await friend.type('#nickname','Szikra Ádám');await friend.click('#startButton');await friend.waitForSelector('#game:not([hidden])');
@@ -69,7 +73,7 @@ try{
  const room=new URL(invite).searchParams.get('room'),fixture=games.get(room);fixture.state={...fixture.state,status:'active',result:null,moves:[],lastMove:null,drawOffer:null,rematch:[],turn:'w',fen:new Chess().fen()};
  for(const san of ['a4','h5','a5','h4','a6','h3','axb7','hxg2']){const engine=new Chess(fixture.state.fen),move=engine.move(san);fixture.state=transition(fixture.state,fixture.state.turn,'move',{from:move.from,to:move.to},Date.now());}fixture.revision++;
  await friend.reload({waitUntil:'networkidle0'});await friend.waitForSelector('#game:not([hidden])');await clickMove(friend,'b7','a8');await friend.waitForFunction(()=>document.getElementById('promotion').open);await friend.tap('[aria-label="Promote to knight"]');await waitPiece(friend,'a8','white knight');assert.equal(await friend.$eval('#promotion',n=>n.open),false);
- await page.setJavaScriptEnabled(false);await page.goto('https://ascendo.lol/chess/',{waitUntil:'networkidle0'});assert.match(await page.$eval('noscript',n=>n.textContent),/JavaScript is needed/);await page.setJavaScriptEnabled(true);
+ await page.setJavaScriptEnabled(false);await page.goto('https://ascendo.lol/chess/',{waitUntil:'networkidle0'});assert.match(await page.$eval('noscript',n=>n.textContent),/JavaScript is needed/);await page.setJavaScriptEnabled(true);await page.reload({waitUntil:'networkidle0'});await page.click('input[name=mode][value=bot]');assert.equal(await page.$eval('#gameOptions',n=>n.getAnimations({subtree:true}).length),0,'Reduced motion removes mode-switch animation');
  const missing=await createPage();await missing.goto('https://ascendo.lol/chess/?room=bad',{waitUntil:'networkidle0'});assert.equal(await missing.$eval('#startButton',n=>n.disabled),true);assert.match(await missing.$eval('#message',n=>n.textContent),/not valid/);
  assert.deepEqual(errors,[]);fs.writeFileSync('test-results/chess/results.json',JSON.stringify({reports,checks:['two independent browser contexts','private invitation','live fallback synchronization','legal moves','mouse drag','refresh resume','keyboard navigation','draw decline','resign confirmation','color-swapping rematch','native touch taps','checkmate','promotion picker and underpromotion','reduced motion','no JavaScript notice','invalid invite'],errors},null,2));
  console.log('Chess browser checks passed',JSON.stringify(reports));
