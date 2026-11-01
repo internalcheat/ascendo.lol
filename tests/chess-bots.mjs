@@ -49,6 +49,14 @@ await test('hidden tabs terminate work and resume only one search from the saved
 await test('illegal engine moves and engine failures retain the position and allow explicit retry',async()=>{
  const f=fixture();f.game.start('A');await tick();f.game.play({from:'e2',to:'e4'});await tick();f.engines[0].requests[0].resolve('e7e4');await tick();assert.equal(f.game.status,'error');assert.deepEqual(f.game.state.moves,['e4']);f.game.retry();await tick();assert.equal(f.engines.length,2);f.engines[1].requests[0].resolve('e7e5');await tick();assert.equal(f.game.status,'ready');assert.deepEqual(f.game.state.moves,['e4','e5']);f.game.dispose();
 });
+await test('blocked browser storage does not prevent a playable bot game',async()=>{
+ const original=Object.getOwnPropertyDescriptor(globalThis,'localStorage'),warnings=[];let game;
+ try{
+   Object.defineProperty(globalThis,'localStorage',{configurable:true,get(){throw new DOMException('Storage blocked','SecurityError');}});
+   game=new BotGame({engineFactory:()=>new FakeEngine(),onWarning:text=>warnings.push(text)});game.start('No storage');await tick();
+   assert.equal(game.canPlay,true);assert.equal(warnings.length,1);assert.match(warnings[0],/could not save/);game.play({from:'e2',to:'e4'});assert.equal(game.state.moves[0],'e4');
+ }finally{game?.dispose();if(original)Object.defineProperty(globalThis,'localStorage',original);else delete globalThis.localStorage;}
+});
 class FakeWorker{
   commands=[];terminated=false;
   postMessage(value){this.commands.push(value);if(value==='uci')queueMicrotask(()=>this.send('uciok'));if(value==='isready')queueMicrotask(()=>this.send('readyok'));if(value==='stop')queueMicrotask(()=>this.send('bestmove e7e5'));}

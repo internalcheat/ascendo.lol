@@ -2,6 +2,7 @@ import {Chess,TIME_CONTROLS,clockAt,gameMessage,nickname,opposite} from './game.
 import {pieceMarkup,pieceNames} from './pieces.mjs?v=20261101-4';
 import {PremoveQueue,premoveTargets} from './premoves.mjs?v=20261101-4';
 import {readPreferences,savePreferences} from './preferences.mjs?v=20261101-4';
+import {gamePgn} from './pgn.mjs?v=20261101-5';
 import {BACKEND_URL,PUBLISHABLE_KEY} from '../customizer-config.mjs';
 
 const $=id=>document.getElementById(id),api=`${BACKEND_URL}/functions/v1/chess-api`;
@@ -21,7 +22,7 @@ try{const strength=Number(localStorage.getItem('ascendo-chess-bot-skill-v1'));if
 try{const parsed=JSON.parse(localStorage.getItem(storageKey)||'{}');for(const [room,value] of Object.entries(parsed))if(roomPattern.test(room)&&tokenPattern.test(value?.token||''))seats[room]={token:value.token,at:Number(value.at)||0};}catch{}
 function saveSeat(room,token){
   seats[room]={token,at:Date.now()};seats=Object.fromEntries(Object.entries(seats).sort((a,b)=>b[1].at-a[1].at).slice(0,8));
-  try{localStorage.setItem(storageKey,JSON.stringify(seats));}catch{message('Browser storage is unavailable. Keep this tab open to keep your seat.',true);}
+  try{localStorage.setItem(storageKey,JSON.stringify(seats));return true;}catch{return false;}
 }
 function message(text,error=false){$('message').textContent=text;$('message').classList.toggle('error',error);}
 function connection(text,state){$('connection').textContent=text;$('connection').dataset.state=state;}
@@ -48,6 +49,7 @@ function snapshot({data,elapsed=0}){
   const changed=!game||game.revision!==data.revision||game.room!==data.room,previous=game;
   if(!game||game.side!==data.side)orientation=data.side;
   game=data;anchor={at:performance.now(),remaining:clockAt(data.state,data.serverNow+elapsed/2)};
+  if(data.state.status!=='active'&&$('confirmResign').open){$('confirmResign').close();$('gameStatus').focus({preventScroll:true});}
   document.title=`${data.state.status==='finished'?'Game over':data.state.turn===data.side?'Your move':'Chess'} | Ascendo`;
   if(changed){
     hintMove=null;selected=null;legal=[];cancelDrag();closePromotion();
@@ -212,7 +214,7 @@ function botStatus(status,error){
   if(error)message(error,true);updateActions();
 }
 async function openBot({restore=false,name,side,strength}={}){
-  const {BotGame}=await import('./bot-game.mjs?v=20261101-2');
+  const {BotGame}=await import('./bot-game.mjs?v=20261101-5');
   bot?.dispose();bot=new BotGame({onChange:data=>snapshot({data}),onStatus:botStatus,onWarning:text=>message(text,true),onHint:move=>{
     hintMove=move;updateSelection();if(move)message(`Hint: ${move.san} (${move.from} → ${move.to}${move.promotion?' · promote to '+pieceNames[move.promotion]:''}).`);
   }});
@@ -241,6 +243,7 @@ async function moveTo(from,to,options){
 function closePromotion(){if($('promotion').open)$('promotion').close();promotionMove=null;}
 function cancelDrag(){if(!drag)return;drag.ghost?.remove();drag.cell.classList.remove('drag-source');$('board').querySelector('.drop-target')?.classList.remove('drop-target');drag=null;}
 function pointerDown(event){
+  if(event.isPrimary===false||drag)return;
   // Only suppress the click synthesized by the completed drag. A fresh press
   // is a new intention and must not inherit that drag's short suppression.
   ignoreClickUntil=0;
@@ -301,16 +304,17 @@ $('setup').addEventListener('submit',async event=>{
     try{const choice=$('setup').elements.color.value,side=choice==='random'?(crypto.getRandomValues(new Uint8Array(1))[0]%2?'w':'b'):choice;await openBot({name,side,strength:Number($('botStrength').value)});}
     catch(error){message(error.message||'The bot could not start. Try again.',true);}finally{pending=false;$('startButton').disabled=false;updateActions();}return;
   }
-  let room=roomFromUrl(),joining=Boolean(room);room||=(creationRoom??=random(16));seat=seats[room]||{token:random(32)};saveSeat(room,seat.token);
+  let room=roomFromUrl(),joining=Boolean(room);room||=(creationRoom??=random(16));seat=seats[room]||{token:random(32)};const seatSaved=saveSeat(room,seat.token);
   pending=true;$('startButton').disabled=true;message('');
   try{
     const result=await request(joining?`games/${room}/join`:'games',{method:'POST',body:joining?{nickname:name}:{room,nickname:name,time:$('setup').elements.time.value,color:$('setup').elements.color.value}});
     history.replaceState(null,'',`?room=${room}`);snapshot(result);connection('Connected','connected');
+    if(!seatSaved)message('Browser storage is unavailable. Keep this tab open to keep your seat.',true);
   }catch(error){message(error.message||'Could not connect. Try again; your invitation is kept safe.',true);}
   finally{pending=false;$('startButton').disabled=false;updateActions();}
 });
 $('board').addEventListener('click',event=>{if(event.detail!==0&&performance.now()<ignoreClickUntil)return;const cell=event.target.closest('.square');if(cell){lastFocus=cell.dataset.square;choose(cell.dataset.square);}});
-$('board').addEventListener('keydown',keyboard);$('board').addEventListener('pointerdown',pointerDown);$('board').addEventListener('pointermove',pointerMove);$('board').addEventListener('pointerup',pointerUp);$('board').addEventListener('pointercancel',cancelDrag);
+$('board').addEventListener('keydown',keyboard);$('board').addEventListener('pointerdown',pointerDown);$('board').addEventListener('pointermove',pointerMove);$('board').addEventListener('pointerup',pointerUp);$('board').addEventListener('pointercancel',event=>{if(drag?.id===event.pointerId)cancelDrag();});
 $('board').addEventListener('contextmenu',event=>{event.preventDefault();cancelDrag();cancelPremove(true);});
 document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!event.defaultPrevented&&!document.querySelector('dialog[open]')&&(premove.value||selected)){event.preventDefault();const restore=document.activeElement===$('cancelPremove');cancelDrag();cancelPremove(true);if(restore)$('board').querySelector('[tabindex="0"]')?.focus({preventScroll:true});}});
 $('cancelPremove').onclick=()=>{cancelPremove(true);$('board').querySelector('[tabindex="0"]')?.focus({preventScroll:true});};
@@ -321,10 +325,7 @@ $('botHint').onclick=()=>{message('');selected=null;legal=[];updateSelection();v
 $('promotion').addEventListener('cancel',()=>{promotionMove=null;});
 $('copyInvite').onclick=async()=>{try{await navigator.clipboard.writeText(inviteUrl(game.room));message('Link copied.');}catch{$('inviteUrl').select();message('Copy the link above.');}};
 $('downloadPgn').onclick=()=>{
-  if(!game)return;const state=game.state,engine=new Chess();for(const move of state.moves)engine.move(move);
-  const result=state.result?(state.result.winner===null?'1/2-1/2':state.result.winner==='w'?'1-0':'0-1'):'*';
-  engine.setHeader('Event',isBot()?'Ascendo bot practice':'Ascendo friendly game','Site','https://ascendo.lol/chess/','White',state.players.w,'Black',state.players.b,'Result',result);
-  const blob=new Blob([engine.pgn()],{type:'application/x-chess-pgn'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='ascendo-chess.pgn';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  if(!game)return;const blob=new Blob([gamePgn(game)],{type:'application/x-chess-pgn'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='ascendo-chess.pgn';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 };
 for(const n of document.querySelectorAll('[data-piece-theme]'))n.innerHTML=pieceMarkup({type:'n',color:'w'},n.dataset.pieceTheme)+pieceMarkup({type:'k',color:'b'},n.dataset.pieceTheme);
 for(const n of document.querySelectorAll('[name=boardTheme]'))n.checked=n.value===preferences.board;
@@ -350,7 +351,7 @@ const initialRoom=roomFromUrl();
 if(roomPattern.test(initialRoom||'')&&seats[initialRoom]){
   seat=seats[initialRoom];$('startButton').disabled=true;
   try{snapshot(await request(`games/${initialRoom}`));connection('Connected','connected');}
-  catch(error){if(error.status!==403&&error.status!==404)message(error.message||'Could not reconnect. Try again.',true);}
+  catch(error){message(error.message||'Could not reconnect. Try again.',true);}
   finally{$('startButton').disabled=false;}
 }
 if(!initialRoom&&new URL(location.href).searchParams.get('mode')==='bot'&&!new URL(location.href).searchParams.has('setup')){

@@ -1,7 +1,7 @@
 name: Private chess
 on:
   push:
-    branches: [codex/private-chess, codex/chess-bots, codex/chess-cleanup, codex/chess-themes-premoves, main]
+    branches: [codex/private-chess, codex/chess-bots, codex/chess-cleanup, codex/chess-themes-premoves, codex/chess-audit, main]
   workflow_dispatch:
     inputs:
       live_bot:
@@ -35,6 +35,7 @@ jobs:
       - run: npm test
       - run: node scripts/test-chess-browser.mjs
       - run: node scripts/test-chess-bots-browser.mjs
+      - run: node scripts/test-chess-recovery-browser.mjs
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
@@ -42,6 +43,60 @@ jobs:
           path: |
             test-results/chess/
             test-results/chess-bots/
+            test-results/chess-recovery/
+          retention-days: 7
+          if-no-files-found: ignore
+  long_audit:
+    if: github.ref == 'refs/heads/codex/chess-audit'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Sustained real-engine interaction audit
+        run: |
+          if git diff --quiet HEAD^ HEAD -- scripts/soak-chess-bot.mjs chess/bot-game.mjs chess/stockfish-engine.mjs; then
+            echo 'Core soak already covered; focused recovery checks cover this revision.'
+          else
+            CHESS_SOAK_MINUTES=12 node scripts/soak-chess-bot.mjs
+          fi
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: chess-long-audit
+          path: test-results/chess-soak/
+          retention-days: 7
+          if-no-files-found: ignore
+  live_friend_probe:
+    if: github.ref == 'refs/heads/codex/chess-audit'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: |
+          if git diff --quiet HEAD^ HEAD -- scripts/test-chess-friend-live.mjs; then
+            echo 'Published guest-game probe already covered.'
+          else
+            node scripts/test-chess-friend-live.mjs
+          fi
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: chess-friend-live-probe
+          path: test-results/chess-friend-live/
           retention-days: 7
           if-no-files-found: ignore
   live_bot:
@@ -75,10 +130,14 @@ jobs:
           JS
       - name: Play the published bot in isolated browsers
         run: CHESS_BOT_LIVE=1 node scripts/test-chess-bots-browser.mjs
+      - name: Verify published guest multiplayer and premoves
+        run: node scripts/test-chess-friend-live.mjs
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
           name: chess-live-bot-checks
-          path: test-results/chess-bots/
+          path: |
+            test-results/chess-bots/
+            test-results/chess-friend-live/
           retention-days: 7
           if-no-files-found: ignore

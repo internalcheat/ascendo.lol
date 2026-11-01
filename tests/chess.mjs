@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {newGame,joinGame,transition,clockAt,settleTimeout,nickname,Chess,gameMessage} from '../chess/game.mjs';
 import {createChessHandler,hash} from '../supabase/functions/chess-api/service.mjs';
+import {gamePgn} from '../chess/pgn.mjs';
 
 let checks=0;
 async function test(label,run){await run();checks++;console.log(`✓ ${label}`);}
@@ -95,5 +96,12 @@ await test('origin, token, body size, content type and rate limits are enforced'
 });
 await test('migration isolates all chess data, reserves the route, and touches no profile records',()=>{
   const sql=fs.readFileSync('supabase/migrations/20261031231302_private_chess.sql','utf8');assert.match(sql,/security invoker set search_path=''/);assert.match(sql,/revoke all on function public.chess_command\(text,jsonb\) from public,anon,authenticated/);assert.match(sql,/enable row level security/g);assert.match(sql,/'plugins','chess','customize'/);assert.doesNotMatch(sql,/(?:update|delete from|insert into) private\.(?:profiles|credentials|uploads|profile_presets)\b/i);
+});
+await test('PGN retains players, round, site and the actual result',()=>{
+  const normal=play(active(),['e4','e5','Nf3']),copy=new Chess();copy.loadPgn(gamePgn({state:normal}));assert.equal(copy.fen(),normal.fen);assert.equal(copy.getHeaders().White,'White');assert.equal(copy.getHeaders().Black,'Black');assert.equal(copy.getHeaders().Site,'https://ascendo.lol/chess/');assert.equal(copy.getHeaders().Round,'1');
+  for(const state of [play(active(),['f3','e5','g4','Qh4#']),transition(normal,'b','resign',{},now),{...normal,status:'finished',result:{winner:null,reason:'agreement'}}]){
+    const text=gamePgn({state,mode:'bot'}),parsed=new Chess();parsed.loadPgn(text);const expected=state.result.winner===null?'1/2-1/2':state.result.winner==='w'?'1-0':'0-1';assert.equal(parsed.getHeaders().Result,expected);assert.ok(text.trim().endsWith(expected));assert.equal(parsed.getHeaders().Event,'Ascendo bot practice');
+  }
+  const quoted={...normal,players:{w:'Joe "quoted"',b:'Path\\name'}};const text=gamePgn({state:quoted});assert.ok(text.includes('[White "Joe \\"quoted\\""]'));assert.ok(text.includes('[Black "Path\\\\name"]'));
 });
 console.log(`${checks} chess checks passed.`);
