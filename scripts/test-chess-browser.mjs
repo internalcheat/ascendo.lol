@@ -32,7 +32,7 @@ async function createPage(){
  })().catch(error=>{errors.push(error.message);void request.abort().catch(()=>{});});});return p;
 }
 async function waitPiece(p,square,name){await p.waitForFunction((sel,text)=>document.querySelector(sel)?.getAttribute('aria-label').includes(text),{timeout:5000},selector(square),name);}
-async function clickMove(p,from,to){const press=sel=>p.viewport().hasTouch?p.tap(sel):p.click(sel);await press(selector(from));assert.equal(await p.$eval(selector(to),n=>n.classList.contains('legal')),true,`${from}-${to} legal highlight`);await press(selector(to));}
+async function clickMove(p,from,to){await p.waitForSelector(selector(from)+'.can-select');const press=sel=>p.viewport().hasTouch?p.tap(sel):p.click(sel);await press(selector(from));assert.equal(await p.$eval(selector(to),n=>n.classList.contains('legal')),true,`${from}-${to} legal highlight`);await press(selector(to));}
 async function layout(p,width){
  await p.setViewport({width,height:960,isMobile:width<700,hasTouch:width<700});await pause(220);
  const report=await p.evaluate(()=>{
