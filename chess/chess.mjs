@@ -241,6 +241,9 @@ async function moveTo(from,to,options){
 function closePromotion(){if($('promotion').open)$('promotion').close();promotionMove=null;}
 function cancelDrag(){if(!drag)return;drag.ghost?.remove();drag.cell.classList.remove('drag-source');$('board').querySelector('.drop-target')?.classList.remove('drop-target');drag=null;}
 function pointerDown(event){
+  // Only suppress the click synthesized by the completed drag. A fresh press
+  // is a new intention and must not inherit that drag's short suppression.
+  ignoreClickUntil=0;
   const cell=event.target.closest('.square');if(!cell||event.button!==0||(!canMove()&&!canQueue()))return;
   const engine=new Chess(game.state.fen),piece=engine.get(cell.dataset.square);if(piece?.color!==game.side)return;
   drag={cell,square:cell.dataset.square,x:event.clientX,y:event.clientY,piece,id:event.pointerId,ghost:null,moved:false,wasSelected:selected===cell.dataset.square};
@@ -306,7 +309,7 @@ $('setup').addEventListener('submit',async event=>{
   }catch(error){message(error.message||'Could not connect. Try again; your invitation is kept safe.',true);}
   finally{pending=false;$('startButton').disabled=false;updateActions();}
 });
-$('board').addEventListener('click',event=>{if(performance.now()<ignoreClickUntil)return;const cell=event.target.closest('.square');if(cell){lastFocus=cell.dataset.square;choose(cell.dataset.square);}});
+$('board').addEventListener('click',event=>{if(event.detail!==0&&performance.now()<ignoreClickUntil)return;const cell=event.target.closest('.square');if(cell){lastFocus=cell.dataset.square;choose(cell.dataset.square);}});
 $('board').addEventListener('keydown',keyboard);$('board').addEventListener('pointerdown',pointerDown);$('board').addEventListener('pointermove',pointerMove);$('board').addEventListener('pointerup',pointerUp);$('board').addEventListener('pointercancel',cancelDrag);
 $('board').addEventListener('contextmenu',event=>{event.preventDefault();cancelDrag();cancelPremove(true);});
 document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!event.defaultPrevented&&!document.querySelector('dialog[open]')&&(premove.value||selected)){event.preventDefault();const restore=document.activeElement===$('cancelPremove');cancelDrag();cancelPremove(true);if(restore)$('board').querySelector('[tabindex="0"]')?.focus({preventScroll:true});}});
