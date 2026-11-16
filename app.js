@@ -2,7 +2,6 @@
   'use strict';
 
   const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
-  const narrowScreen = matchMedia('(max-width: 620px)');
   const nativeTransitions = 'CSSViewTransitionRule' in window;
   let toastTimer;
   let navigationTimer;
@@ -17,7 +16,7 @@
   }
 
   document.addEventListener('click', event => {
-    if (nativeTransitions || reduceMotion.matches || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    if (document.body.matches('.page--home, .page--plugins, .page--notfound') || nativeTransitions || reduceMotion.matches || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     const link = event.target.closest('a[data-transition]');
     if (!link || link.target || link.hasAttribute('download')) return;
     const destination = new URL(link.href);
@@ -49,76 +48,55 @@
     if (avatar.complete && avatar.naturalWidth === 0) showPoster();
   }
 
-  const wordLayer = document.getElementById('floatingWords');
-  if (wordLayer) {
-    const phrases = ['The Best Client', 'Open Source', 'Best Visuals', 'Ascendo #1', 'Ascendo', "Minecraft's best client", 'Best visuals?', 'Holy client omg!'];
-    let remainingPhrases = [];
-    let wordTimer;
-
-    function spawnWord() {
-      const limit = narrowScreen.matches ? 2 : 4;
-      if (wordLayer.childElementCount >= limit) return;
-      if (!remainingPhrases.length) remainingPhrases = [...phrases];
-      const phraseIndex = Math.floor(Math.random() * remainingPhrases.length);
-      const word = document.createElement('span');
-      word.className = 'floating-word';
-      word.textContent = remainingPhrases.splice(phraseIndex, 1)[0];
-      word.style.setProperty('--word-size', `${narrowScreen.matches ? 12 + Math.random() * 4 : 16 + Math.random() * 8}px`);
-      word.style.setProperty('--word-drift', `${Math.random() * 48 - 24}px`);
-      wordLayer.appendChild(word);
-
-      const layerBounds = wordLayer.getBoundingClientRect();
-      const protectedBounds = [...document.querySelectorAll('.brand-logo, .download-button, .plugins-button, .section-heading, .founders-list, .plugins-heading, .plugin-grid, .back-link')]
-        .map(element => element.getBoundingClientRect());
-      const existingBounds = [...wordLayer.children].filter(element => element !== word)
-        .map(element => element.getBoundingClientRect());
-      const wordWidth = word.offsetWidth;
-      const wordHeight = word.offsetHeight;
-      let placed = false;
-
-      for (let attempt = 0; attempt < 24; attempt++) {
-        const left = 36 + Math.random() * Math.max(0, layerBounds.width - wordWidth - 72);
-        const top = 48 + Math.random() * Math.max(0, layerBounds.height - wordHeight - 100);
-        const bounds = { left: layerBounds.left + left - 28, right: layerBounds.left + left + wordWidth + 28, top: layerBounds.top + top - 40, bottom: layerBounds.top + top + wordHeight + 28 };
-        const overlaps = [...protectedBounds, ...existingBounds].some(other =>
-          bounds.left < other.right && bounds.right > other.left && bounds.top < other.bottom && bounds.bottom > other.top);
-        if (overlaps) continue;
-        word.style.left = `${left}px`;
-        word.style.top = `${top}px`;
-        placed = true;
-        break;
-      }
-
-      if (!placed) word.remove();
-      else word.addEventListener('animationend', () => word.remove(), { once: true });
+  const pluginFinePointer = matchMedia('(hover: hover) and (pointer: fine)');
+  for (const card of document.querySelectorAll('[data-plugin]')) {
+    const button = card.querySelector('.plugin-toggle');
+    const panel = card.querySelector('.plugin-description');
+    if (!button || !panel) continue;
+    let pinned = false;
+    let hovered = false;
+    let dismissed = true;
+    function render() {
+      const expanded = pinned || (!dismissed && ((pluginFinePointer.matches && hovered) || card.contains(document.activeElement)));
+      card.classList.toggle('is-expanded', expanded);
+      button.setAttribute('aria-expanded', String(expanded));
+      panel.setAttribute('aria-hidden', String(!expanded));
+      panel.inert = !expanded;
     }
-
-    function scheduleWord() {
-      wordTimer = setTimeout(() => {
-        if (document.hidden || reduceMotion.matches) return;
-        spawnWord();
-        scheduleWord();
-      }, narrowScreen.matches ? 1200 + Math.random() * 600 : 800 + Math.random() * 500);
+    function dismiss() {
+      pinned = false;
+      dismissed = true;
+      render();
     }
-
-    function resetWords() {
-      clearTimeout(wordTimer);
-      wordLayer.replaceChildren();
-      if (document.hidden || reduceMotion.matches) return;
-      spawnWord();
-      scheduleWord();
-    }
-
-    resetWords();
-    document.addEventListener('visibilitychange', resetWords);
-    reduceMotion.addEventListener('change', resetWords);
-    narrowScreen.addEventListener('change', resetWords);
-    window.addEventListener('resize', resetWords);
-    window.addEventListener('pageshow', resetWords);
-    window.addEventListener('pagehide', () => {
-      clearTimeout(wordTimer);
-      wordLayer.replaceChildren();
+    button.hidden = false;
+    card.classList.add('is-enhanced');
+    render();
+    card.addEventListener('pointerenter', event => {
+      if (event.pointerType !== 'mouse' || !pluginFinePointer.matches) return;
+      hovered = true;
+      dismissed = false;
+      render();
     });
+    card.addEventListener('pointerleave', () => { hovered = false; render(); });
+    card.addEventListener('focusin', event => {
+      if (!card.contains(event.relatedTarget)) dismissed = false;
+      render();
+    });
+    card.addEventListener('focusout', () => queueMicrotask(render));
+    button.addEventListener('click', () => {
+      pinned = !pinned;
+      dismissed = !pinned;
+      render();
+    });
+    card.addEventListener('keydown', event => {
+      if (event.key !== 'Escape' || !card.classList.contains('is-expanded')) return;
+      button.focus({ preventScroll: true });
+      dismiss();
+      event.preventDefault();
+    });
+    document.addEventListener('pointerdown', event => { if (!card.contains(event.target)) dismiss(); });
+    pluginFinePointer.addEventListener('change', () => { hovered = false; dismiss(); });
+    window.addEventListener('pageshow', () => { hovered = false; dismiss(); });
   }
 
   async function copyValue(value) {

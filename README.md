@@ -4,14 +4,14 @@ A curated GitHub Pages site with a private, invite-only profile studio. There is
 
 ## Pages
 
-- `/`: the real Ascendo logo, Client 26.3 Discord link, founder cards, and decorative floating phrases on black.
+- `/`: the Ascendo logo, Client 26.3 Discord link, Forge/Plugins navigation and the two founders.
 - `/plugins/`: five Paper 26.3 plugins, with direct JAR downloads and build information.
 - `/chess/`: private two-player guest chess, with invitation links and optional clocks.
 - `/forge/`: browser-local Minecraft gradient text, server MOTD, item-name and chat-message tools, with previews and copyable exports.
 - `/internalcheats/`: InternalCheats; Discord `internalcheats`; Minecraft IGN `InternalCheat`.
 - `/k3rlsen/`: k3rlsen; TikTok `@ferenckop`; Instagram `@_shewantss.csxngi`; Discord `27ia`.
 - `/nagyorru/`: compatibility redirect to `/internalcheats/`, with a visible fallback link.
-- `/404.html`: minimal custom 404 preview. GitHub Pages serves the same hero for unknown routes while retaining HTTP 404.
+- `/404.html`: a compact missing-page notice with Home and Plugins links. Unknown routes retain HTTP 404.
 
 Profiles open immediately. The existing video attempts playback with audio, falls back to muted playback when required by the browser, and has an accessible sound control. Hover or focus the sound button to expand the slider; tap/click to pin it open or close it. Escape or an outside tap closes it. Adjusting the slider is a user interaction that can enable audio. Content remains visible if JavaScript or media is unavailable.
 
@@ -21,7 +21,7 @@ Profiles open immediately. The existing video attempts playback with audio, fall
 
 MiniMessage output escapes literal tags and backslashes. Legacy RGB uses `&x` codes for compatible plugins, reapplying decorations after color changes. Text-component JSON is for compatible serializers/tools; it is not a version-specific Minecraft command. Vanilla `server.properties` output includes the complete `motd=` line, Java Properties escaping and the nearest of 16 classic colors, reflected in the preview. The MOTD editor allows at most two lines, and item names one. All tools cap input at 240 UTF-16 units. Preview fonts approximate the game; no Minecraft font or game assets are redistributed.
 
-Forge has no backend requests, uploads, account dependency or animation loop. Input is rendered with text nodes. Existing site and profile styles are isolated from its stylesheet. Tests run with `npm run test:forge`; format references are recorded in `forge/format.mjs`. Cache version: `20261116-1`.
+Forge has no backend requests, uploads, account dependency or animation loop. Input is rendered with text nodes. Existing site and profile styles are isolated from its stylesheet. The interface uses a two-column workbench, plain tool navigation and shared color/spacing/focus tokens in `forge/forge.css`; mobile places settings before preview and output. Tests run with `npm run test:forge`; format references are recorded in `forge/format.mjs`. Cache version: `20261116-2`.
 
 ## Private chess
 
@@ -65,13 +65,13 @@ The unmodified **Stockfish.js 19.0.1 lite single-threaded** engine is self-hoste
 
 The private studio's **Style → Profile color theme → Black & White** option gives that profile's card, text effects, soundtrack controls, decorative overlays, back button and volume control a monochrome finish. The avatar and background music video, including their poster fallbacks, retain their original colors and existing brightness treatment; the theme adds no darkening or grayscale filter to them or their ancestors. Original accent/effect colors and media remain stored unchanged, so switching to **Original colors** restores them. It previews privately, participates in draft/discard/reset/previous-version handling, and becomes public only on Save changes. Missing `colorTheme` defaults to `original`; the backend accepts only `original` / `monochrome` and preserves the saved value when an older client omits it. It never changes the homepage or another profile. No database migration is needed. The refined visual stylesheet uses cache version `20261025-8`.
 
-Frosted profile cards, white name glow, and restrained glass highlights share `styles.css`. Homepage entrance animations and 2.5-second floating phrases (0.5-second fade in, 1.5-second drift, 0.5-second fade out) respect reduced-motion preferences. Phrases are decorative, avoid the central controls, are limited to four on desktop and two on mobile, and stop spawning in hidden tabs.
+Profile cards and their selected appearance remain in `styles.css`. The homepage, plugin list and missing-page notice use page-scoped `public.css`: near-black surfaces, gray separators, restrained purple focus/hover states and compact navigation. Floating phrases and decorative page motion are removed.
 
 Same-origin navigation uses native cross-document view transitions where available, with a short fade fallback for marked links. Modified clicks and external new-tab links keep standard browser behavior.
 
-`motion.js` coordinates 500ms entrance reveals, desktop pointer lighting, and critically damped artwork movement. Hit targets and text stay stationary. Artwork displacement is limited to 4px (2px for icons), tilt to 1 degree, and velocity blur to 1.5px. One on-demand animation loop stops when settled, hidden, scrolled, or resized; touch and reduced-motion preferences disable pointer effects. Eight consecutive frames exceeding 24ms disable pointer effects for the current page. These effects target the display's native refresh rate, not a guaranteed FPS on every device.
+On profile pages, `motion.js` coordinates 500ms entrance reveals, desktop pointer lighting, and critically damped artwork movement. Hit targets and text stay stationary. Artwork displacement is limited to 4px (2px for icons), tilt to 1 degree, and velocity blur to 1.5px. One on-demand animation loop stops when settled, hidden, scrolled, or resized; touch and reduced-motion preferences disable pointer effects. Eight consecutive frames exceeding 24ms disable pointer effects for the current page. These effects target the display's native refresh rate, not a guaranteed FPS on every device.
 
-Plugin descriptions reveal on desktop hover/focus or via the Details button. Phones use tap-to-expand. Escape returns focus to Details; an outside tap closes the panel. Desktop description space is reserved so download buttons do not move. Without JavaScript, all descriptions and normal download links remain visible. No plugin binaries are fetched until a download is requested.
+Plugin descriptions reveal on desktop hover/focus or via the Details button. Phones use tap-to-expand. Escape returns focus to Details; an outside tap closes the panel. Downloads stay beside the title on desktop while details expand below. The existing disclosure controller lives in `app.js`. Without JavaScript, all descriptions and normal download links remain visible. No plugin binaries are fetched until a download is requested.
 
 InternalCheats's bio links to Ascendo and javitointezet, and the GitHub row links to `https://github.com/internalcheat`; each opens a new tab.
 
@@ -81,7 +81,7 @@ All original media remains in `assets/`. InternalCheats uses `assets/mypfp-anima
 
 Keep `CNAME` set to `ascendo.lol`. GitHub Pages deploys from `main`; verify the Pages workflow and live domain after merging. Version stylesheet/script references together when changing shared assets.
 
-The custom 404 uses root-absolute resources, the Ascendo logo, decorative 404 artwork, three short text blocks, and Home/Plugins links. No lower recovery panels, path-copy UI, previous-page action, or footer remain. Artwork pauses offscreen/in hidden tabs and respects reduced motion. Links and all essential content work without JavaScript. There is no automatic redirect; verify an actual missing URL, including a nested route, when checking HTTP status.
+The custom 404 uses root-absolute resources, the Ascendo logo, a short missing-page message and Home/Plugins links. Decorative artwork, background patterns and page motion are removed. Links and all essential content work without JavaScript. There is no automatic redirect; verify an actual missing URL, including a nested route, when checking HTTP status.
 
 ## Unlisted profile maintenance
 

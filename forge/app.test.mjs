@@ -83,10 +83,10 @@ test('each of the four tools loads its own useful default, format and preview', 
   const app = await fixture();
   try {
     const expected = {
-      gradient: ['Gradient text', 'Make something legendary.', 'minimessage'],
-      motd: ['Server MOTD', 'Ascendo Network\nYour next adventure starts here.', 'motd'],
+      gradient: ['Gradient text', 'Ascendo', 'minimessage'],
+      motd: ['Server MOTD', 'Ascendo Network\nSurvival · Creative', 'motd'],
       item: ['Item names', 'Eclipse Blade', 'json'],
-      chat: ['Chat messages', 'Welcome to Ascendo!', 'minimessage'],
+      chat: ['Chat messages', 'Welcome to Ascendo.', 'minimessage'],
     };
     for (const [tool, [title, text, format]] of Object.entries(expected)) {
       app.tool(tool);
@@ -109,6 +109,8 @@ test('typing updates preview and output immediately while preserving literal use
     const text = '<script data-forge-test="attack">alert(1)</script> 👩🏽‍🚀';
     app.change('text-input', text);
     assert.equal(app.$('preview-text').textContent, text);
+    assert.equal(app.$('preview-text').getAttribute('role'), 'img');
+    assert.ok(app.$('preview-text').getAttribute('aria-label').endsWith(text), 'The accessible preview label includes the full unsplit text.');
     assert.equal(app.$('preview-text').querySelectorAll('script').length, 0);
     assert.ok(app.$('output').value.includes('\\<'));
     app.change('format', 'json', 'change');
@@ -231,7 +233,7 @@ test('drafts and the selected tool persist across a reload independently', async
 
 test('malformed saved state and invalid shared links fall back safely without losing a good local draft', async () => {
   let app = await fixture({ saved: '{invalid JSON' });
-  try { assert.equal(app.$('text-input').value, 'Make something legendary.'); }
+  try { assert.equal(app.$('text-input').value, 'Ascendo'); }
   finally { await app.close(); }
   for (const hash of ['#forge=%E0%A4%A', '#forge=' + encodeURIComponent('{"tool":"__proto__"}'), '#forge=' + 'a'.repeat(6001)]) {
     app = await fixture({ hash, saved: { tool: 'chat', drafts: { chat: { text: 'Kept local draft' } } } });
@@ -249,7 +251,7 @@ test('reset restores only the current tool while preserving the other tool draft
     app.change('text-input', 'Keep this gradient'); app.style('bold');
     app.tool('motd'); app.change('text-input', 'Reset this MOTD'); app.palette('ember');
     app.$('reset-tool').click();
-    assert.equal(app.$('text-input').value, 'Ascendo Network\nYour next adventure starts here.');
+    assert.equal(app.$('text-input').value, 'Ascendo Network\nSurvival · Creative');
     assert.equal(app.$('color-start').value, '#a855f7');
     app.tool('gradient');
     assert.equal(app.$('text-input').value, 'Keep this gradient');

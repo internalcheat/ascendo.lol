@@ -3,80 +3,134 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#09090c">
-  <meta name="description" content="Make Minecraft gradient text, server MOTDs, item names and chat messages with Ascendo Forge. Preview your colors and copy the format you need.">
+  <meta name="theme-color" content="#0c0c0e">
+  <meta name="description" content="Minecraft gradient text, server MOTD, item name and chat message tools. Preview your formatting and copy the output with Ascendo Forge.">
   <meta property="og:type" content="website">
   <meta property="og:title" content="Forge · Ascendo">
-  <meta property="og:description" content="A little color. A lot of character. Minecraft text tools by Ascendo.">
+  <meta property="og:description" content="Minecraft text formatting tools.">
   <link rel="canonical" href="https://ascendo.lol/forge/">
   <title>Forge · Ascendo</title>
   <link rel="icon" href="/assets/ascendo-icon-32.png?v=20261023-2" type="image/png" sizes="32x32">
   <link rel="apple-touch-icon" href="/assets/ascendo-icon-180.png?v=20261023-2">
   <link rel="stylesheet" href="/fonts.css?v=20261025-6">
-  <link rel="stylesheet" href="./forge.css?v=20261116-1">
-  <script type="module" src="./app.mjs?v=20261116-1"></script>
+  <link rel="stylesheet" href="./forge.css?v=20261116-2">
+  <script type="module" src="./app.mjs?v=20261116-2"></script>
 </head>
 <body>
-  <a class="skip-link" href="#workspace">Skip to the editor</a>
-  <svg class="svg-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-    <defs>
-      <symbol id="icon-spark" viewBox="0 0 24 24"><path d="m12 3 2.4 6.6L21 12l-6.6 2.4L12 21l-2.4-6.6L3 12l6.6-2.4L12 3Z"/><path d="m20 2 .5 1.5L22 4l-1.5.5L20 6l-.5-1.5L18 4l1.5-.5L20 2Z"/></symbol>
-      <symbol id="icon-arrow" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></symbol>
-      <symbol id="icon-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V4H4v12h4"/></symbol>
-      <symbol id="icon-download" viewBox="0 0 24 24"><path d="M12 3v12m-5-5 5 5 5-5M4 17v4h16v-4"/></symbol>
-      <symbol id="icon-server" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/><path d="M7 7h.01M7 17h.01M11 7h6m-6 10h6"/></symbol>
-      <symbol id="icon-sword" viewBox="0 0 24 24"><path d="m4 20 4-4m-2-4 6 6m-3-5L18 4h3v3l-9 9M3 17l4 4"/></symbol>
-      <symbol id="icon-chat" viewBox="0 0 24 24"><path d="M20 15a3 3 0 0 1-3 3H9l-6 3V6a3 3 0 0 1 3-3h11a3 3 0 0 1 3 3v9Z"/><path d="M7 8h9M7 12h6"/></symbol>
-      <symbol id="icon-link" viewBox="0 0 24 24"><path d="m10 13 4-4m-6 7-1 1a4.2 4.2 0 0 1-6-6l4-4a4.2 4.2 0 0 1 6 0m2 1 1-1a4.2 4.2 0 0 1 6 6l-4 4a4.2 4.2 0 0 1-6 0" transform="translate(1 1)"/></symbol>
-    </defs>
-  </svg>
-
+  <a class="skip-link" href="#workspace">Skip to editor</a>
   <header class="site-header">
     <div class="header-inner">
-      <a class="brand" href="/" aria-label="Ascendo home"><img src="/assets/ascendo-logo.png" width="1300" height="414" alt="Ascendo"><span class="brand-divider" aria-hidden="true"></span><span class="brand-forge">forge<span class="brand-dot">.</span></span></a>
-      <nav class="header-nav" aria-label="Main navigation"><a href="/plugins/">Plugins <svg aria-hidden="true"><use href="#icon-arrow"/></svg></a><span class="browser-badge"><span aria-hidden="true"></span>Runs in your browser</span></nav>
+      <a class="brand" href="/" aria-label="Ascendo home"><img src="/assets/ascendo-logo.png" width="1300" height="414" alt="Ascendo"></a>
+      <h1>Forge</h1>
+      <nav aria-label="Main navigation"><a href="/plugins/">Plugins</a></nav>
     </div>
   </header>
 
   <main class="main-shell">
-    <section class="intro" aria-labelledby="page-title">
-      <div><p class="eyebrow"><span class="eyebrow-line" aria-hidden="true"></span>MINECRAFT CREATION TOOLS</p><h1 id="page-title">Make your words <span>hit different.</span></h1><p class="intro-description">Your text. Your colors. A little more character.</p></div>
-      <div class="intro-art" aria-hidden="true"><div class="pixel-cross cross-one"></div><div class="pixel-cross cross-two"></div><span class="art-orbit"></span><svg viewBox="0 0 100 100"><path d="m50 8 33 19v39L50 85 17 66V27L50 8Z"/><path d="m17 27 33 19 33-19M50 46v39M34 18l33 19v39"/><path d="m50 8 17 10-33 19v39"/></svg><span class="art-caption">BUILT TO STAND OUT</span></div>
-    </section>
+    <nav class="tool-list" aria-label="Creation tools">
+      <button type="button" data-tool="gradient" aria-pressed="true">Gradient text</button>
+      <button type="button" data-tool="motd" aria-pressed="false">Server MOTD</button>
+      <button type="button" data-tool="item" aria-pressed="false">Item names</button>
+      <button type="button" data-tool="chat" aria-pressed="false">Chat messages</button>
+    </nav>
 
     <div class="workspace" id="workspace" tabindex="-1">
-      <aside class="tool-sidebar" aria-label="Choose a creation tool">
-        <p class="sidebar-label">THE TOOLBOX <span>04</span></p>
-        <nav class="tool-list" aria-label="Creation tools">
-          <button type="button" class="tool-button" data-tool="gradient" aria-pressed="true"><svg aria-hidden="true"><use href="#icon-spark"/></svg><span><strong>Gradient text</strong><small>Find your colors</small></span><span class="active-indicator" aria-hidden="true"></span></button>
-          <button type="button" class="tool-button" data-tool="motd" aria-pressed="false"><svg aria-hidden="true"><use href="#icon-server"/></svg><span><strong>Server MOTD</strong><small>First impressions</small></span><span class="active-indicator" aria-hidden="true"></span></button>
-          <button type="button" class="tool-button" data-tool="item" aria-pressed="false"><svg aria-hidden="true"><use href="#icon-sword"/></svg><span><strong>Item names</strong><small>Make it legendary</small></span><span class="active-indicator" aria-hidden="true"></span></button>
-          <button type="button" class="tool-button" data-tool="chat" aria-pressed="false"><svg aria-hidden="true"><use href="#icon-chat"/></svg><span><strong>Chat messages</strong><small>Say it your way</small></span><span class="active-indicator" aria-hidden="true"></span></button>
-        </nav>
-        <div class="sidebar-note"><span class="note-mark" aria-hidden="true">✳</span><p>Made for the<br><strong>things you make.</strong></p><span>AN ASCENDO PROJECT</span></div>
-      </aside>
-
       <section class="editor-panel" aria-labelledby="tool-title">
-        <div class="panel-heading"><div><p class="section-kicker">01 / CREATE</p><h2 id="tool-title">Gradient text</h2></div><button type="button" class="icon-button reset-button" id="reset-tool" aria-label="Reset this tool" title="Reset this tool"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10a9 9 0 1 1 2 8M3 4v6h6"/></svg></button></div>
-        <p class="tool-description" id="tool-description">Turn ordinary text into something worth looking at.</p>
-        <div class="text-field"><div class="field-label-row"><label for="text-input">YOUR TEXT</label><span id="character-count">25 / 240</span></div><textarea id="text-input" maxlength="240" rows="3" spellcheck="false" placeholder="Make something legendary…">Make something legendary.</textarea><div class="text-field-footer"><span>Plain text in. Something better out.</span><span aria-hidden="true">Aa</span></div></div>
+        <div class="section-heading">
+          <h2 id="tool-title">Gradient text</h2>
+          <button type="button" class="text-button" id="reset-tool">Reset</button>
+        </div>
 
-        <fieldset class="color-section"><legend>THE PALETTE</legend><div class="colors-row"><div class="color-field"><label for="color-start">Start color</label><div class="color-input-wrap"><input type="color" id="color-start" value="#a855f7" aria-label="Start color picker"><input type="text" id="color-start-value" value="#A855F7" maxlength="7" pattern="#[0-9a-fA-F]{6}" spellcheck="false" aria-label="Start color hex code" autocomplete="off"></div></div><button type="button" class="icon-button swap-button" id="swap-colors" aria-label="Swap start and end colors" title="Swap colors"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16m-4-4 4 4-4 4M20 17H4m4 4-4-4 4-4"/></svg></button><div class="color-field"><label for="color-end">End color</label><div class="color-input-wrap"><input type="color" id="color-end" value="#ec4899" aria-label="End color picker"><input type="text" id="color-end-value" value="#EC4899" maxlength="7" pattern="#[0-9a-fA-F]{6}" spellcheck="false" aria-label="End color hex code" autocomplete="off"></div></div></div>
-          <div class="presets" aria-label="Color presets"><button type="button" class="preset-button" data-preset="purple" aria-label="Purple haze color preset" title="Purple haze" aria-pressed="true"><span></span></button><button type="button" class="preset-button" data-preset="aurora" aria-label="Aurora color preset" title="Aurora" aria-pressed="false"><span></span></button><button type="button" class="preset-button" data-preset="sunset" aria-label="Sunset color preset" title="Sunset" aria-pressed="false"><span></span></button><button type="button" class="preset-button" data-preset="ice" aria-label="Ice color preset" title="Ice" aria-pressed="false"><span></span></button><button type="button" class="preset-button" data-preset="ember" aria-label="Ember color preset" title="Ember" aria-pressed="false"><span></span></button><span class="preset-hint">A head start</span></div>
+        <div class="text-field">
+          <div class="field-heading">
+            <label for="text-input">Text</label>
+            <span id="character-count">7 / 240</span>
+          </div>
+          <textarea id="text-input" maxlength="240" rows="3" spellcheck="false" placeholder="Enter text" aria-describedby="character-count">Ascendo</textarea>
+        </div>
+
+        <fieldset class="color-section">
+          <legend class="visually-hidden">Colors</legend>
+          <div class="field-heading">
+            <span class="field-label">Colors</span>
+            <button type="button" class="text-button" id="swap-colors">Swap</button>
+          </div>
+          <div class="colors-row">
+            <div class="color-field">
+              <label for="color-start">Start</label>
+              <div class="color-input-wrap">
+                <input type="color" id="color-start" value="#a855f7" aria-label="Start color picker">
+                <input type="text" id="color-start-value" value="#A855F7" maxlength="7" pattern="#[0-9a-fA-F]{6}" spellcheck="false" aria-label="Start color hex code" autocomplete="off">
+              </div>
+            </div>
+            <div class="color-field">
+              <label for="color-end">End</label>
+              <div class="color-input-wrap">
+                <input type="color" id="color-end" value="#ec4899" aria-label="End color picker">
+                <input type="text" id="color-end-value" value="#EC4899" maxlength="7" pattern="#[0-9a-fA-F]{6}" spellcheck="false" aria-label="End color hex code" autocomplete="off">
+              </div>
+            </div>
+          </div>
         </fieldset>
 
-        <div class="finishing-row"><fieldset class="style-field"><legend>THE FINISH</legend><div class="style-buttons" aria-label="Text styles"><button type="button" data-style="bold" aria-pressed="false" aria-label="Bold" title="Bold"><b>B</b></button><button type="button" data-style="italic" aria-pressed="false" aria-label="Italic" title="Italic"><i>I</i></button><button type="button" data-style="underlined" aria-pressed="false" aria-label="Underline" title="Underline"><u>U</u></button><button type="button" data-style="strikethrough" aria-pressed="false" aria-label="Strikethrough" title="Strikethrough"><s>S</s></button></div></fieldset><div class="mode-field"><label for="mode">COLOR MODE</label><select id="mode"><option value="gradient">Gradient</option><option value="solid">Solid color</option></select></div></div>
+        <fieldset class="preset-section">
+          <legend>Presets</legend>
+          <div class="presets">
+            <button type="button" data-preset="purple" aria-pressed="true" aria-label="Purple color preset"><span class="preset-swatch" aria-hidden="true"></span>Purple</button>
+            <button type="button" data-preset="aurora" aria-pressed="false" aria-label="Aurora color preset"><span class="preset-swatch" aria-hidden="true"></span>Aurora</button>
+            <button type="button" data-preset="sunset" aria-pressed="false" aria-label="Sunset color preset"><span class="preset-swatch" aria-hidden="true"></span>Sunset</button>
+            <button type="button" data-preset="ice" aria-pressed="false" aria-label="Ice color preset"><span class="preset-swatch" aria-hidden="true"></span>Ice</button>
+            <button type="button" data-preset="ember" aria-pressed="false" aria-label="Ember color preset"><span class="preset-swatch" aria-hidden="true"></span>Ember</button>
+          </div>
+        </fieldset>
+
+        <div class="formatting-row">
+          <fieldset class="style-field">
+            <legend>Style</legend>
+            <div class="style-buttons">
+              <button type="button" data-style="bold" aria-pressed="false" aria-label="Bold"><b>B</b></button>
+              <button type="button" data-style="italic" aria-pressed="false" aria-label="Italic"><i>I</i></button>
+              <button type="button" data-style="underlined" aria-pressed="false" aria-label="Underline"><u>U</u></button>
+              <button type="button" data-style="strikethrough" aria-pressed="false" aria-label="Strikethrough"><s>S</s></button>
+            </div>
+          </fieldset>
+          <div class="mode-field">
+            <label for="mode">Color mode</label>
+            <select id="mode"><option value="gradient">Gradient</option><option value="solid">Solid color</option></select>
+          </div>
+        </div>
       </section>
 
-      <section class="result-panel" aria-label="Preview and generated output">
-        <div class="preview-heading"><p class="section-kicker">02 / PREVIEW</p><span class="live-label"><span aria-hidden="true"></span>LIVE</span></div>
-        <div class="preview-scene"><span class="preview-corner corner-tl" aria-hidden="true"></span><span class="preview-corner corner-tr" aria-hidden="true"></span><span class="preview-corner corner-bl" aria-hidden="true"></span><span class="preview-corner corner-br" aria-hidden="true"></span><span class="scene-label" id="preview-context">TEXT PREVIEW</span><div class="preview-content"><div class="preview-gem" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M11 3h10l8 9-13 17L3 12l8-9Z"/><path d="m3 12 13 1 13-1M11 3l5 10 5-10M16 13v16"/></svg></div><div class="preview-text" id="preview-text">Make something legendary.</div><p class="preview-secondary" id="preview-secondary">A little color goes a long way.</p><p class="empty-preview" id="empty-preview" hidden>Your next great idea goes here.</p></div><span class="scene-footer" aria-hidden="true"><span>ASCENDO</span><span>FORGE / 01</span></span></div>
-        <div class="output-section"><div class="field-label-row"><label for="format">03 / EXPORT</label><select id="format" aria-label="Output format"><option value="minimessage">MiniMessage</option><option value="legacy">Legacy RGB (&amp;x)</option><option value="json">Java JSON</option><option value="motd">server.properties MOTD</option></select></div><p class="compatibility" id="compatibility">For plugins that support Adventure MiniMessage.</p><label class="visually-hidden" for="output">Generated formatted text</label><textarea id="output" rows="4" readonly spellcheck="false" aria-label="Generated formatted text"></textarea><div class="output-actions"><button type="button" class="copy-button" id="copy-output"><svg aria-hidden="true"><use href="#icon-copy"/></svg><span id="copy-label">Copy output</span><svg class="copy-arrow" aria-hidden="true"><use href="#icon-arrow"/></svg></button><button type="button" class="icon-button download-button" id="download-output" aria-label="Download output as a text file" title="Download text file"><svg aria-hidden="true"><use href="#icon-download"/></svg></button><button type="button" class="icon-button share-button" id="share-link" aria-label="Copy a link to this creation" title="Copy creation link"><svg aria-hidden="true"><use href="#icon-link"/></svg></button></div><p class="status-message" id="status" role="status" aria-live="polite">Ready when you are.</p></div>
+      <section class="result-panel" aria-label="Preview and output">
+        <h2>Preview</h2>
+        <div class="preview-scene">
+          <div class="preview-text" id="preview-text">Ascendo</div>
+          <p class="empty-preview" id="empty-preview" hidden>Enter text to preview.</p>
+        </div>
+
+        <div class="output-section">
+          <div class="output-heading">
+            <label for="output">Output</label>
+            <label for="format" class="visually-hidden">Output format</label>
+            <select id="format" aria-label="Output format">
+              <option value="minimessage">MiniMessage</option>
+              <option value="legacy">Legacy RGB (&amp;x)</option>
+              <option value="json">Text component JSON</option>
+              <option value="motd">Vanilla server.properties</option>
+            </select>
+          </div>
+          <p id="compatibility" class="compatibility">For plugins that support MiniMessage.</p>
+          <textarea id="output" rows="5" readonly spellcheck="false" aria-label="Generated formatted text"></textarea>
+          <div class="output-actions">
+            <button type="button" class="primary-button" id="copy-output"><span id="copy-label">Copy</span></button>
+            <button type="button" id="download-output">Download</button>
+            <button type="button" id="share-link">Share link</button>
+          </div>
+          <p id="status" class="status-message" role="status" aria-live="polite"></p>
+        </div>
       </section>
     </div>
-    <div class="workspace-footnote"><span><span class="tiny-cross" aria-hidden="true">+</span>No account. No setup. Just make something.</span><span>Preview is illustrative; fonts vary in-game.</span></div>
-    <noscript><p class="noscript-message">Forge needs JavaScript to generate and preview formatted text. Enable it in your browser, then reload this page.</p></noscript>
+    <noscript><p class="noscript-message">Enable JavaScript to use Forge.</p></noscript>
   </main>
-  <footer class="site-footer"><a href="/">Part of Ascendo <svg aria-hidden="true"><use href="#icon-arrow"/></svg></a><span>Crafted for a world of blocks.</span></footer>
 </body>
 </html>
