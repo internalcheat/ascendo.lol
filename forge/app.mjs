@@ -2,20 +2,20 @@ import { colorize, generate, nearestLegacyColor } from './format.mjs?v=20261116-
 
 const STORAGE_KEY = 'ascendo-forge-v1';
 const TOOLS = {
-  gradient: { title: 'Gradient text', description: 'A little color goes a long way. Make every character count.', text: 'Make something legendary.', format: 'minimessage', context: 'YOUR TEXT, REIMAGINED', secondary: 'A visual preview. In-game fonts may look different.' },
-  motd: { title: 'Server MOTD', description: 'Give your server a first impression worth joining for.', text: 'Ascendo Network\nYour next adventure starts here.', format: 'motd', context: 'MULTIPLAYER · SERVER LIST', secondary: 'Vanilla MOTDs use the 16 classic Minecraft colors.' },
-  item: { title: 'Item names', description: 'A name worthy of your next legendary drop.', text: 'Eclipse Blade', format: 'json', context: 'DIAMOND SWORD · CUSTOM NAME', secondary: 'A custom name component for compatible tools and plugins.' },
-  chat: { title: 'Chat messages', description: 'Make announcements that stand out in the chat.', text: 'Welcome to Ascendo!', format: 'minimessage', context: 'CHAT · ANNOUNCEMENT', secondary: 'Use with a plugin that supports your selected format.' },
+  gradient: { title: 'Gradient text', text: 'Ascendo', format: 'minimessage' },
+  motd: { title: 'Server MOTD', text: 'Ascendo Network\nSurvival · Creative', format: 'motd' },
+  item: { title: 'Item names', text: 'Eclipse Blade', format: 'json' },
+  chat: { title: 'Chat messages', text: 'Welcome to Ascendo.', format: 'minimessage' },
 };
 const PALETTES = {
   purple: ['#a855f7', '#ec4899'], aurora: ['#34d399', '#818cf8'],
   sunset: ['#fb923c', '#f472b6'], ice: ['#38bdf8', '#c4b5fd'], ember: ['#fbbf24', '#ef4444'],
 };
 const FORMATS = {
-  minimessage: ['MiniMessage', 'For Adventure / MiniMessage-enabled plugins. Paste as a value where MiniMessage is supported.'],
-  legacy: ['Legacy RGB (&x)', 'For plugins that support &x RGB legacy text. Not vanilla chat or a server.properties MOTD.'],
-  json: ['Text component JSON', 'For tools and plugins accepting text-component JSON. This is not a /give command; modern Java command syntax varies.'],
-  motd: ['Vanilla server.properties', 'Replace the motd= line in server.properties. Uses the nearest of 16 classic colors; restart your server to apply.'],
+  minimessage: ['MiniMessage', 'For plugins that support Adventure MiniMessage.'],
+  legacy: ['Legacy RGB (&x)', 'For plugins that accept &x RGB codes. Vanilla chat does not.'],
+  json: ['Text component JSON', 'For compatible tools and plugins. Not a /give command.'],
+  motd: ['server.properties', 'Replace the motd= line, then restart. Uses the 16 classic colors.'],
 };
 const $ = id => document.getElementById(id);
 const field = $('text-input');
@@ -65,7 +65,7 @@ function restore() {
       if (!Object.hasOwn(TOOLS, shared?.tool)) throw new Error('unknown tool');
       tool = shared.tool;
       drafts[tool] = normalize(shared.settings, tool);
-      announce('Shared design loaded. Edit it to make it yours.');
+      announce('Design loaded.');
     } catch { announce('That design link could not be opened. Your local draft is still available.'); }
   }
 }
@@ -75,9 +75,6 @@ function syncControls() {
   document.documentElement.dataset.tool = tool;
   for (const button of document.querySelectorAll('button[data-tool]')) button.setAttribute('aria-pressed', String(button.dataset.tool === tool));
   $('tool-title').textContent = TOOLS[tool].title;
-  $('tool-description').textContent = TOOLS[tool].description;
-  $('preview-context').textContent = TOOLS[tool].context;
-  $('preview-secondary').textContent = TOOLS[tool].secondary;
   field.value = value.text;
   field.rows = tool === 'motd' ? 4 : 3;
   $('mode').value = value.mode;
@@ -139,7 +136,7 @@ function render() {
   $('color-end').disabled = value.mode === 'solid';
   $('color-end-value').disabled = value.mode === 'solid';
   $('swap-colors').disabled = value.mode === 'solid';
-  $('copy-label').textContent = 'Copy output';
+  $('copy-label').textContent = 'Copy';
   clearTimeout(copyTimer);
   persist();
 }
@@ -194,7 +191,7 @@ $('copy-output').addEventListener('click', async () => {
   $('copy-label').textContent = copied ? 'Copied!' : 'Select & copy';
   if (!copied) { output.focus(); output.select(); }
   announce(copied ? 'Output copied to your clipboard.' : 'Clipboard unavailable. Output selected; press Ctrl+C or use your device’s Copy action.');
-  copyTimer = setTimeout(() => { $('copy-label').textContent = 'Copy output'; }, 2000);
+  copyTimer = setTimeout(() => { $('copy-label').textContent = 'Copy'; }, 2000);
 });
 $('download-output').addEventListener('click', () => {
   if (!currentOutput) return;

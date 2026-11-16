@@ -25,7 +25,21 @@ await check('handles normalize case and reject impersonation, reserved routes, u
   const profile=createInvitedProfile('new-person');assert.equal(profile.name,'new-person');assert.equal(profile.badge,'');assert.equal(profile.background.kind,'black');assert.equal(profile.socials.length,0);for(const key of ['cursorEffects','cardEffects','entranceEffects','electricBorder','overlays','soundtrackCard','enterScreen','pageTitle'])assert.equal(profile[key].enabled,false);
 });
 await check('migration uses deny-all private storage, server-only invoker RPCs and unique atomic reservations',()=>{
-  const sql=read('supabase/migrations/20261025193004_profile_invitations.sql');assert.match(sql,/enable row level security/);assert.match(sql,/security invoker/);assert.doesNotMatch(sql,/security definer/);assert.match(sql,/revoke all on function public\.profile_invitation_command[\s\S]+from public, anon, authenticated/);assert.match(sql,/for update/);assert.match(sql,/pg_advisory_xact_lock/);assert.match(sql,/exception when unique_violation/);for(const term of RESERVED_HANDLES)assert.ok(sql.includes(`'${term}'`),term);assert.match(sql,/insert into private.credentials/);assert.doesNotMatch(sql,/password|lookup:\d/);
+  const sql=read('supabase/migrations/20261025193004_profile_invitations.sql');assert.match(sql,/enable row level security/);assert.match(sql,/security invoker/);assert.doesNotMatch(sql,/security definer/);assert.match(sql,/revoke all on function public\.profile_invitation_command[\s\S]+from public, anon, authenticated/);assert.match(sql,/for update/);assert.match(sql,/pg_advisory_xact_lock/);assert.match(sql,/exception when unique_violation/);assert.match(sql,/insert into private.credentials/);assert.doesNotMatch(sql,/password|lookup:\d/);
+});
+await check('latest migration definition reserves every frontend-protected handle',()=>{
+  const names=fs.readdirSync(new URL('../supabase/migrations/',import.meta.url)).filter(name=>/^\d+_.*\.sql$/.test(name)).sort();
+  let latest;
+  for(const name of names){
+    const sql=read('supabase/migrations/'+name);
+    const definitions=/\bcreate\s+(?:or\s+replace\s+)?function\s+private\.invited_handle_valid\s*\(\s*handle\s+text\s*\)[\s\S]*?\bas\s+(\$(?:[a-z_][a-z0-9_]*)?\$)([\s\S]*?)\1\s*;/gi;
+    for(const definition of sql.matchAll(definitions))latest={name,body:definition[2]};
+  }
+  assert.ok(latest,'Migration history must define private.invited_handle_valid');
+  const exclusions=latest.body.match(/handle\s*<>\s*all\s*\(\s*array\s*\[([\s\S]*?)\]\s*\)/i);
+  assert.ok(exclusions,'Latest invited_handle_valid must exclude reserved handles: '+latest.name);
+  const reserved=new Set([...exclusions[1].matchAll(/'((?:[^']|'')*)'/g)].map(match=>match[1].replace(/''/g,"'")));
+  for(const term of RESERVED_HANDLES)assert.ok(reserved.has(term),'Latest invited_handle_valid must reserve '+term+' ('+latest.name+')');
 });
 
 let handler,created=0,published=0,challengeValid=true,rateAllowed=true;
