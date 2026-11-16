@@ -7,12 +7,21 @@ A curated GitHub Pages site with a private, invite-only profile studio. There is
 - `/`: the real Ascendo logo, Client 26.3 Discord link, founder cards, and decorative floating phrases on black.
 - `/plugins/`: five Paper 26.3 plugins, with direct JAR downloads and build information.
 - `/chess/`: private two-player guest chess, with invitation links and optional clocks.
+- `/forge/`: browser-local Minecraft gradient text, server MOTD, item-name and chat-message tools, with previews and copyable exports.
 - `/internalcheats/`: InternalCheats; Discord `internalcheats`; Minecraft IGN `InternalCheat`.
 - `/k3rlsen/`: k3rlsen; TikTok `@ferenckop`; Instagram `@_shewantss.csxngi`; Discord `27ia`.
 - `/nagyorru/`: compatibility redirect to `/internalcheats/`, with a visible fallback link.
 - `/404.html`: minimal custom 404 preview. GitHub Pages serves the same hero for unknown routes while retaining HTTP 404.
 
 Profiles open immediately. The existing video attempts playback with audio, falls back to muted playback when required by the browser, and has an accessible sound control. Hover or focus the sound button to expand the slider; tap/click to pin it open or close it. Escape or an outside tap closes it. Adjusting the slider is a user interaction that can enable audio. Content remains visible if JavaScript or media is unavailable.
+
+## Ascendo Forge
+
+`/forge/` is a standalone, account-free Minecraft text workshop. The four tools keep separate local drafts in `ascendo-forge-v1`; blocked storage does not prevent use. Two-color gradients, five palettes, solid color and four decoration toggles update a literal-text preview. Copy, file download and design links are available. A design link includes its text and style in the URL fragment; it is not an account or private sharing feature. Reset affects only the selected tool. The homepage links to Forge without adding profile listings.
+
+MiniMessage output escapes literal tags and backslashes. Legacy RGB uses `&x` codes for compatible plugins, reapplying decorations after color changes. Text-component JSON is for compatible serializers/tools; it is not a version-specific Minecraft command. Vanilla `server.properties` output includes the complete `motd=` line, Java Properties escaping and the nearest of 16 classic colors, reflected in the preview. The MOTD editor allows at most two lines, and item names one. All tools cap input at 240 UTF-16 units. Preview fonts approximate the game; no Minecraft font or game assets are redistributed.
+
+Forge has no backend requests, uploads, account dependency or animation loop. Input is rendered with text nodes. Existing site and profile styles are isolated from its stylesheet. Tests run with `npm run test:forge`; format references are recorded in `forge/format.mjs`. Cache version: `20261116-1`.
 
 ## Private chess
 

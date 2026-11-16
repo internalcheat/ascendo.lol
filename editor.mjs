@@ -23,7 +23,7 @@ import {BACKGROUNDS} from './background-catalog.mjs?v=20261025-15';
 import {createProfilePlayer} from './profile-music.mjs?v=20261027-1';
 import {createStudioLanguage,tr} from './studio-i18n.mjs?v=20261027-9';
 import {createQuickGuide} from './studio-guide.mjs?v=20261027-9';
-import {createStudioShare} from './studio-share.mjs?v=20261027-9';
+import {createStudioShare} from './studio-share.mjs?v=20261116-1';
 
 const byId = id => document.getElementById(id);
 const form = byId('profileForm');
