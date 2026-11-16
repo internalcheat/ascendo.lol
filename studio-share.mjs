@@ -1,6 +1,6 @@
 import {tr} from './studio-i18n.mjs?v=20261027-9';
 import {themePalette} from './profile-palette.mjs?v=20261027-1';
-import {publicProfileUrl,displayProfileUrl,SHARE_MAX_BYTES,pngDimensions} from './share-policy.mjs?v=20261027-1';
+import {publicProfileUrl,displayProfileUrl,SHARE_MAX_BYTES,pngDimensions} from './share-policy.mjs?v=20261116-1';
 import {BACKEND_URL} from './customizer-config.mjs';
 export function drawProfileQr(canvas,matrix,{primary},label){
   canvas.width=canvas.height=1024;const ctx=canvas.getContext('2d');if(!ctx)throw Error('Image downloads are unavailable in this browser.');ctx.fillStyle='#fff';ctx.fillRect(0,0,1024,1024);ctx.strokeStyle=primary;ctx.lineWidth=6;ctx.strokeRect(24,24,976,976);
