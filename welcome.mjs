@@ -1,5 +1,5 @@
 import {request,session,storeSession} from './editor-api.mjs';
-import {normalizeHandle} from './handle-policy.mjs?v=20261116-1';
+import {normalizeHandle} from './handle-policy.mjs?v=20261118-1';
 
 const byId=id=>document.getElementById(id),form=byId('reserveHandle'),input=byId('inviteHandle'),button=byId('reserveButton'),status=byId('invitationStatus');
 let ready=false,busy=false,timer=0,generation=0,destroyed=false;

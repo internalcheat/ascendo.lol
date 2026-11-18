@@ -1,5 +1,5 @@
 import {API_URL,PUBLISHABLE_KEY} from './customizer-config.mjs';
-import {normalizeHandle} from './handle-policy.mjs?v=20261116-1';
+import {normalizeHandle} from './handle-policy.mjs?v=20261118-1';
 
 export function routeHandle(path){
   const match=path.match(/^\/([A-Za-z0-9-]{3,24})\/?$/);if(!match)return '';

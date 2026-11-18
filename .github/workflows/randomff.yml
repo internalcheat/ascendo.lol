@@ -1,0 +1,56 @@
+name: Random Family Friendly videos
+
+on:
+  push:
+    branches: [main]
+    paths: ['randomff/**', 'scripts/update-randomff.py', 'scripts/publish-randomff.mjs', 'tests/randomff*', '.github/workflows/randomff.yml']
+  pull_request:
+    paths: ['randomff/**', 'scripts/update-randomff.py', 'scripts/publish-randomff.mjs', 'tests/randomff*', '.github/workflows/randomff.yml']
+  workflow_dispatch:
+  schedule:
+    - cron: '23 */6 * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: randomff-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  checks:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: node --test tests/randomff.mjs
+      - run: python tests/randomff-catalogue.py
+  refresh:
+    needs: checks
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      pages: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      # YouTube changes frequently. Use the maintained extractor, with completeness
+      # checks below, rather than shipping an old extractor or a public proxy.
+      - run: python -m pip install --disable-pip-version-check --upgrade yt-dlp
+      - run: python scripts/update-randomff.py
+      - run: node scripts/publish-randomff.mjs
+        env:
+          GITHUB_TOKEN: ${{ github.token }}

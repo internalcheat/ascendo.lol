@@ -1,4 +1,4 @@
-export const RESERVED_HANDLES=Object.freeze(['404','index','assets','downloads','plugins','forge','customize','login','welcome','invite','invitations','api','auth','profile','profiles','vendor','tests','supabase','fonts','admin','administrator','owner','staff','support','security','system','root','www','ascendo','internal','internalcheat','internalcheats','nagyorru','k3rlsen','bal4zs','szikraaaa']);
+export const RESERVED_HANDLES=Object.freeze(['404','index','assets','downloads','plugins','forge','randomff','customize','login','welcome','invite','invitations','api','auth','profile','profiles','vendor','tests','supabase','fonts','admin','administrator','owner','staff','support','security','system','root','www','ascendo','internal','internalcheat','internalcheats','nagyorru','k3rlsen','bal4zs','szikraaaa']);
 export function normalizeHandle(value){
   if(typeof value!=='string')throw Error('Choose a handle.');
   const handle=value.trim().toLowerCase();

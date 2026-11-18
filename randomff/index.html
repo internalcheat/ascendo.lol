@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#000000">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="A random video from Family Friendly.">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <link rel="canonical" href="https://ascendo.lol/randomff/">
+  <title>Random Family Friendly Video · Ascendo</title>
+  <link rel="icon" href="/assets/ascendo-icon-32.png?v=20261023-2" type="image/png" sizes="32x32">
+  <link rel="stylesheet" href="./styles.css?v=20261118-1">
+  <script type="module" src="./app.mjs?v=20261118-1"></script>
+</head>
+<body>
+  <main class="randomff" aria-label="Random Family Friendly video">
+    <div class="player" id="playerRegion" hidden aria-label="Video player">
+      <div id="playerMount"></div>
+    </div>
+    <div class="controls">
+      <button class="random-button" id="randomButton" type="button">Random Family Friendly Video</button>
+      <label class="shorts-control">
+        <span>Shorts Videos Included</span>
+        <input id="includeShorts" type="checkbox" role="switch">
+        <span class="switch" aria-hidden="true"></span>
+      </label>
+      <p class="status" id="status" role="status" aria-live="polite"></p>
+    </div>
+    <noscript><p class="noscript">Enable JavaScript to select a video.</p></noscript>
+  </main>
+</body>
+</html>
