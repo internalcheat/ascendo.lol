@@ -10,8 +10,8 @@
   <link rel="canonical" href="https://ascendo.lol/randomff/">
   <title>Random Family Friendly Video · Ascendo</title>
   <link rel="icon" href="/assets/ascendo-icon-32.png?v=20261023-2" type="image/png" sizes="32x32">
-  <link rel="stylesheet" href="./styles.css?v=20261118-1">
-  <script type="module" src="./app.mjs?v=20261118-1"></script>
+  <link rel="stylesheet" href="./styles.css?v=20261118-2">
+  <script type="module" src="./app.mjs?v=20261118-2"></script>
 </head>
 <body>
   <main class="randomff" aria-label="Random Family Friendly video">
@@ -19,6 +19,9 @@
       <div id="playerMount"></div>
     </div>
     <div class="controls">
+      <select class="category-select" id="videoCategory" aria-label="Video category" disabled>
+        <option value="all">All videos</option>
+      </select>
       <button class="random-button" id="randomButton" type="button">Random Family Friendly Video</button>
       <label class="shorts-control">
         <span>Shorts Videos Included</span>

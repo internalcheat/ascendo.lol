@@ -65,7 +65,7 @@ const flush = () => new Promise(resolve => setImmediate(resolve));
 
 test('controller retries unavailable videos, preserves browser errors, prevents repeats and defaults Shorts off', async () => {
   const savedGlobals = Object.fromEntries(['document', 'window', 'sessionStorage', 'location', 'fetch'].map(key => [key, Object.getOwnPropertyDescriptor(globalThis, key)]));
-  const elements = Object.fromEntries(['randomButton', 'includeShorts', 'status', 'playerRegion', 'playerMount'].map(id => [id, new Element()]));
+  const elements = Object.fromEntries(['randomButton', 'includeShorts', 'videoCategory', 'status', 'playerRegion', 'playerMount'].map(id => [id, new Element()]));
   const instances = [];
   const storage = new Map([['ascendo-randomff-last-video', fixture[0].id]]);
   let fetches = 0;
@@ -86,7 +86,7 @@ test('controller retries unavailable videos, preserves browser errors, prevents 
     globalThis.location = {origin: 'https://ascendo.lol'};
     globalThis.fetch = async () => { fetches++; return {ok: true, json: async () => ({schemaVersion: 1, channelId, videos: fixture})}; };
     await import(`../randomff/app.mjs?test=${Date.now()}`);
-    assert.equal(fetches, 0, 'Catalogue loads only on first click.');
+    assert.equal(fetches, 1, 'The small catalogue loads immediately to populate categories.');
     assert.equal(elements.includeShorts.checked, false);
     elements.randomButton.dispatchEvent(new Event('click'));
     elements.randomButton.dispatchEvent(new Event('click'));

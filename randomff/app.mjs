@@ -1,7 +1,9 @@
-import {parseCatalogue, selectVideo} from './selection.mjs';
+import {parseCatalogue, selectVideo} from './selection.mjs?v=20261118-2';
+import {listCategories} from './categories.mjs?v=20261118-2';
 
 const button = document.getElementById('randomButton');
 const shorts = document.getElementById('includeShorts');
+const category = document.getElementById('videoCategory');
 const status = document.getElementById('status');
 const region = document.getElementById('playerRegion');
 const mount = document.getElementById('playerMount');
@@ -9,6 +11,7 @@ const LAST_VIDEO_KEY = 'ascendo-randomff-last-video';
 const unavailable = new Set();
 const PERMANENT_ERRORS = new Set([100, 101, 150]);
 let cataloguePromise;
+let catalogueVideos;
 let youtubePromise;
 let player;
 let lastId = '';
@@ -19,13 +22,46 @@ let readyTimer;
 try { lastId = sessionStorage.getItem(LAST_VIDEO_KEY) || ''; } catch { /* Storage is optional. */ }
 
 function message(text = '') { status.textContent = text; }
-function setBusy(value) { busy = value; button.disabled = value; button.setAttribute('aria-busy', String(value)); }
+function setBusy(value) {
+  busy = value;
+  button.disabled = value;
+  button.setAttribute('aria-busy', String(value));
+  category.disabled = value || !catalogueVideos;
+  shorts.disabled = value;
+}
+
+function refreshCategories() {
+  if (!catalogueVideos) return;
+  const selected = category.value || 'all';
+  const categories = listCategories(catalogueVideos, {includeShorts: shorts.checked});
+  const options = categories.map(item => {
+    const option = document.createElement('option');
+    option.value = item.id;
+    option.textContent = `${item.label} (${item.count})`;
+    option.disabled = item.count === 0;
+    return option;
+  });
+  category.replaceChildren(...options);
+  category.value = selected;
+  category.disabled = busy;
+}
+
+function filtersChanged() {
+  refreshCategories();
+  if (busy || !catalogueVideos) return;
+  // Keep the current video playing, but its later callbacks must not replace
+  // it using filters the visitor has since changed or clear the filter status.
+  if (player) { requestId++; clearTimeout(readyTimer); }
+  const selected = listCategories(catalogueVideos, {includeShorts: shorts.checked}).find(item => item.id === category.value);
+  message(selected?.count === 0 ? 'No videos match. Include Shorts or choose another category.' : '');
+}
 
 async function catalogue() {
   if (!cataloguePromise) {
     cataloguePromise = fetch(new URL('./catalogue.json', import.meta.url), {cache: 'no-cache', signal: AbortSignal.timeout(15000)})
       .then(response => { if (!response.ok) throw new Error('Video catalogue request failed.'); return response.json(); })
       .then(parseCatalogue)
+      .then(videos => { catalogueVideos = videos; refreshCategories(); return videos; })
       .catch(error => { cataloguePromise = undefined; throw error; });
   }
   return cataloguePromise;
@@ -130,10 +166,15 @@ function play(video, round, attempt) {
 function next(round, attempt = 1) {
   if (round.id !== requestId) return;
   const excluded = new Set([...unavailable, ...round.excluded]);
-  const video = selectVideo(round.videos, {includeShorts: round.includeShorts, previousId: round.previousId, excluded});
+  const video = selectVideo(round.videos, {includeShorts: round.includeShorts, categoryId: round.categoryId, previousId: round.previousId, excluded});
   if (!video) {
     setBusy(false);
-    message('No other videos are available. Try again later.');
+    const matched = listCategories(round.videos, {includeShorts: round.includeShorts}).find(item => item.id === round.categoryId)?.count || 0;
+    const previous = round.videos.find(item => item.id === round.previousId);
+    const previousMatches = previous && listCategories([previous], {includeShorts: round.includeShorts}).find(item => item.id === round.categoryId)?.count;
+    if (!matched) message('No videos match. Include Shorts or choose another category.');
+    else if (matched === 1 && previousMatches) message('This category has one matching video. Choose another category to avoid a repeat.');
+    else message('No other matching videos are available. Choose another category or try later.');
     return;
   }
   play(video, round, attempt);
@@ -143,15 +184,23 @@ button.addEventListener('click', async () => {
   if (busy) return;
   const id = ++requestId;
   const includeShorts = shorts.checked;
+  const categoryId = category.value || 'all';
   setBusy(true);
   message('Loading…');
   try {
     const [videos] = await Promise.all([catalogue(), youtube()]);
     if (id !== requestId) return;
-    next({id, videos, includeShorts, previousId: lastId, excluded: new Set()});
+    next({id, videos, includeShorts, categoryId, previousId: lastId, excluded: new Set()});
   } catch {
     if (id !== requestId) return;
     setBusy(false);
     message('Could not load videos. Check your connection and try again.');
   }
+});
+
+category.addEventListener('change', filtersChanged);
+shorts.addEventListener('change', filtersChanged);
+// Populate the small filter immediately; the YouTube API still loads on demand.
+catalogue().catch(() => {
+  if (!requestId) message('Could not load categories. Use the button to try again.');
 });

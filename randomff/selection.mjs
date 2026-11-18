@@ -1,3 +1,5 @@
+import {matchesCategory} from './categories.mjs?v=20261118-2';
+
 const VIDEO_ID = /^[A-Za-z0-9_-]{11}$/;
 const UINT32_RANGE = 2 ** 32;
 
@@ -24,8 +26,8 @@ export function parseCatalogue(value) {
   return videos;
 }
 
-export function selectVideo(videos, {includeShorts = false, previousId = '', excluded = new Set(), source} = {}) {
-  const eligible = videos.filter(video => (includeShorts || !video.isShort) && video.id !== previousId && !excluded.has(video.id));
+export function selectVideo(videos, {includeShorts = false, categoryId = 'all', previousId = '', excluded = new Set(), source} = {}) {
+  const eligible = videos.filter(video => (includeShorts || !video.isShort) && matchesCategory(video, categoryId) && video.id !== previousId && !excluded.has(video.id));
   if (!eligible.length) return null;
   return eligible[randomIndex(eligible.length, source)];
 }

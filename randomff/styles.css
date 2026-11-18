@@ -9,15 +9,18 @@
 :root { color-scheme: dark; font-family: Inter, Arial, sans-serif; background: #000; color: #f5f5f5; }
 * { box-sizing: border-box; }
 body { margin: 0; min-width: 280px; }
-button, input { font: inherit; }
+button, input, select { font: inherit; }
 [hidden] { display: none !important; }
 .randomff { min-height: 100vh; min-height: 100svh; width: min(100%, 1040px); margin: auto; padding: 36px 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 30px; }
 .controls { display: flex; flex-direction: column; align-items: center; width: 100%; }
+.category-select { width: min(100%, 300px); min-height: 44px; margin: 0 0 14px; padding: 11px 12px; border: 1px solid #292929; border-radius: 8px; background: #090909; color: #bcbcbc; font-size: 12px; cursor: pointer; transition: border-color 160ms ease, opacity 160ms ease; }
+.category-select:hover { border-color: #484848; }
+.category-select:disabled { opacity: .58; cursor: wait; }
 .random-button { max-width: 100%; min-height: 50px; padding: 15px 23px; border: 1px solid #f5f5f5; border-radius: 8px; background: #f5f5f5; color: #090909; font-size: 14px; font-weight: 550; line-height: 1.35; cursor: pointer; transition: background 160ms ease, transform 160ms ease, opacity 160ms ease; }
 .random-button:hover { background: #dcdcdc; border-color: #dcdcdc; }
 .random-button:active { transform: scale(.985); }
 .random-button:disabled { opacity: .58; cursor: wait; }
-.random-button:focus-visible, .shorts-control input:focus-visible + .switch { outline: 2px solid #fff; outline-offset: 5px; }
+.random-button:focus-visible, .category-select:focus-visible, .shorts-control input:focus-visible + .switch { outline: 2px solid #fff; outline-offset: 5px; }
 .shorts-control { position: relative; display: inline-flex; align-items: center; gap: 12px; margin-top: 23px; color: #909090; font-size: 12px; line-height: 20px; cursor: pointer; user-select: none; }
 .shorts-control input { position: absolute; width: 1px; height: 1px; opacity: 0; }
 .switch { width: 30px; height: 18px; border: 1px solid #414141; border-radius: 20px; background: #161616; transition: background 160ms ease, border-color 160ms ease; }
