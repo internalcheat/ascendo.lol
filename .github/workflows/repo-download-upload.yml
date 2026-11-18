@@ -1,0 +1,61 @@
+name: Upload R.E.P.O download
+
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/repo-download-upload.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: repo-download-upload
+  cancel-in-progress: false
+
+jobs:
+  upload:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RELEASE_TAG: repo-v0.5.0
+      ARCHIVE_NAME: REPO.v0.5.0-OFME.rar
+      ARCHIVE_SIZE: '1091735758'
+      ARCHIVE_SHA256: bd39a6e9bcaf98cfac9c6c8603fe1351003e43b391e93f681eeae9095f94b920
+      TRANSFER_URL: https://defines-section-bios-with.trycloudflare.com/transfer/3555ffb214c34b7988dd445f3a2172da/REPO.v0.5.0-OFME.rar
+    steps:
+      - name: Transfer the supplied archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          archive="$RUNNER_TEMP/$ARCHIVE_NAME"
+          curl --fail --location --retry 4 --retry-delay 5 --retry-all-errors --continue-at - --max-time 2400 --speed-limit 1024 --speed-time 120 --output "$archive" "$TRANSFER_URL"
+          test "$(stat --format=%s "$archive")" = "$ARCHIVE_SIZE"
+          printf '%s  %s\n' "$ARCHIVE_SHA256" "$archive" | sha256sum --check
+      - name: Create the download release
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release create "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --target main --title 'R.E.P.O v0.5.0' --notes 'R.E.P.O v0.5.0 archive.' --draft --latest=false
+          fi
+      - name: Upload and verify the archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh release upload "$RELEASE_TAG" "$RUNNER_TEMP/$ARCHIVE_NAME" --repo "$GITHUB_REPOSITORY"
+          gh api "repos/$GITHUB_REPOSITORY/releases/tags/$RELEASE_TAG" > "$RUNNER_TEMP/release.json"
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          release=json.loads((Path(os.environ['RUNNER_TEMP'])/'release.json').read_text())
+          asset=next(item for item in release['assets'] if item['name']==os.environ['ARCHIVE_NAME'])
+          assert asset['state']=='uploaded', asset['state']
+          assert asset['size']==int(os.environ['ARCHIVE_SIZE']), asset['size']
+          assert asset['digest']=='sha256:'+os.environ['ARCHIVE_SHA256'], asset.get('digest')
+          print('Verified archive: '+asset['browser_download_url'])
+          PY
+      - name: Publish the verified download
+        shell: bash
+        run: gh release edit "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --draft=false --latest=false
