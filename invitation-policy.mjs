@@ -1,7 +1,7 @@
 import {normalizeProfile} from './profile-schema.mjs?v=20261027-9';
 
-import {normalizeHandle} from './handle-policy.mjs?v=20261118-1';
-export {normalizeHandle,RESERVED_HANDLES} from './handle-policy.mjs?v=20261118-1';
+import {normalizeHandle} from './handle-policy.mjs?v=20261118-2';
+export {normalizeHandle,RESERVED_HANDLES} from './handle-policy.mjs?v=20261118-2';
 export function createInvitedProfile(handle){
   const name=normalizeHandle(handle);
   return normalizeProfile({name,bio:'',badge:'',accent:'#c19aff',glow:65,opacity:53,effect:'glow',avatar:{url:'https://ascendo.lol/assets/ascendo-icon-180.png',poster:'',x:50,y:50},background:{kind:'black',url:'',poster:'',mobile:''},soundtrack:{title:'',artist:''},socials:[]});

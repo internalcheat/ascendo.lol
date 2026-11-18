@@ -4,7 +4,7 @@ export const SHARE_MAX_BYTES=20*1024*1024;
 export const SHARE_MAX_HEIGHT=16000;
 export const SHARE_WIDTH=1920;
 const identities=new Set(['internalcheats','k3rlsen','bal4zs','szikraaaa']);
-const reserved=new Set(['404','index','assets','downloads','plugins','forge','randomff','customize','login','welcome','invite','invitations','api','auth','profile','profiles','vendor','tests','supabase','fonts','admin','administrator','owner','staff','support','security','system','root','www','ascendo','internal','internalcheat','nagyorru']);
+const reserved=new Set(['404','index','assets','downloads','plugins','forge','randomff','cracks','customize','login','welcome','invite','invitations','api','auth','profile','profiles','vendor','tests','supabase','fonts','admin','administrator','owner','staff','support','security','system','root','www','ascendo','internal','internalcheat','nagyorru']);
 export function profileSlug(path){const match=String(path).match(/^\/([a-z0-9](?:[a-z0-9-]{1,22})[a-z0-9])\/?$/i);if(!match)return '';const slug=match[1].toLowerCase();return identities.has(slug)||!reserved.has(slug)?slug:'';}
 export function publicProfilePath(slug){if(!profileSlug('/'+slug))throw Error('Invalid profile address.');return `/${slug==='szikraaaa'?'Szikraaaa':slug.toLowerCase()}/`;}
 export const publicProfileUrl=slug=>'https://ascendo.lol'+publicProfilePath(slug);
