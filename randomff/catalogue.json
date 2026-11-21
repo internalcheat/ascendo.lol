@@ -2,12 +2,12 @@
   "schemaVersion": 1,
   "channelId": "UCrR-9qug_zHoiBBGTXGP2Hw",
   "channelUrl": "https://www.youtube.com/@FamilyFriendly",
-  "generatedAt": "2026-11-18T16:30:13Z",
+  "generatedAt": "2026-11-21T00:04:58Z",
   "source": "Complete YouTube videos and shorts tabs via yt-dlp; no media downloaded",
   "counts": {
-    "videos": 115,
+    "videos": 116,
     "shorts": 129,
-    "total": 244
+    "total": 245
   },
   "videos": [
     {
@@ -178,6 +178,11 @@
     {
       "id": "7Fi6qJMAZR0",
       "title": "Presenting Offensive Companies To Strangers 5",
+      "isShort": false
+    },
+    {
+      "id": "7NZZM1TFhac",
+      "title": "Try Not To Laugh: Job Interview",
       "isShort": false
     },
     {
