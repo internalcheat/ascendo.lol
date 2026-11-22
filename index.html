@@ -1,56 +1,497 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#000000">
-  <meta name="description" content="Ascendo Client">
-  <meta property="og:type" content="website">
-  <meta property="og:title" content="Ascendo">
-  <meta property="og:description" content="Ascendo Client 26.3">
-  <title>Ascendo</title>
-  <link rel="shortcut icon" href="./assets/ascendo-icon.ico?v=20261023-2">
-  <link rel="icon" href="./assets/ascendo-icon-32.png?v=20261023-2" type="image/png" sizes="32x32">
-  <link rel="icon" href="./assets/ascendo-icon-64.png?v=20261023-2" type="image/png" sizes="64x64">
-  <link rel="apple-touch-icon" href="./assets/ascendo-icon-180.png?v=20261023-2" sizes="180x180">
-  <link rel="stylesheet" href="./styles.css?v=20261027-8">
-  <script src="./app.js?v=20261116-2" defer></script>
-<link rel="stylesheet" href="/profile-custom.css?v=20261025-4">
-<script type="module" src="/profile-client.mjs?v=20261028-2"></script>
-<script src="/extras.js?v=20261025-1" defer></script>
-<link rel="stylesheet" href="/fonts.css?v=20261025-11">
-  <link rel="stylesheet" href="/public.css?v=20261116-2">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Login / Signup Animation</title>
+<style>
+:root{
+  --ink:#18181c;
+  --muted:#9797a1;
+  --line:#dedee6;
+  --paper:#fff;
+  --violet-1:#5a49e9;
+  --violet-2:#6855f1;
+  --violet-3:#4869ed;
+  --slide:cubic-bezier(.76,0,.24,1);
+  --soft:cubic-bezier(.22,.88,.28,1);
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f2f2f5;color:var(--ink)}
+body{min-height:100vh;display:grid;place-items:center;padding:24px}
+
+.card{
+  position:relative;
+  width:min(920px,96vw);
+  height:560px;
+  overflow:hidden;
+  border-radius:12px;
+  background:#fff;
+  box-shadow:0 22px 70px rgba(31,27,65,.13),0 2px 8px rgba(31,27,65,.05);
+}
+
+/* Two fixed white form stages. Only the exposed one is interactive. */
+.pane{
+  position:absolute;
+  top:0;
+  width:50%;
+  height:100%;
+  display:grid;
+  place-items:center;
+  padding:52px 58px;
+  background:#fff;
+}
+.login-pane{left:0}
+.register-pane{right:0}
+
+.form{
+  width:min(335px,100%);
+  transition:opacity 220ms ease,transform 420ms var(--soft),filter 220ms ease;
+}
+.login-pane .form{opacity:1;transform:translateX(0)}
+.register-pane .form{opacity:0;transform:translateX(28px);pointer-events:none}
+
+.card.register .login-pane .form{
+  opacity:0;
+  transform:translateX(-28px);
+  pointer-events:none;
+}
+.card.register .register-pane .form{
+  opacity:1;
+  transform:translateX(0);
+  pointer-events:auto;
+  transition-delay:250ms;
+}
+.card.register .register-pane .field,
+.card.register .register-pane .row,
+.card.register .register-pane .primary,
+.card.register .register-pane .small-switch{
+  animation:registerRise 430ms var(--soft) both;
+}
+.card.register .register-pane .field:nth-of-type(1){animation-delay:260ms}
+.card.register .register-pane .field:nth-of-type(2){animation-delay:300ms}
+.card.register .register-pane .field:nth-of-type(3){animation-delay:340ms}
+.card.register .register-pane .row{animation-delay:380ms}
+.card.register .register-pane .primary{animation-delay:410ms}
+.card.register .register-pane .small-switch{animation-delay:440ms}
+@keyframes registerRise{
+  from{opacity:0;transform:translateY(8px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+.brand{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:760;color:#5d50ea;margin-bottom:33px}
+.brand-mark{width:16px;height:16px;border-radius:4px;background:linear-gradient(135deg,#6c5ef6,#5144e5);display:grid;place-items:center;color:#fff;font-size:8px}
+.kicker{font-size:10px;color:#9c9ca5;margin-bottom:6px}
+h1{font-size:26px;line-height:1.12;letter-spacing:-.045em;margin:0 0 8px;font-weight:770}
+.sub{font-size:11px;line-height:1.55;color:#a1a0aa;margin-bottom:24px}
+.field{margin-bottom:12px}
+label{display:block;font-size:10px;font-weight:650;color:#65656f;margin:0 0 6px 1px}
+input{
+  width:100%;
+  height:38px;
+  border:1px solid var(--line);
+  border-radius:5px;
+  background:#fff;
+  padding:0 11px;
+  outline:none;
+  color:#222;
+  font:inherit;
+  font-size:11px;
+  transition:border-color 150ms ease,box-shadow 170ms ease;
+}
+input:focus{border-color:#786df0;box-shadow:0 0 0 3px rgba(93,78,235,.10)}
+input.invalid{border-color:#e66f7e;box-shadow:0 0 0 3px rgba(230,111,126,.08)}
+input.valid{border-color:#32b99c;box-shadow:0 0 0 3px rgba(50,185,156,.08)}
+.input-wrap{position:relative}
+.input-wrap input{padding-right:38px}
+.eye{
+  position:absolute;right:8px;top:50%;transform:translateY(-50%);
+  width:26px;height:26px;border:0;border-radius:7px;background:transparent;color:#9696a0;
+  display:grid;place-items:center;cursor:pointer;transition:background 120ms ease,color 120ms ease,transform 120ms var(--soft)
+}
+.eye:hover{background:#f4f3fb;color:#5d50eb}.eye:active{transform:translateY(-50%) scale(.92)}
+.eye svg{width:14px;height:14px}
+.strength{height:4px;margin-top:7px;border-radius:999px;background:#efeff3;overflow:hidden}
+.strength-bar{height:100%;width:0;border-radius:inherit;background:#d7d7dd;transition:width 220ms var(--soft),background 180ms ease}
+.strength-copy{display:flex;justify-content:space-between;align-items:center;margin-top:5px;font-size:8px;color:#aaa9b1}
+.req{display:flex;gap:6px;align-items:center}.req i{width:5px;height:5px;border-radius:50%;background:#c7c6cd;transition:background 150ms ease,box-shadow 150ms ease}.req.ok i{background:#32b99c;box-shadow:0 0 8px rgba(50,185,156,.25)}.req.ok{color:#6b9d91}
+.name-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row{display:flex;align-items:center;justify-content:space-between;margin:4px 0 15px;font-size:9px;color:#9999a2}
+.check{display:flex;align-items:center;gap:5px}.check input{width:11px;height:11px;margin:0;accent-color:#5d50eb}
+.link{color:#5d50eb;text-decoration:none;font-weight:650}
+.primary{
+  position:relative;
+  overflow:hidden;
+  width:100%;
+  height:38px;
+  border:0;
+  border-radius:5px;
+  background:linear-gradient(135deg,var(--violet-1),var(--violet-2));
+  color:#fff;
+  font:inherit;
+  font-size:10px;
+  font-weight:730;
+  cursor:pointer;
+  box-shadow:0 5px 14px rgba(84,70,234,.18);
+  transition:transform 145ms var(--soft),box-shadow 145ms var(--soft);
+}
+.primary:hover{transform:scale(1.02);box-shadow:0 8px 18px rgba(84,70,234,.24)}
+.primary:active{transform:scale(.95)}
+.or{display:flex;align-items:center;gap:9px;color:#b0afb7;font-size:8px;margin:14px 0}
+.or:before,.or:after{content:"";height:1px;flex:1;background:#ececf1}
+.socials{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.social{height:34px;border:1px solid #e3e3e8;border-radius:5px;background:#fff;color:#575760;font-size:9px;font-weight:650;cursor:pointer}
+.small-switch{text-align:center;font-size:9px;color:#a09fa9;margin-top:15px}
+.small-switch button{border:0;background:none;padding:0;color:#5d50eb;font:inherit;font-weight:760;cursor:pointer}
+
+/* This is the key animation from the reference: the entire purple card crosses
+   from the RIGHT half to the LEFT half, exposing the register form on the right. */
+.slider{
+  position:absolute;
+  z-index:10;
+  top:0;
+  left:50%;
+  width:50%;
+  height:100%;
+  overflow:hidden;
+  color:white;
+  background:
+    radial-gradient(circle at 18% 14%,rgba(255,255,255,.13),transparent 25%),
+    radial-gradient(circle at 83% 78%,rgba(67,132,255,.24),transparent 31%),
+    linear-gradient(135deg,var(--violet-1) 0%,var(--violet-2) 52%,var(--violet-3) 100%);
+  transform:translateX(0);
+  transition:transform 690ms var(--slide);
+  will-change:transform;
+}
+.card.register .slider{transform:translateX(-100%)}
+.slider:before{
+  content:"";
+  position:absolute;
+  inset:0;
+  opacity:.14;
+  background-image:radial-gradient(rgba(255,255,255,.22) .7px,transparent .7px);
+  background-size:13px 13px;
+}
+
+.slider-inner{
+  position:absolute;
+  inset:0;
+  display:grid;
+  place-items:center;
+  text-align:center;
+  padding:28px;
+}
+.illustration{height:88px;display:grid;place-items:center;margin-bottom:2px}
+.people{position:relative;width:110px;height:66px}
+.avatar{position:absolute;width:29px;height:29px;border-radius:7px;background:rgba(255,255,255,.93);box-shadow:0 8px 20px rgba(25,20,91,.14)}
+.avatar:before{content:"";position:absolute;left:10px;top:5px;width:9px;height:9px;border-radius:50%;background:#776af1}
+.avatar:after{content:"";position:absolute;left:7px;right:7px;bottom:5px;height:7px;border-radius:8px 8px 4px 4px;background:#bbb6fc}
+.a1{left:40px;top:25px;transform:scale(1.18)}
+.a2{left:8px;top:8px;transform:scale(.72)}
+.a3{right:8px;top:8px;transform:scale(.72)}
+.bubble{position:absolute;width:13px;height:10px;border-radius:3px;background:rgba(255,255,255,.78)}
+.b1{left:23px;top:0}.b2{right:23px;top:0}
+
+.copy-stage{position:relative;width:280px;height:125px}
+.copy{
+  position:absolute;
+  inset:0;
+  transition:opacity 180ms ease,transform 350ms var(--soft);
+  pointer-events:none;
+}
+.copy h2{font-size:24px;letter-spacing:-.04em;margin:0 0 9px;font-weight:780}
+.copy p{font-size:10px;line-height:1.55;color:rgba(255,255,255,.74);margin:0 auto 19px;max-width:220px}
+.copy-register{opacity:1;transform:translateY(0);pointer-events:auto}
+.copy-login{opacity:0;transform:translateY(12px);pointer-events:none}
+.card.register .copy-register{opacity:0;transform:translateY(-12px);pointer-events:none}
+.card.register .copy-login{opacity:1;transform:translateY(0);transition-delay:300ms;pointer-events:auto}
+.card:not(.register) .copy-register{transition-delay:300ms}
+.ghost{
+  height:34px;
+  min-width:112px;
+  padding:0 17px;
+  border:1px solid rgba(255,255,255,.52);
+  border-radius:5px;
+  background:rgba(255,255,255,.06);
+  color:#fff;
+  font:inherit;
+  font-size:9px;
+  font-weight:730;
+  cursor:pointer;
+  transition:background 140ms ease,transform 140ms var(--soft);
+}
+.ghost:hover{background:rgba(255,255,255,.13);transform:scale(1.03)}
+.ghost:active{transform:scale(.96)}
+
+.ripple{
+  position:absolute;
+  border-radius:50%;
+  background:rgba(255,255,255,.34);
+  transform:scale(0);
+  pointer-events:none;
+  animation:ripple 480ms var(--soft) forwards;
+}
+@keyframes ripple{to{transform:scale(4);opacity:0}}
+
+@media(max-width:720px){
+  .card{width:min(430px,96vw);height:680px}
+  .pane{width:100%;height:460px;left:0!important;right:auto!important;padding:38px 34px 30px}
+  .register-pane .form{opacity:0}
+  .card.register .login-pane .form{opacity:0}
+  .card.register .register-pane .form{opacity:1}
+  .slider,.card.register .slider{
+    left:0;
+    top:auto;
+    bottom:0;
+    width:100%;
+    height:220px;
+    transform:none;
+    transition:none;
+  }
+  .illustration{display:none}
+  .copy-stage{height:120px}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*:before,*:after{animation-duration:.001ms!important;transition-duration:.001ms!important}
+}
+</style>
 </head>
-<body class="page page--home">
-  <main class="landing">
-    <div class="landing__inner">
-      <button class="brand-trigger" id="logoSecret" type="button" aria-label="Ascendo logo" disabled><img class="brand-logo" src="./assets/ascendo-logo.png" alt="Ascendo" width="1300" height="414" fetchpriority="high"></button>
-      <a class="download-button" id="downloadButton" href="https://discord.gg/7k88ggycdr" target="_blank" rel="noopener noreferrer" aria-label="Download Ascendo Client 26.3 from the Ascendo Discord">
-        <span>Download client 26.3</span>
-      </a>
-      <a class="plugins-button" href="./plugins/" data-transition>
-        <span>Plugins</span>
-      </a>
-      <a class="plugins-button" href="./forge/" data-transition>
-        <span>Forge</span>
-      </a>
-      <section class="founders-section" aria-label="Founders">
-        <h2 class="section-heading">Founders</h2>
-        <div class="founders-list">
-          <a class="founder-pill" href="./internalcheats/" data-transition aria-label="Open InternalCheats's profile">
-            <span class="avatar avatar--small">
-              <picture><source media="(prefers-reduced-motion: reduce)" srcset="./assets/mypfp-poster.jpg"><img src="./assets/mypfp-animated.webp" data-fallback="./assets/mypfp-poster.jpg" alt="" width="206" height="176"></picture>
-            </span>
-            <span class="founder-pill__name">InternalCheats</span>
-              </a>
-          <a class="founder-pill" href="./k3rlsen/" data-transition aria-label="Open k3rlsen's profile">
-            <span class="avatar avatar--small"><img src="./assets/k3rlsen-mbappe.webp" alt="" width="64" height="64"></span>
-            <span class="founder-pill__name">k3rlsen</span>
-              </a>
+<body>
+
+<main class="card" id="card">
+  <section class="pane login-pane">
+    <form class="form" id="loginForm" novalidate>
+      <div class="brand"><span class="brand-mark">◆</span> move.</div>
+      <div class="kicker">Welcome</div>
+      <h1>Welcome back</h1>
+      <div class="sub">Enter your details to access your account.</div>
+
+      <div class="field">
+        <label>Email address</label>
+        <input type="email" placeholder="name@example.com" required>
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" placeholder="••••••••" required minlength="6">
+      </div>
+
+      <div class="row">
+        <label class="check"><input type="checkbox"> Remember me</label>
+        <a class="link" href="#">Forgot password?</a>
+      </div>
+
+      <button class="primary" type="submit">Sign in</button>
+      <div class="or">or continue with</div>
+      <div class="socials">
+        <button class="social" type="button">Google</button>
+        <button class="social" type="button">Apple</button>
+      </div>
+      <div class="small-switch">New here? <button type="button" data-go="register">Create account</button></div>
+    </form>
+  </section>
+
+  <section class="pane register-pane">
+    <form class="form" id="registerForm" novalidate>
+      <div class="brand"><span class="brand-mark">◆</span> move.</div>
+      <div class="kicker">Get started</div>
+      <h1>Create your account</h1>
+      <div class="sub">Set up your account in less than a minute.</div>
+
+      <div class="field">
+        <label>Name</label>
+        <div class="name-row">
+          <input type="text" placeholder="First name" required aria-label="First name">
+          <input type="text" placeholder="Last name" required aria-label="Last name">
         </div>
-      </section>
+      </div>
+
+      <div class="field">
+        <label>Email address</label>
+        <input type="email" placeholder="name@example.com" required autocomplete="email">
+      </div>
+
+      <div class="field">
+        <label>Password</label>
+        <div class="input-wrap">
+          <input id="registerPassword" type="password" placeholder="Create a password" required minlength="8" autocomplete="new-password">
+          <button class="eye" type="button" id="togglePassword" aria-label="Show password">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M3.5 12s3-5 8.5-5 8.5 5 8.5 5-3 5-8.5 5-8.5-5-8.5-5Z" stroke="currentColor" stroke-width="1.7"/>
+              <circle cx="12" cy="12" r="2.4" stroke="currentColor" stroke-width="1.7"/>
+            </svg>
+          </button>
+        </div>
+        <div class="strength"><div class="strength-bar" id="strengthBar"></div></div>
+        <div class="strength-copy">
+          <span id="strengthLabel">Use 8+ characters</span>
+          <span class="req" id="strengthReq"><i></i><span>secure</span></span>
+        </div>
+      </div>
+
+      <div class="row">
+        <label class="check"><input type="checkbox" required> I agree to the terms</label>
+      </div>
+
+      <button class="primary" type="submit">Create account</button>
+      <div class="small-switch">Already have an account? <button type="button" data-go="login">Sign in</button></div>
+    </form>
+  </section>
+
+  <aside class="slider">
+    <div class="slider-inner">
+      <div>
+        <div class="illustration">
+          <div class="people">
+            <i class="bubble b1"></i><i class="bubble b2"></i>
+            <i class="avatar a1"></i><i class="avatar a2"></i><i class="avatar a3"></i>
+          </div>
+        </div>
+
+        <div class="copy-stage">
+          <div class="copy copy-register">
+            <h2>New here?</h2>
+            <p>Create an account and start your journey with us.</p>
+            <button class="ghost" type="button" data-go="register">Create account</button>
+          </div>
+
+          <div class="copy copy-login">
+            <h2>Already have an account?</h2>
+            <p>Welcome back. Sign in and continue where you left off.</p>
+            <button class="ghost" type="button" data-go="login">Sign in</button>
+          </div>
+        </div>
+      </div>
     </div>
-  </main>
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </aside>
+</main>
+
+<script>
+const card = document.getElementById('card');
+let mode = 'login';
+let locked = false;
+
+function go(next){
+  if(locked || next === mode) return;
+  locked = true;
+  mode = next;
+
+  // The reference behavior:
+  // register -> purple "New here?" panel sweeps from right to left,
+  // revealing the register form on the right.
+  // login -> exact reverse.
+  card.classList.toggle('register', next === 'register');
+
+  setTimeout(() => locked = false, 710);
+}
+
+document.querySelectorAll('[data-go]').forEach(btn=>{
+  btn.addEventListener('click', () => go(btn.dataset.go));
+});
+
+document.querySelectorAll('.primary').forEach(btn=>{
+  btn.addEventListener('pointerdown', e=>{
+    const r=btn.getBoundingClientRect();
+    const d=Math.max(r.width,r.height);
+    const s=document.createElement('span');
+    s.className='ripple';
+    s.style.width=s.style.height=d+'px';
+    s.style.left=(e.clientX-r.left-d/2)+'px';
+    s.style.top=(e.clientY-r.top-d/2)+'px';
+    btn.appendChild(s);
+    s.addEventListener('animationend',()=>s.remove());
+  });
+});
+
+
+const registerPassword = document.getElementById("registerPassword");
+const togglePassword = document.getElementById("togglePassword");
+const strengthBar = document.getElementById("strengthBar");
+const strengthLabel = document.getElementById("strengthLabel");
+const strengthReq = document.getElementById("strengthReq");
+
+togglePassword?.addEventListener("click",()=>{
+  const showing = registerPassword.type === "text";
+  registerPassword.type = showing ? "password" : "text";
+  togglePassword.setAttribute("aria-label", showing ? "Show password" : "Hide password");
+  togglePassword.animate(
+    [{transform:"translateY(-50%) scale(.88)"},{transform:"translateY(-50%) scale(1.06)"},{transform:"translateY(-50%) scale(1)"}],
+    {duration:220,easing:"cubic-bezier(.22,.88,.28,1)"}
+  );
+});
+
+registerPassword?.addEventListener("input",()=>{
+  const v = registerPassword.value;
+  let score = 0;
+  if(v.length >= 8) score++;
+  if(/[A-Z]/.test(v) && /[a-z]/.test(v)) score++;
+  if(/\d/.test(v)) score++;
+  if(/[^A-Za-z0-9]/.test(v)) score++;
+
+  const widths = ["0%","28%","52%","76%","100%"];
+  const colors = ["#d7d7dd","#e46d7b","#e3a14a","#8e72f4","#32b99c"];
+  const labels = ["Use 8+ characters","Weak","Fair","Good","Strong"];
+
+  strengthBar.style.width = widths[score];
+  strengthBar.style.background = colors[score];
+  strengthLabel.textContent = labels[score];
+  strengthReq.classList.toggle("ok", score >= 3);
+});
+
+function validInput(input){
+  if(input.type==='email') return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(input.value.trim());
+  if(input.type==='password') return input.id==='registerPassword' ? input.value.length>=8 : input.value.length>=6;
+  if(input.type==='checkbox') return input.checked;
+  return input.value.trim().length>0;
+}
+
+document.querySelectorAll('form').forEach(form=>{
+  let hasErrored=false;
+  const required=[...form.querySelectorAll('input[required]')];
+
+  required.forEach(input=>{
+    input.addEventListener('blur',()=>{
+      const ok=validInput(input);
+      if(!ok) hasErrored=true;
+      input.classList.toggle('invalid',!ok);
+      input.classList.toggle('valid',ok);
+    });
+
+    input.addEventListener('input',()=>{
+      if(!hasErrored) return;
+      const ok=validInput(input);
+      input.classList.toggle('invalid',!ok);
+      input.classList.toggle('valid',ok);
+    });
+
+    input.addEventListener('change',()=>{
+      if(!hasErrored) return;
+      const ok=validInput(input);
+      input.classList.toggle('invalid',!ok);
+      input.classList.toggle('valid',ok);
+    });
+  });
+
+  form.addEventListener('submit',e=>{
+    e.preventDefault();
+    hasErrored=true;
+    let allGood=true;
+
+    required.forEach(input=>{
+      const ok=validInput(input);
+      input.classList.toggle('invalid',!ok);
+      input.classList.toggle('valid',ok);
+      if(!ok) allGood=false;
+    });
+
+    if(allGood){
+      const button=form.querySelector('.primary');
+      button.animate(
+        [{transform:'scale(.95)'},{transform:'scale(1.05)'},{transform:'scale(1)'}],
+        {duration:280,easing:'cubic-bezier(.22,.88,.28,1)'}
+      );
+    }
+  });
+});
+</script>
 </body>
 </html>
