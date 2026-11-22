@@ -232,15 +232,13 @@ input.valid{border-color:#32b99c;box-shadow:0 0 0 3px rgba(50,185,156,.08)}
 @keyframes ripple{to{transform:scale(4);opacity:0}}
 
 @media(max-width:720px){
-  .card{width:min(430px,96vw);height:680px}
-  .pane{width:100%;height:460px;left:0!important;right:auto!important;padding:38px 34px 30px}
-  .register-pane .form{opacity:0}
-  .card.register .login-pane .form{opacity:0}
-  .card.register .register-pane .form{opacity:1}
+  .card{width:min(430px,100%);height:auto}
+  .pane{position:relative;width:100%;height:auto;min-height:460px;left:auto;right:auto;padding:38px 34px 30px}
+  .card:not(.register) .register-pane,.card.register .login-pane{display:none}
   .slider,.card.register .slider{
-    left:0;
+    position:relative;
+    left:auto;
     top:auto;
-    bottom:0;
     width:100%;
     height:220px;
     transform:none;
