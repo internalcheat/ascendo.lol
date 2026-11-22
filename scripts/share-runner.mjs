@@ -8,6 +8,7 @@ import {RUNNER_AUDIENCE} from '../supabase/functions/profile-api/share-runner-au
 
 if(process.env.GITHUB_ACTIONS!=='true')throw Error('This publisher runs only in GitHub Actions.');
 const mode=process.argv[2],main=process.env.GITHUB_REF==='refs/heads/main';
+const publicProfileSlugs = new Set(['internalcheats', 'k3rlsen', 'dodoexe']);
 async function token(){
   const target=new URL(process.env.ACTIONS_ID_TOKEN_REQUEST_URL);target.searchParams.set('audience',RUNNER_AUDIENCE);
   const response=await fetch(target,{headers:{Authorization:'Bearer '+process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN}});if(!response.ok)throw Error('Could not obtain workflow identity.');
@@ -29,6 +30,7 @@ else if(mode==='run'){
   }
   const template=fs.readFileSync('profile-shell.html','utf8'),changed=[];
   for(const profile of profiles){
+    if (!publicProfileSlugs.has(profile.slug)) continue;
     if(profileSlug('/'+profile.slug)!==profile.slug)throw Error('Invalid published handle.');
     const file=publicProfilePath(profile.slug).slice(1)+'index.html',html=renderProfileDocument(template,profile.slug,profile);
     if(!fs.existsSync(file)||fs.readFileSync(file,'utf8').replaceAll('\r\n','\n')!==html.replaceAll('\r\n','\n')){fs.mkdirSync(path.dirname(file),{recursive:true});fs.writeFileSync(file,html);changed.push(file);}

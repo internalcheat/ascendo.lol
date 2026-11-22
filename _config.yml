@@ -1,0 +1,31 @@
+# Keep legacy source in the repository and omit it from GitHub Pages.
+exclude:
+  - Szikraaaa
+  - bal4zs
+  - chess
+  - cracks
+  - customize
+  - downloads
+  - forge
+  - login
+  - nagyorru
+  - plugins
+  - randomff
+  - saekq
+  - welcome
+  - yourhandle
+  - profile-shell.html
+  - route-prepare.js
+  - route-profile.mjs
+  - README.md
+  - SECURITY-AUDIT.md
+  - SHARING.md
+  - scripts
+  - supabase
+  - tests
+  - assets/bal4zs-avatar.webp
+  - assets/bal4zs-background-poster.jpg
+  - assets/bal4zs-background.mp4
+  - assets/bal4zs-mobile.mp4
+  - assets/bal4zs-original.png
+  - assets/szikraaaa-avatar.svg

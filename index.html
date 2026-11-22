@@ -79,11 +79,8 @@ body{min-height:100vh;display:grid;place-items:center;padding:24px}
   to{opacity:1;transform:translateY(0)}
 }
 
-.brand{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:760;color:#5d50ea;margin-bottom:33px}
-.brand-mark{width:16px;height:16px;border-radius:4px;background:linear-gradient(135deg,#6c5ef6,#5144e5);display:grid;place-items:center;color:#fff;font-size:8px}
-.kicker{font-size:10px;color:#9c9ca5;margin-bottom:6px}
-h1{font-size:26px;line-height:1.12;letter-spacing:-.045em;margin:0 0 8px;font-weight:770}
-.sub{font-size:11px;line-height:1.55;color:#a1a0aa;margin-bottom:24px}
+.brand{display:block;width:108px;height:auto;margin:0 0 17px}
+h1{font-size:26px;line-height:1.12;letter-spacing:-.045em;margin:0 0 19px;font-weight:770}
 .field{margin-bottom:12px}
 label{display:block;font-size:10px;font-weight:650;color:#65656f;margin:0 0 6px 1px}
 input{
@@ -140,7 +137,8 @@ input.valid{border-color:#32b99c;box-shadow:0 0 0 3px rgba(50,185,156,.08)}
 .or{display:flex;align-items:center;gap:9px;color:#b0afb7;font-size:8px;margin:14px 0}
 .or:before,.or:after{content:"";height:1px;flex:1;background:#ececf1}
 .socials{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.social{height:34px;border:1px solid #e3e3e8;border-radius:5px;background:#fff;color:#575760;font-size:9px;font-weight:650;cursor:pointer}
+.social{display:flex;align-items:center;justify-content:center;gap:7px;height:34px;border:1px solid #e3e3e8;border-radius:5px;background:#fff;color:#575760;font-size:9px;font-weight:650;cursor:pointer}
+.social img{display:block;width:15px;height:15px;object-fit:contain}
 .small-switch{text-align:center;font-size:9px;color:#a09fa9;margin-top:15px}
 .small-switch button{border:0;background:none;padding:0;color:#5d50eb;font:inherit;font-weight:760;cursor:pointer}
 
@@ -261,10 +259,8 @@ input.valid{border-color:#32b99c;box-shadow:0 0 0 3px rgba(50,185,156,.08)}
 <main class="card" id="card">
   <section class="pane login-pane">
     <form class="form" id="loginForm" novalidate>
-      <div class="brand"><span class="brand-mark">◆</span> move.</div>
-      <div class="kicker">Welcome</div>
+      <img class="brand" src="/assets/ascendo-login-wordmark.png" alt="Ascendo" width="108" height="36">
       <h1>Welcome back</h1>
-      <div class="sub">Enter your details to access your account.</div>
 
       <div class="field">
         <label>Email address</label>
@@ -283,8 +279,8 @@ input.valid{border-color:#32b99c;box-shadow:0 0 0 3px rgba(50,185,156,.08)}
       <button class="primary" type="submit">Sign in</button>
       <div class="or">or continue with</div>
       <div class="socials">
-        <button class="social" type="button">Google</button>
-        <button class="social" type="button">Apple</button>
+        <button class="social" type="button"><img src="/assets/google-sign-in-logo.png" alt="" width="15" height="15">Google</button>
+        <button class="social" type="button"><img src="/assets/apple-sign-in-logo.svg" alt="" width="15" height="15">Apple</button>
       </div>
       <div class="small-switch">New here? <button type="button" data-go="register">Create account</button></div>
     </form>
@@ -292,10 +288,8 @@ input.valid{border-color:#32b99c;box-shadow:0 0 0 3px rgba(50,185,156,.08)}
 
   <section class="pane register-pane">
     <form class="form" id="registerForm" novalidate>
-      <div class="brand"><span class="brand-mark">◆</span> move.</div>
-      <div class="kicker">Get started</div>
+      <img class="brand" src="/assets/ascendo-login-wordmark.png" alt="Ascendo" width="108" height="36">
       <h1>Create your account</h1>
-      <div class="sub">Set up your account in less than a minute.</div>
 
       <div class="field">
         <label>Name</label>
