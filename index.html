@@ -3,7 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Login / Signup Animation</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'unsafe-inline'; script-src 'self'; connect-src https://fstdttaxflayhtwhnbih.supabase.co; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<title>Sign in | Ascendo</title>
 <style>
 :root{
   --ink:#18181c;
@@ -112,7 +114,10 @@ input.valid{border-color:#32b99c;box-shadow:0 0 0 3px rgba(50,185,156,.08)}
 .strength-bar{height:100%;width:0;border-radius:inherit;background:#d7d7dd;transition:width 220ms var(--soft),background 180ms ease}
 .strength-copy{display:flex;justify-content:space-between;align-items:center;margin-top:5px;font-size:8px;color:#aaa9b1}
 .req{display:flex;gap:6px;align-items:center}.req i{width:5px;height:5px;border-radius:50%;background:#c7c6cd;transition:background 150ms ease,box-shadow 150ms ease}.req.ok i{background:#32b99c;box-shadow:0 0 8px rgba(50,185,156,.25)}.req.ok{color:#6b9d91}
-.name-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.form-status{margin:0;color:#575760;font-size:12px;line-height:1.35}
+.form-status:not(:empty){margin-top:12px}
+.form-status[data-error]{color:#aa304d}
+.primary:disabled{cursor:wait;opacity:.65}
 .row{display:flex;align-items:center;justify-content:space-between;margin:4px 0 15px;font-size:9px;color:#9999a2}
 .check{display:flex;align-items:center;gap:5px}.check input{width:11px;height:11px;margin:0;accent-color:#5d50eb}
 .link{color:#5d50eb;text-decoration:none;font-weight:650}
@@ -138,6 +143,7 @@ input.valid{border-color:#32b99c;box-shadow:0 0 0 3px rgba(50,185,156,.08)}
 .or:before,.or:after{content:"";height:1px;flex:1;background:#ececf1}
 .socials{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .social{display:flex;align-items:center;justify-content:center;gap:7px;height:34px;border:1px solid #e3e3e8;border-radius:5px;background:#fff;color:#575760;font-size:9px;font-weight:650;cursor:pointer}
+.social[aria-disabled=true]{cursor:default}
 .social img{display:block;width:15px;height:15px;object-fit:contain}
 .small-switch{text-align:center;font-size:9px;color:#a09fa9;margin-top:15px}
 .small-switch button{border:0;background:none;padding:0;color:#5d50eb;font:inherit;font-weight:760;cursor:pointer}
@@ -256,56 +262,53 @@ input.valid{border-color:#32b99c;box-shadow:0 0 0 3px rgba(50,185,156,.08)}
 
 <main class="card" id="card">
   <section class="pane login-pane">
-    <form class="form" id="loginForm" novalidate>
+    <form class="form" id="loginForm" method="post" novalidate>
       <img class="brand" src="/assets/ascendo-login-wordmark.png" alt="Ascendo" width="108" height="36">
       <h1>Welcome back</h1>
 
       <div class="field">
-        <label>Email address</label>
-        <input type="email" placeholder="name@example.com" required>
+        <label for="loginIdentifier">Email or username</label>
+        <input id="loginIdentifier" name="identifier" type="text" placeholder="Email or username" required maxlength="254" autocomplete="username" autocapitalize="none" spellcheck="false">
       </div>
       <div class="field">
-        <label>Password</label>
-        <input type="password" placeholder="••••••••" required minlength="6">
+        <label for="loginPassword">Password</label>
+        <input id="loginPassword" name="password" type="password" placeholder="••••••••" required autocomplete="current-password">
       </div>
 
       <div class="row">
-        <label class="check"><input type="checkbox"> Remember me</label>
-        <a class="link" href="#">Forgot password?</a>
+        <label class="check"><input id="loginRemember" type="checkbox"> Remember me</label>
       </div>
 
       <button class="primary" type="submit">Sign in</button>
+      <p class="form-status" id="loginStatus" role="status" aria-live="polite"></p>
       <div class="or">or continue with</div>
       <div class="socials">
-        <button class="social" type="button"><img src="/assets/google-sign-in-logo.png" alt="" width="15" height="15">Google</button>
-        <button class="social" type="button"><img src="/assets/apple-sign-in-logo.svg" alt="" width="15" height="15">Apple</button>
+        <button class="social" type="button" aria-disabled="true"><img src="/assets/google-sign-in-logo.png" alt="" width="15" height="15">Google</button>
+        <button class="social" type="button" aria-disabled="true"><img src="/assets/apple-sign-in-logo.svg" alt="" width="15" height="15">Apple</button>
       </div>
       <div class="small-switch">New here? <button type="button" data-go="register">Create account</button></div>
     </form>
   </section>
 
   <section class="pane register-pane">
-    <form class="form" id="registerForm" novalidate>
+    <form class="form" id="registerForm" method="post" novalidate>
       <img class="brand" src="/assets/ascendo-login-wordmark.png" alt="Ascendo" width="108" height="36">
       <h1>Create your account</h1>
 
       <div class="field">
-        <label>Name</label>
-        <div class="name-row">
-          <input type="text" placeholder="First name" required aria-label="First name">
-          <input type="text" placeholder="Last name" required aria-label="Last name">
-        </div>
+        <label for="registerUsername">Username</label>
+        <input id="registerUsername" name="username" type="text" placeholder="yourusername" required minlength="3" maxlength="24" pattern="[A-Za-z0-9_]{3,24}" title="Use 3 to 24 letters, numbers, or underscores" autocomplete="username" autocapitalize="none" spellcheck="false">
       </div>
 
       <div class="field">
-        <label>Email address</label>
-        <input type="email" placeholder="name@example.com" required autocomplete="email">
+        <label for="registerEmail">Email address</label>
+        <input id="registerEmail" name="email" maxlength="254" type="email" placeholder="name@example.com" required autocomplete="email">
       </div>
 
       <div class="field">
-        <label>Password</label>
+        <label for="registerPassword">Password</label>
         <div class="input-wrap">
-          <input id="registerPassword" type="password" placeholder="Create a password" required minlength="8" autocomplete="new-password">
+          <input id="registerPassword" name="password" type="password" placeholder="Create a password" required minlength="8" autocomplete="new-password">
           <button class="eye" type="button" id="togglePassword" aria-label="Show password">
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path d="M3.5 12s3-5 8.5-5 8.5 5 8.5 5-3 5-8.5 5-8.5-5-8.5-5Z" stroke="currentColor" stroke-width="1.7"/>
@@ -320,11 +323,8 @@ input.valid{border-color:#32b99c;box-shadow:0 0 0 3px rgba(50,185,156,.08)}
         </div>
       </div>
 
-      <div class="row">
-        <label class="check"><input type="checkbox" required> I agree to the terms</label>
-      </div>
-
       <button class="primary" type="submit">Create account</button>
+      <p class="form-status" id="registerStatus" role="status" aria-live="polite"></p>
       <div class="small-switch">Already have an account? <button type="button" data-go="login">Sign in</button></div>
     </form>
   </section>
@@ -357,133 +357,6 @@ input.valid{border-color:#32b99c;box-shadow:0 0 0 3px rgba(50,185,156,.08)}
   </aside>
 </main>
 
-<script>
-const card = document.getElementById('card');
-let mode = 'login';
-let locked = false;
-
-function go(next){
-  if(locked || next === mode) return;
-  locked = true;
-  mode = next;
-
-  // The reference behavior:
-  // register -> purple "New here?" panel sweeps from right to left,
-  // revealing the register form on the right.
-  // login -> exact reverse.
-  card.classList.toggle('register', next === 'register');
-
-  setTimeout(() => locked = false, 710);
-}
-
-document.querySelectorAll('[data-go]').forEach(btn=>{
-  btn.addEventListener('click', () => go(btn.dataset.go));
-});
-
-document.querySelectorAll('.primary').forEach(btn=>{
-  btn.addEventListener('pointerdown', e=>{
-    const r=btn.getBoundingClientRect();
-    const d=Math.max(r.width,r.height);
-    const s=document.createElement('span');
-    s.className='ripple';
-    s.style.width=s.style.height=d+'px';
-    s.style.left=(e.clientX-r.left-d/2)+'px';
-    s.style.top=(e.clientY-r.top-d/2)+'px';
-    btn.appendChild(s);
-    s.addEventListener('animationend',()=>s.remove());
-  });
-});
-
-
-const registerPassword = document.getElementById("registerPassword");
-const togglePassword = document.getElementById("togglePassword");
-const strengthBar = document.getElementById("strengthBar");
-const strengthLabel = document.getElementById("strengthLabel");
-const strengthReq = document.getElementById("strengthReq");
-
-togglePassword?.addEventListener("click",()=>{
-  const showing = registerPassword.type === "text";
-  registerPassword.type = showing ? "password" : "text";
-  togglePassword.setAttribute("aria-label", showing ? "Show password" : "Hide password");
-  togglePassword.animate(
-    [{transform:"translateY(-50%) scale(.88)"},{transform:"translateY(-50%) scale(1.06)"},{transform:"translateY(-50%) scale(1)"}],
-    {duration:220,easing:"cubic-bezier(.22,.88,.28,1)"}
-  );
-});
-
-registerPassword?.addEventListener("input",()=>{
-  const v = registerPassword.value;
-  let score = 0;
-  if(v.length >= 8) score++;
-  if(/[A-Z]/.test(v) && /[a-z]/.test(v)) score++;
-  if(/\d/.test(v)) score++;
-  if(/[^A-Za-z0-9]/.test(v)) score++;
-
-  const widths = ["0%","28%","52%","76%","100%"];
-  const colors = ["#d7d7dd","#e46d7b","#e3a14a","#8e72f4","#32b99c"];
-  const labels = ["Use 8+ characters","Weak","Fair","Good","Strong"];
-
-  strengthBar.style.width = widths[score];
-  strengthBar.style.background = colors[score];
-  strengthLabel.textContent = labels[score];
-  strengthReq.classList.toggle("ok", score >= 3);
-});
-
-function validInput(input){
-  if(input.type==='email') return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(input.value.trim());
-  if(input.type==='password') return input.id==='registerPassword' ? input.value.length>=8 : input.value.length>=6;
-  if(input.type==='checkbox') return input.checked;
-  return input.value.trim().length>0;
-}
-
-document.querySelectorAll('form').forEach(form=>{
-  let hasErrored=false;
-  const required=[...form.querySelectorAll('input[required]')];
-
-  required.forEach(input=>{
-    input.addEventListener('blur',()=>{
-      const ok=validInput(input);
-      if(!ok) hasErrored=true;
-      input.classList.toggle('invalid',!ok);
-      input.classList.toggle('valid',ok);
-    });
-
-    input.addEventListener('input',()=>{
-      if(!hasErrored) return;
-      const ok=validInput(input);
-      input.classList.toggle('invalid',!ok);
-      input.classList.toggle('valid',ok);
-    });
-
-    input.addEventListener('change',()=>{
-      if(!hasErrored) return;
-      const ok=validInput(input);
-      input.classList.toggle('invalid',!ok);
-      input.classList.toggle('valid',ok);
-    });
-  });
-
-  form.addEventListener('submit',e=>{
-    e.preventDefault();
-    hasErrored=true;
-    let allGood=true;
-
-    required.forEach(input=>{
-      const ok=validInput(input);
-      input.classList.toggle('invalid',!ok);
-      input.classList.toggle('valid',ok);
-      if(!ok) allGood=false;
-    });
-
-    if(allGood){
-      const button=form.querySelector('.primary');
-      button.animate(
-        [{transform:'scale(.95)'},{transform:'scale(1.05)'},{transform:'scale(1)'}],
-        {duration:280,easing:'cubic-bezier(.22,.88,.28,1)'}
-      );
-    }
-  });
-});
-</script>
+<script type="module" src="/assets/login-form.mjs"></script>
 </body>
 </html>
