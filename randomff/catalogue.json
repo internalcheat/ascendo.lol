@@ -2,12 +2,12 @@
   "schemaVersion": 1,
   "channelId": "UCrR-9qug_zHoiBBGTXGP2Hw",
   "channelUrl": "https://www.youtube.com/@FamilyFriendly",
-  "generatedAt": "2026-11-22T19:53:58Z",
+  "generatedAt": "2026-11-25T08:55:16Z",
   "source": "Complete YouTube videos and shorts tabs via yt-dlp; no media downloaded",
   "counts": {
     "videos": 116,
-    "shorts": 130,
-    "total": 246
+    "shorts": 131,
+    "total": 247
   },
   "videos": [
     {
@@ -384,6 +384,11 @@
       "id": "J9h3KMFZvqQ",
       "title": "Dating App Scavenger Hunt",
       "isShort": false
+    },
+    {
+      "id": "JDDn9bmobYQ",
+      "title": "We Crashed An Improv Class 🤣",
+      "isShort": true
     },
     {
       "id": "JOXmZ49i_V8",
