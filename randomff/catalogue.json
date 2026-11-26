@@ -2,12 +2,12 @@
   "schemaVersion": 1,
   "channelId": "UCrR-9qug_zHoiBBGTXGP2Hw",
   "channelUrl": "https://www.youtube.com/@FamilyFriendly",
-  "generatedAt": "2026-11-25T08:55:16Z",
+  "generatedAt": "2026-11-26T21:46:37Z",
   "source": "Complete YouTube videos and shorts tabs via yt-dlp; no media downloaded",
   "counts": {
     "videos": 116,
-    "shorts": 131,
-    "total": 247
+    "shorts": 132,
+    "total": 248
   },
   "videos": [
     {
@@ -673,6 +673,11 @@
     {
       "id": "SzM9q-i87ig",
       "title": "We Pranked an Improv Class 😂",
+      "isShort": true
+    },
+    {
+      "id": "SznkbdjQpOA",
+      "title": "We Pranked A Focus Group 😂",
       "isShort": true
     },
     {
