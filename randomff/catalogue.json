@@ -2,12 +2,12 @@
   "schemaVersion": 1,
   "channelId": "UCrR-9qug_zHoiBBGTXGP2Hw",
   "channelUrl": "https://www.youtube.com/@FamilyFriendly",
-  "generatedAt": "2026-11-26T21:46:37Z",
+  "generatedAt": "2026-11-27T21:30:22Z",
   "source": "Complete YouTube videos and shorts tabs via yt-dlp; no media downloaded",
   "counts": {
-    "videos": 116,
+    "videos": 117,
     "shorts": 132,
-    "total": 248
+    "total": 249
   },
   "videos": [
     {
@@ -1198,6 +1198,11 @@
     {
       "id": "wUhxLQ4SpRs",
       "title": "We Set Him Up!",
+      "isShort": false
+    },
+    {
+      "id": "wZ20GCqesIc",
+      "title": "We Pitched Offensive Plans To Strangers",
       "isShort": false
     },
     {
